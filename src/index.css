@@ -1,0 +1,804 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800;900&family=Nunito+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --border-color: #e2e8f0;
+  --border-color-hover: #000000;
+  
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  
+  --accent-color: #000000;
+  --accent-grey: #f1f5f9;
+  --accent-orange: #000000;
+  --accent-glow: rgba(0, 0, 0, 0.08);
+  
+  --font-display: 'Nunito', sans-serif;
+  --font-body: 'Nunito Sans', sans-serif;
+  
+  --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-fast: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* ============================================================
+   ANIMATED GRID BACKGROUND
+   ============================================================ */
+@keyframes gridMove {
+  0%   { background-position: 0 0; }
+  100% { background-position: 40px 40px; }
+}
+
+.grid-bg {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image:
+    linear-gradient(rgba(0,0,0,0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.012) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+  animation: gridMove 22s linear infinite;
+}
+
+/* ============================================================
+   SCROLLBARS
+   ============================================================ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-color); }
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* ============================================================
+   MARQUEE / TICKER STRIP
+   ============================================================ */
+.marquee-wrapper {
+  background: #000000;
+  overflow: hidden;
+  padding: 9px 0;
+  margin-bottom: 0;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marqueeScroll 32s linear infinite;
+}
+
+.marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding: 0 2rem;
+  font-family: var(--font-display);
+}
+
+.marquee-dot {
+  color: #555;
+  font-size: 0.5rem;
+}
+
+@keyframes marqueeScroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ============================================================
+   HERO CAROUSEL CORNERS
+   ============================================================ */
+.hero-corner {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.hero-corner-tl {
+  top: 20px; left: 20px;
+  border-top: 2px solid rgba(255,255,255,0.4);
+  border-left: 2px solid rgba(255,255,255,0.4);
+  animation: cornerPulse 3s ease-in-out infinite;
+}
+
+.hero-corner-br {
+  bottom: 20px; right: 20px;
+  border-bottom: 2px solid rgba(255,255,255,0.4);
+  border-right: 2px solid rgba(255,255,255,0.4);
+  animation: cornerPulse 3s ease-in-out infinite 1.5s;
+}
+
+@keyframes cornerPulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 1; }
+}
+
+/* ============================================================
+   CAROUSEL ARROWS
+   ============================================================ */
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #ffffff;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.carousel-arrow:hover {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn-primary {
+  background-color: var(--accent-color);
+  color: #ffffff;
+  border: 1px solid var(--accent-color);
+  padding: 0.65rem 1.4rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: var(--transition-smooth);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 300px; height: 300px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.5s ease-out;
+}
+
+.btn-primary:hover::after { transform: translate(-50%, -50%) scale(1); }
+.btn-primary:hover {
+  background-color: #ffffff;
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+  box-shadow: 0 4px 20px var(--accent-glow);
+}
+
+.btn-primary:disabled {
+  background-color: #e0e0e0;
+  border-color: #e0e0e0;
+  color: #a0a0a0;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 0.65rem 1.4rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: var(--transition-smooth);
+  border-radius: 8px;
+}
+
+.btn-secondary:hover {
+  background-color: var(--accent-grey);
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+}
+
+/* ============================================================
+   GLASS PANELS
+   ============================================================ */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  transition: var(--transition-smooth);
+}
+
+.glass-panel:hover {
+  border-color: var(--accent-color);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+}
+
+/* ============================================================
+   INPUTS
+   ============================================================ */
+.input-field {
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.75rem 1rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  width: 100%;
+  transition: var(--transition-smooth);
+  border-radius: 8px;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.select-field {
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.75rem 1rem;
+  font-family: var(--font-body);
+  width: 100%;
+  transition: var(--transition-smooth);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+/* ============================================================
+   UPLOAD ZONES
+   ============================================================ */
+.upload-zone {
+  border: 1px dashed #aaaaaa;
+  background-color: #fafafa;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.upload-zone:hover {
+  border-color: #000000;
+  background-color: #f7f7f7;
+}
+
+/* ============================================================
+   CATEGORY CIRCLES
+   ============================================================ */
+.category-circle-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  width: 100px;
+  animation: fadeInUp 0.5s ease-out both;
+}
+
+.category-circle-btn .circle-icon-box {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-color);
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: var(--transition-smooth);
+  overflow: hidden;
+}
+
+.category-circle-btn:hover .circle-icon-box {
+  border-color: #000000;
+  background-color: #000000;
+  color: #ffffff;
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.category-circle-btn.active .circle-icon-box {
+  border-color: #000000;
+  background-color: #000000;
+  color: #ffffff;
+}
+
+/* ============================================================
+   SHELF / SECTION HEADERS
+   ============================================================ */
+.shelf-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-bottom: 0.6rem;
+  margin-bottom: 1.75rem;
+}
+
+.shelf-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #000000;
+}
+
+/* ============================================================
+   PRODUCTS GRID
+   ============================================================ */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 1.2rem;
+}
+
+/* ============================================================
+   PRODUCTS HORIZONTAL SCROLL
+   ============================================================ */
+.products-scroll-container {
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  padding: 0.5rem 0.25rem 1rem;
+  scrollbar-width: none; /* Hide scrollbar for Firefox */
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+}
+
+.products-scroll-container::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for Chrome, Safari, Opera */
+}
+
+.products-scroll-container .product-card {
+  flex: 0 0 250px;
+  scroll-snap-align: start;
+}
+
+.carousel-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  outline: none;
+  padding: 0;
+  opacity: 0; /* Hidden by default, fades in on hover */
+  pointer-events: none;
+}
+
+.carousel-wrapper:hover .carousel-nav-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.carousel-nav-btn:hover {
+  background-color: #000000;
+  color: #ffffff;
+  border-color: #000000;
+  transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.carousel-nav-btn:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+
+
+
+/* ============================================================
+   PRODUCT CARD
+   ============================================================ */
+.product-card {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: fadeInUp 0.5s ease-out both;
+}
+
+.product-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--accent-color);
+  box-shadow: 0 16px 32px var(--accent-glow);
+}
+
+/* ============================================================
+   WISHLIST HEART BUTTON
+   ============================================================ */
+.card-heart-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  transition: var(--transition-smooth);
+}
+
+.card-heart-btn:hover {
+  transform: scale(1.15);
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+.card-heart-btn.active {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+  color: #ffffff;
+  box-shadow: 0 4px 10px var(--accent-glow);
+}
+
+/* ============================================================
+   VALUE PROPS
+   ============================================================ */
+.value-props-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem 1.5rem;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  background: #ffffff;
+}
+
+.value-prop-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* ============================================================
+   TRENDING BANNER
+   ============================================================ */
+.trending-banner {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #000;
+  transition: all 0.3s ease;
+}
+
+.trending-banner:hover {
+  transform: none;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideLeft {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes slideUpOverlay {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes laserSweep {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+@keyframes spin-slow {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse-glow {
+  0%   { transform: scale(0.8); opacity: 0.5; }
+  50%  { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.8); opacity: 0.5; }
+}
+
+@keyframes shimmerMove {
+  0%   { left: -150%; }
+  100% { left: 150%; }
+}
+
+/* ============================================================
+   TAB TRANSITION
+   ============================================================ */
+.tab-page-transition {
+  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ============================================================
+   SCANNING / SPINNER
+   ============================================================ */
+.scanning-bar {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: #000000;
+  box-shadow: 0 0 10px #000000;
+  animation: laserSweep 2.5s infinite linear;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(0,0,0,0.1);
+  border-top-color: #000000;
+  border-radius: 50%;
+  animation: spin-slow 1s infinite linear;
+}
+
+/* ============================================================
+   PULSE DOT (LIVE FEED)
+   ============================================================ */
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  display: inline-block;
+  animation: pulse-glow 1.5s infinite ease-in-out;
+}
+
+/* ============================================================
+   SHIMMER SWEEP BUTTON
+   ============================================================ */
+.shimmer-sweep {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-sweep::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -150%;
+  width: 50%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  transform: skewX(-20deg);
+  animation: shimmerMove 3s linear infinite;
+}
+
+/* ============================================================
+   CARD HOVER LIFT (legacy compat)
+   ============================================================ */
+.card-hover-lift {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+  border-color: #000000 !important;
+}
+
+/* ============================================================
+   CAROUSEL CONTAINER (legacy compat)
+   ============================================================ */
+.carousel-container {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+  margin-bottom: 2.5rem;
+}
+
+/* ============================================================
+   SUB NAVIGATION BUTTONS
+   ============================================================ */
+.sub-nav-btn {
+  position: relative;
+  background: transparent;
+  border: none;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0.4rem 0;
+  transition: color 0.25s ease;
+}
+
+.sub-nav-btn::after {
+  content: '';
+  position: absolute;
+  bottom: -4px; left: 50%;
+  width: 0; height: 2px;
+  background-color: var(--accent-color);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateX(-50%);
+}
+
+.sub-nav-btn:hover {
+  color: var(--accent-color) !important;
+}
+
+.sub-nav-btn:hover::after {
+  width: 100%;
+}
+
+.sub-nav-btn.active {
+  color: var(--accent-color) !important;
+  font-weight: 700 !important;
+}
+
+.sub-nav-btn.active::after {
+  width: 100%;
+  background-color: var(--accent-color);
+}
+
+/* ============================================================
+   RESPONSIVE STYLING FOR MOBILE DEVICES (max-width: 767px)
+   ============================================================ */
+@media (max-width: 767px) {
+  /* Main wrapper layout */
+  .main-catalog-container {
+    padding: 0 1rem 1.5rem !important;
+  }
+
+  /* Hero Carousel Mobile Tweaks */
+  .hero-carousel-container {
+    height: 320px !important;
+  }
+  .carousel-arrow {
+    display: none !important;
+  }
+  .hero-glass-panel {
+    left: 1rem !important;
+    right: 1rem !important;
+    max-width: none !important;
+    width: calc(100% - 2rem) !important;
+    padding: 1rem !important;
+  }
+  .hero-slide-dots {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    bottom: 16px !important;
+  }
+
+  /* E-Store Shelf Section Headers stacking */
+  .shelf-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+  .shelf-title {
+    font-size: 1rem !important;
+  }
+
+  /* Catalog Flex Columns Layout stacking */
+  .catalog-layout-container {
+    flex-direction: column !important;
+    gap: 1.5rem !important;
+  }
+  .catalog-sidebar {
+    width: 100% !important;
+    position: static !important;
+    padding: 1.25rem !important;
+    gap: 1.25rem !important;
+  }
+
+  /* Hide scroll carousel side arrows on touch screens */
+  .carousel-nav-btn {
+    display: none !important;
+  }
+
+  /* Interactive pages layout grid stacking */
+  .print-lab-grid,
+  .spare-parts-grid,
+  .student-hub-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+
+  /* Footer Layout mobile centering and vertical column flow */
+  .footer-links-grid {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+    padding: 2rem 1.5rem !important;
+  }
+  .footer-bottom-bar {
+    padding-bottom: 5.5rem !important; /* space for Zylix live feed button */
+  }
+  .footer-bottom-container {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 1rem !important;
+  }
+  .footer-bottom-container div {
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 1rem !important;
+  }
+}
