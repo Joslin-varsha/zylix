@@ -1,11 +1,18 @@
 import React from 'react';
 import { X, Star } from 'lucide-react';
 
-export default function ProductDetailModal({ product, onClose, onAddToCart }) {
+export default function ProductDetailModal({ product, onClose, onAddToCart, onCustomize }) {
   const [quantity, setQuantity] = React.useState(1);
   const [selectedSpecTab, setSelectedSpecTab] = React.useState('specs');
 
   if (!product) return null;
+
+  const isCustomizable = 
+    product.name.toLowerCase().includes('custom') || 
+    product.name.toLowerCase().includes('personalized') || 
+    product.category === 'keychains' || 
+    product.category === 'lightbox' || 
+    product.badge === 'CUSTOM';
 
   const handleAddToCart = () => {
     onAddToCart(product, quantity);
@@ -283,21 +290,49 @@ export default function ProductDetailModal({ product, onClose, onAddToCart }) {
             </div>
 
             {/* Call to Actions */}
-            <div style={{ display: 'flex', gap: '1rem', marginTop: 'auto' }}>
-              <button 
-                onClick={handleAddToCart}
-                className="btn-primary" 
-                style={{ flex: 1, height: '45px' }}
-              >
-                Add to Shopping Cart
-              </button>
-              <button 
-                onClick={onClose}
-                className="btn-secondary" 
-                style={{ padding: '0.75rem' }}
-              >
-                Cancel
-              </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: 'auto', width: '100%' }}>
+              <div style={{ display: 'flex', gap: '1rem', width: '100%' }}>
+                <button 
+                  onClick={handleAddToCart}
+                  className="btn-primary" 
+                  style={{ flex: 1, height: '45px' }}
+                >
+                  Add to Shopping Cart
+                </button>
+                <button 
+                  onClick={onClose}
+                  className="btn-secondary" 
+                  style={{ padding: '0.75rem' }}
+                >
+                  Cancel
+                </button>
+              </div>
+              {isCustomizable && onCustomize && (
+                <button 
+                  onClick={() => {
+                    onCustomize(product);
+                    onClose();
+                  }}
+                  className="btn-primary" 
+                  style={{ 
+                    width: '100%', 
+                    height: '42px', 
+                    background: '#000000', 
+                    color: '#ffffff', 
+                    border: '1px solid #000000',
+                    fontSize: '0.8rem',
+                    fontWeight: '700',
+                    letterSpacing: '0.04em',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer'
+                  }}
+                >
+                  ✨ Customize Design in 3D Lab
+                </button>
+              )}
             </div>
           </div>
         </div>

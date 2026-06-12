@@ -1,509 +1,437 @@
 import React from 'react';
-import { Cpu, Award, ShieldCheck } from 'lucide-react';
+import { Upload, CheckCircle2, Calendar } from 'lucide-react';
 
-export default function StudentHub({ onAddToCart, setStudentApplied, studentApplied }) {
-  const [activePreset, setActivePreset] = React.useState('pcb');
-  const [studentId, setStudentId] = React.useState('');
-  const [idVerified, setIdVerified] = React.useState(false);
+export default function StudentHub({ user }) {
+  const [projectType, setProjectType] = React.useState('College Project');
+  const [customProjectType, setCustomProjectType] = React.useState('');
+  const [projectName, setProjectName] = React.useState('');
+  const [description, setDescription] = React.useState('');
+  const [quantity, setQuantity] = React.useState(1);
+  const [customQuantity, setCustomQuantity] = React.useState('');
+  const [requiredDate, setRequiredDate] = React.useState('');
+  const [uploadedFiles, setUploadedFiles] = React.useState([]);
 
-  // PCB case configs
-  const [pcbBoard, setPcbBoard] = React.useState('arduino');
-  const [pcbL, setPcbL] = React.useState(75);
-  const [pcbW, setPcbW] = React.useState(55);
-  const [pcbH, setPcbH] = React.useState(25);
-  const [hasVents, setHasVents] = React.useState(true);
+  // Contact Details
+  const [customerName, setCustomerName] = React.useState('');
+  const [customerEmail, setCustomerEmail] = React.useState('');
+  const [customerPhone, setCustomerPhone] = React.useState('');
 
-  // Chassis configs
-  const [chassisShape, setChassisShape] = React.useState('rectangle');
-  const [chassisL, setChassisL] = React.useState(200);
-  const [chassisW, setChassisW] = React.useState(140);
-  const [motorMounts, setMotorMounts] = React.useState(4);
+  // Submission states
+  const [submitting, setSubmitting] = React.useState(false);
+  const [submitted, setSubmitted] = React.useState(false);
+  const [ticketId, setTicketId] = React.useState('');
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
 
-  // Drone configs
-  const [droneSize, setDroneSize] = React.useState(220);
-  const [armThickness, setArmThickness] = React.useState(4);
-
-  const canvasRef = React.useRef(null);
-
-  // Pre-load PCB presets
   React.useEffect(() => {
-    if (pcbBoard === 'arduino') { setPcbL(75); setPcbW(55); setPcbH(25); }
-    if (pcbBoard === 'raspberry') { setPcbL(90); setPcbW(60); setPcbH(30); }
-    if (pcbBoard === 'esp32') { setPcbL(55); setPcbW(35); setPcbH(18); }
-  }, [pcbBoard]);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-  // Canvas schema rendering loop
   React.useEffect(() => {
-    if (!canvasRef.current) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    const w = canvas.width;
-    const h = canvas.height;
-
-    ctx.clearRect(0, 0, w, h);
-    ctx.strokeStyle = '#e9e9e9';
-    ctx.lineWidth = 1;
-    
-    // Draw drafting alignment grids
-    ctx.beginPath();
-    for (let x = 20; x < w; x += 20) {
-      ctx.moveTo(x, 0); ctx.lineTo(x, h);
+    if (user) {
+      setCustomerName(user.name || '');
+      setCustomerEmail(user.email || '');
     }
-    for (let y = 20; y < h; y += 20) {
-      ctx.moveTo(0, y); ctx.lineTo(w, y);
+  }, [user]);
+
+  const handleFileUpload = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      setUploadedFiles(prev => [...prev, ...files]);
     }
-    ctx.stroke();
+  };
 
-    ctx.strokeStyle = '#000000';
-    ctx.fillStyle = '#000000';
-    ctx.lineWidth = 2;
+  const handleRemoveFile = (index) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
 
-    if (activePreset === 'pcb') {
-      const boxW = Math.min(180, pcbL * 1.5);
-      const boxH = Math.min(140, pcbW * 1.5);
-      const startX = w / 2 - boxW / 2;
-      const startY = h / 2 - boxH / 2;
-
-      ctx.strokeRect(startX, startY, boxW, boxH);
-      
-      // Draw inner PCB borders
-      ctx.strokeStyle = '#888';
-      ctx.setLineDash([4, 4]);
-      ctx.strokeRect(startX + 8, startY + 8, boxW - 16, boxH - 16);
-      ctx.setLineDash([]);
-
-      // Draw port cutouts
-      ctx.fillStyle = '#000';
-      ctx.fillRect(startX - 4, startY + boxH / 2 - 12, 6, 24); // USB Port
-      ctx.fillStyle = '#444';
-      ctx.font = '9px monospace';
-      ctx.fillText("USB CUTOUT", startX + 8, startY + boxH / 2 + 4);
-
-      if (hasVents) {
-        ctx.strokeStyle = '#444';
-        ctx.lineWidth = 1.5;
-        for (let i = 0; i < 4; i++) {
-          ctx.beginPath();
-          ctx.moveTo(startX + boxW / 2 - 20 + i*10, startY + 20);
-          ctx.lineTo(startX + boxW / 2 - 20 + i*10, startY + 40);
-          ctx.stroke();
-        }
-        ctx.fillText("COOLING VENTS", startX + boxW / 2 - 38, startY + 54);
-      }
-
-      // Dimension lines
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 1;
-      
-      ctx.beginPath();
-      ctx.moveTo(startX, startY + boxH + 15);
-      ctx.lineTo(startX + boxW, startY + boxH + 15);
-      ctx.stroke();
-      ctx.fillText(`${pcbL} mm`, startX + boxW/2 - 15, startY + boxH + 28);
-      
-      ctx.beginPath();
-      ctx.moveTo(startX - 15, startY);
-      ctx.lineTo(startX - 15, startY + boxH);
-      ctx.stroke();
-      ctx.save();
-      ctx.translate(startX - 22, startY + boxH/2 + 15);
-      ctx.rotate(-Math.PI / 2);
-      ctx.fillText(`${pcbW} mm`, 0, 0);
-      ctx.restore();
-
-    } else if (activePreset === 'chassis') {
-      const startX = w / 2;
-      const startY = h / 2;
-      const chW = Math.min(180, chassisL * 0.7);
-      const chH = Math.min(120, chassisW * 0.7);
-
-      ctx.strokeStyle = '#000';
-      if (chassisShape === 'rectangle') {
-        ctx.strokeRect(startX - chW/2, startY - chH/2, chW, chH);
-      } else {
-        ctx.beginPath();
-        ctx.arc(startX, startY, chH/2, 0, 2*Math.PI);
-        ctx.stroke();
-      }
-
-      ctx.fillStyle = '#888';
-      if (motorMounts >= 2) {
-        ctx.fillRect(startX - chW/2 - 10, startY - chH/2 + 10, 8, 20);
-        ctx.fillRect(startX - chW/2 - 10, startY + chH/2 - 30, 8, 20);
-      }
-      if (motorMounts === 4) {
-        ctx.fillRect(startX + chW/2 + 2, startY - chH/2 + 10, 8, 20);
-        ctx.fillRect(startX + chW/2 + 2, startY + chH/2 - 30, 8, 20);
-      }
-
-      ctx.fillStyle = '#000';
-      ctx.fillRect(startX - 20, startY - 20, 40, 6);
-      ctx.fillRect(startX - 20, startY + 14, 40, 6);
-      ctx.font = '9px monospace';
-      ctx.fillText("CAD MATRIX", startX - 26, startY + 6);
-
-      ctx.fillStyle = '#444';
-      ctx.fillText(`${chassisL} x ${chassisW} mm`, 10, h - 10);
-
-    } else if (activePreset === 'drone') {
-      const startX = w / 2;
-      const startY = h / 2;
-      const span = Math.min(180, droneSize * 0.6);
-
-      ctx.strokeStyle = '#666';
-      ctx.lineWidth = armThickness * 2;
-      ctx.beginPath();
-      ctx.moveTo(startX - span/2, startY - span/2);
-      ctx.lineTo(startX + span/2, startY + span/2);
-      ctx.moveTo(startX + span/2, startY - span/2);
-      ctx.lineTo(startX - span/2, startY + span/2);
-      ctx.stroke();
-
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 2;
-      ctx.fillStyle = '#fafafa';
-      ctx.beginPath();
-      ctx.arc(startX, startY, 25, 0, 2*Math.PI);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.fillStyle = '#000';
-      ctx.beginPath();
-      ctx.arc(startX - span/2, startY - span/2, 6, 0, 2*Math.PI);
-      ctx.arc(startX + span/2, startY - span/2, 6, 0, 2*Math.PI);
-      ctx.arc(startX + span/2, startY + span/2, 6, 0, 2*Math.PI);
-      ctx.arc(startX - span/2, startY + span/2, 6, 0, 2*Math.PI);
-      ctx.fill();
-
-      ctx.fillStyle = '#444';
-      ctx.font = '9px monospace';
-      ctx.fillText(`Wheelbase Span: ${droneSize}mm`, startX - 58, startY + 45);
-    }
-  }, [activePreset, pcbBoard, pcbL, pcbW, pcbH, hasVents, chassisShape, chassisL, chassisW, motorMounts, droneSize, armThickness]);
-
-  const handleVerifyStudent = (e) => {
+  const handleSubmitPrototypeQuote = (e) => {
     e.preventDefault();
-    if (studentId.trim().length > 4) {
-      setIdVerified(true);
-      setStudentApplied(true);
-    } else {
-      alert("Invalid ID number. Please enter a valid registration ID.");
-    }
+    setSubmitting(true);
+    setTimeout(() => {
+      setSubmitting(false);
+      setTicketId('ZYL-PROTO-' + (1000 + Math.floor(Math.random() * 9000)));
+      setSubmitted(true);
+    }, 1500);
   };
 
-  const handleAddPresetToCart = () => {
-    let name = '';
-    let price = 0;
-    let material = 'PLA';
-    let sizeDesc = '';
 
-    if (activePreset === 'pcb') {
-      name = `ECE Casing (${pcbBoard.toUpperCase()})`;
-      price = hasVents ? 549 : 450;
-      material = 'ABS';
-      sizeDesc = `${pcbL}x${pcbW}x${pcbH}mm`;
-    } else if (activePreset === 'chassis') {
-      name = `Robot Chassis Plate (${chassisShape})`;
-      price = motorMounts === 4 ? 999 : 749;
-      material = 'ABS';
-      sizeDesc = `${chassisL}x${chassisW}mm`;
-    } else if (activePreset === 'drone') {
-      name = `Quadcopter X-Frame (${droneSize}mm)`;
-      price = armThickness > 4 ? 1490 : 1150;
-      material = 'Carbon-Fiber Nylon';
-      sizeDesc = `Span: ${droneSize}mm, Thk: ${armThickness}mm`;
-    }
-
-    const item = {
-      id: 'student-' + Date.now(),
-      name: `${name} - ${sizeDesc}`,
-      isCustom: true,
-      price: price,
-      quantity: 1,
-      material: material,
-      infill: 40,
-      resolution: '0.20mm',
-      color: 'Matte Black',
-      image: null
-    };
-
-    onAddToCart(item);
-    alert('Project Blueprint added to Cart!');
-  };
 
   return (
     <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '2rem 1.5rem' }}>
       
       {/* Page Header */}
       <div style={{ marginBottom: '2.5rem', textAlign: 'center' }}>
-        <span className="badge-outline" style={{ marginBottom: '0.5rem' }}>ECE & ME LAB</span>
-        <h1 style={{ fontSize: '2.2rem', fontWeight: '800', textTransform: 'uppercase', color: '#000' }}>Student Mini-Project Printing Portal</h1>
-        <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0.5rem auto 0' }}>
-          Custom casing layouts, robot components, and aerodynamic frames. Engineering students unlock structural discounts on structural builds.
+        <span className="badge-outline" style={{ marginBottom: '0.5rem' }}>PROTOTYPE LAB</span>
+        <h1 style={{ fontSize: '2.2rem', fontWeight: '800', textTransform: 'uppercase', color: '#000' }}>Turn Your Idea Into a Physical Prototype</h1>
+        <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0.5rem auto 0', fontSize: '0.9rem' }}>
+          For Students, Startups, Researchers & Innovators
         </p>
       </div>
 
-      {/* Main container */}
+      {/* Main Form container */}
       <div className="student-hub-grid" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
         gap: '2.5rem',
-        alignItems: 'start'
+        alignItems: 'start',
+        marginBottom: '4rem'
       }}>
-        {/* Left Column: Blueprint configurator */}
+        
+        {/* Left Column: Instructions Guide */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* Presets tab navigation */}
-          <div className="glass-panel" style={{ padding: '1.5rem' }}>
-            <h3 style={{ fontSize: '1rem', color: '#000', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-              Select Project Template
-            </h3>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {[
-                { id: 'pcb', label: 'PCB Board Enclosure' },
-                { id: 'chassis', label: 'Robot Chassis Base' },
-                { id: 'drone', label: 'Drone Multicopter Frame' }
-              ].map(preset => (
-                <button
-                  key={preset.id}
-                  onClick={() => setActivePreset(preset.id)}
-                  style={{
-                    padding: '0.75rem 1rem',
-                    textAlign: 'left',
-                    fontSize: '0.85rem',
-                    background: activePreset === preset.id ? '#000' : 'transparent',
-                    color: activePreset === preset.id ? '#fff' : '#000',
-                    border: '1px solid ' + (activePreset === preset.id ? '#000' : 'var(--border-color)'),
-                    cursor: 'pointer',
-                    transition: 'var(--transition-fast)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                  }}
-                >
-                  <Cpu size={16} /> {preset.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Form configs based on active Preset */}
-          <div className="glass-panel" style={{ padding: '1.75rem' }}>
-            <h3 style={{ fontSize: '1.05rem', color: '#000', marginBottom: '1.25rem' }}>Dimensional Parameters</h3>
-            
-            {/* PCB configurations */}
-            {activePreset === 'pcb' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Quick Presets</label>
-                  <select value={pcbBoard} onChange={(e) => setPcbBoard(e.target.value)} className="select-field">
-                    <option value="arduino">Arduino Uno R3/R4 Casing</option>
-                    <option value="raspberry">Raspberry Pi 4 / 5 Casing</option>
-                    <option value="esp32">ESP32 NodeMCU Dev Board Casing</option>
-                    <option value="custom">Custom Sizing (Enter dimensions below)</option>
-                  </select>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
-                  <div>
-                    <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Length (mm)</label>
-                    <input 
-                      type="number" 
-                      value={pcbL} 
-                      onChange={(e) => setPcbL(parseInt(e.target.value) || 0)} 
-                      className="input-field" 
-                      disabled={pcbBoard !== 'custom'}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Width (mm)</label>
-                    <input 
-                      type="number" 
-                      value={pcbW} 
-                      onChange={(e) => setPcbW(parseInt(e.target.value) || 0)} 
-                      className="input-field" 
-                      disabled={pcbBoard !== 'custom'}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Height (mm)</label>
-                    <input 
-                      type="number" 
-                      value={pcbH} 
-                      onChange={(e) => setPcbH(parseInt(e.target.value) || 0)} 
-                      className="input-field" 
-                      disabled={pcbBoard !== 'custom'}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
-                  <input 
-                    type="checkbox" 
-                    id="vents-chk" 
-                    checked={hasVents} 
-                    onChange={(e) => setHasVents(e.target.checked)}
-                    style={{ accentColor: '#000', cursor: 'pointer' }}
-                  />
-                  <label htmlFor="vents-chk" style={{ fontSize: '0.8rem', color: '#000', cursor: 'pointer' }}>
-                    Include top heat dissipation vents (+₹99)
-                  </label>
-                </div>
-              </div>
-            )}
-
-            {/* Chassis configurations */}
-            {activePreset === 'chassis' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Base Plate Silhouette</label>
-                  <select value={chassisShape} onChange={(e) => setChassisShape(e.target.value)} className="select-field">
-                    <option value="rectangle">Standard Rectangle Plate</option>
-                    <option value="circle">Circular Disc Plate</option>
-                  </select>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                  <div>
-                    <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Plate Length (mm)</label>
-                    <input type="number" value={chassisL} onChange={(e) => setChassisL(parseInt(e.target.value) || 0)} className="input-field" />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Plate Width (mm)</label>
-                    <input type="number" value={chassisW} onChange={(e) => setChassisW(parseInt(e.target.value) || 0)} className="input-field" />
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Motor Mount Brackets Holes</label>
-                  <select value={motorMounts} onChange={(e) => setMotorMounts(parseInt(e.target.value))} className="select-field">
-                    <option value="2">2-Wheel Drive (Standard Dual mounts)</option>
-                    <option value="4">4-Wheel Drive (Quad corner mounts)</option>
-                  </select>
-                </div>
-              </div>
-            )}
-
-            {/* Drone configurations */}
-            {activePreset === 'drone' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Frame Structure Type</label>
-                  <select value={droneSize} onChange={(e) => setDroneSize(parseInt(e.target.value))} className="select-field">
-                    <option value="quad">Quadcopter X-Configuration</option>
-                  </select>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Wheelbase Diameter (mm span)</label>
-                  <input 
-                    type="number" 
-                    min="100" 
-                    max="450" 
-                    value={droneSize} 
-                    onChange={(e) => setDroneSize(parseInt(e.target.value) || 100)} 
-                    className="input-field" 
-                  />
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Typical sizes: 130mm (Micro), 220mm (FPV Racing), 450mm (Cinematic)</span>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Arm Plate Thickness (mm)</label>
-                  <select value={armThickness} onChange={(e) => setArmThickness(parseInt(e.target.value))} className="select-field">
-                    <option value="3">3 mm (Light weight / indoor)</option>
-                    <option value="4">4 mm (Standard crash impact deflection)</option>
-                    <option value="6">6 mm (Heavy duty / dual layers)</option>
-                  </select>
-                </div>
-              </div>
-            )}
-
-            <button
-              onClick={handleAddPresetToCart}
-              className="btn-primary"
-              style={{ width: '100%', height: '42px', marginTop: '1.5rem' }}
-            >
-              Add Blueprint Print to Cart
-            </button>
-          </div>
-        </div>
-
-        {/* Right Column: Drafting Canvas Schematic & Discount */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* Interactive Draft Canvas */}
-          <div className="glass-panel" style={{ padding: '1.5rem', backgroundColor: '#ffffff' }}>
-            <h3 style={{ fontSize: '0.85rem', color: '#000', marginBottom: '0.75rem', textTransform: 'uppercase' }}>
-              2D Drafting Schematic
-            </h3>
-            
-            <div style={{
-              width: '100%',
-              aspectRatio: '1.33',
-              backgroundColor: '#fafafa',
-              border: '1px solid var(--border-color)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <canvas
-                ref={canvasRef}
-                width={340}
-                height={250}
-                style={{ maxWidth: '100%', height: 'auto' }}
-              />
-            </div>
-
-            <div style={{ marginTop: '0.75rem', fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-              * CAD blueprint schematic auto-projects dimensions in real-time.
-            </div>
-          </div>
-
-          {/* Student ID Code Verification */}
-          <div className="glass-panel" style={{ padding: '1.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-              <Award size={18} style={{ color: '#000' }} />
-              <h3 style={{ fontSize: '0.9rem', color: '#000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Activate Student Discount
-              </h3>
-            </div>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-              Unlock flat 20% off all catalog items and custom components using your university email / registration details.
+          <div className="glass-panel" style={{ padding: '2rem', backgroundColor: '#ffffff', borderRadius: '12px' }}>
+            <span className="badge-outline" style={{ marginBottom: '0.75rem', display: 'inline-block' }}>Prototype Pipeline</span>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#000', marginBottom: '1rem' }}>How Prototyping Works</h3>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '1.5rem' }}>
+              We specialize in duplicating custom mechanical sketches, college blueprints, drone linkages, and casings for scientific models.
             </p>
 
-            {idVerified || studentApplied ? (
-              <div style={{
-                border: '1px solid #000000', /* Monochromatic border */
-                backgroundColor: '#fafafa',
-                padding: '0.75rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                fontSize: '0.8rem',
-                color: '#000000',
-                fontWeight: '700'
-              }}>
-                <ShieldCheck size={16} />
-                <span>Student rates applied: 20% Discount active.</span>
+            {/* Guide Steps */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#000000', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold', flexShrink: 0 }}>1</div>
+                <div>
+                  <h4 style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000', margin: '0 0 0.15rem 0' }}>Upload Reference Sketch or File</h4>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', margin: 0, lineHeight: '1.4' }}>
+                    Attach your hand-drawn sketch, layout PDF, sensor schematics, or mock STL mesh file.
+                  </p>
+                </div>
               </div>
-            ) : (
-              <form onSubmit={handleVerifyStudent} style={{ display: 'flex', gap: '0.5rem' }}>
-                <input
-                  type="text"
-                  required
-                  placeholder="Enter Student Registration ID"
-                  value={studentId}
-                  onChange={(e) => setStudentId(e.target.value)}
-                  className="input-field"
-                  style={{ height: '36px', fontSize: '0.8rem', borderColor: 'var(--border-color)' }}
-                />
-                <button type="submit" className="btn-secondary" style={{ height: '36px', padding: '0 1rem', fontSize: '0.8rem' }}>
-                  Verify
-                </button>
-              </form>
-            )}
+
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#000000', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold', flexShrink: 0 }}>2</div>
+                <div>
+                  <h4 style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000', margin: '0 0 0.15rem 0' }}>Cost Engineering Review</h4>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', margin: 0, lineHeight: '1.4' }}>
+                    Our design engineers manually review your layout requirements and calculate optimal print parameters.
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#000000', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold', flexShrink: 0 }}>3</div>
+                <div>
+                  <h4 style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000', margin: '0 0 0.15rem 0' }}>Quote Approval & Print</h4>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', margin: 0, lineHeight: '1.4' }}>
+                    Receive a customized quotation ticket via email. We prepare the custom CAD layout and dispatch the physical print within 48 hours.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* Right Column: Feasibility Report / Form */}
+        <div className="glass-panel" style={{ padding: '2rem', backgroundColor: '#ffffff', minHeight: '350px' }}>
+          
+          {submitted ? (
+            <div style={{ textAlign: 'center', padding: '1.5rem 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}>
+              <div style={{
+                width: '60px',
+                height: '60px',
+                borderRadius: '50%',
+                backgroundColor: '#f0fdf4',
+                border: '1px solid #bbf7d0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#16a34a',
+                boxShadow: '0 4px 10px rgba(22,163,74,0.06)'
+              }}>
+                <CheckCircle2 size={28} />
+              </div>
+              <div>
+                <h2 style={{ fontSize: '1.35rem', fontWeight: '800', color: '#000', marginBottom: '0.25rem' }}>Request Submitted!</h2>
+                <span style={{ fontSize: '0.72rem', backgroundColor: '#f1f5f9', padding: '0.2rem 0.6rem', borderRadius: '12px', color: '#475569', fontWeight: 'bold' }}>
+                  TICKET ID: {ticketId}
+                </span>
+              </div>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.6', maxWidth: '380px', margin: '0 auto' }}>
+                Thank you! Our modelers will manually analyze the uploaded prototype details and contact you via email with a design blueprint draft and manufacturing quote.
+              </p>
+              
+              <div style={{
+                width: '100%',
+                backgroundColor: '#f8fafc',
+                borderRadius: '8px',
+                padding: '1rem',
+                border: '1px solid #e2e8f0',
+                textAlign: 'left',
+                fontSize: '0.76rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem'
+              }}>
+                <div><span style={{ color: 'var(--text-secondary)' }}>Project Type:</span> <strong style={{ color: '#000' }}>{projectType === 'Other' ? (customProjectType || 'Custom Project') : projectType}</strong></div>
+                <div><span style={{ color: 'var(--text-secondary)' }}>Project Name:</span> <strong style={{ color: '#000' }}>{projectName}</strong></div>
+                {uploadedFiles.length > 0 && (
+                  <div>
+                    <span style={{ color: 'var(--text-secondary)' }}>Attached Files:</span>{' '}
+                    <strong style={{ color: '#000' }}>
+                      {uploadedFiles.map(f => f.name).join(', ')}
+                    </strong>
+                  </div>
+                )}
+                <div><span style={{ color: 'var(--text-secondary)' }}>Quantity:</span> <strong style={{ color: '#000' }}>{quantity === 'Other' ? customQuantity : quantity} pcs</strong></div>
+                {requiredDate && <div><span style={{ color: 'var(--text-secondary)' }}>Required Date:</span> <strong style={{ color: '#000' }}>{requiredDate}</strong></div>}
+                {description && <div><span style={{ color: 'var(--text-secondary)' }}>Description:</span> <strong style={{ color: '#000' }}>"{description}"</strong></div>}
+                <div><span style={{ color: 'var(--text-secondary)' }}>Contact Info:</span> <strong style={{ color: '#000' }}>{customerName} ({customerEmail}) | {customerPhone}</strong></div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSubmitted(false);
+                  setProjectType('College Project');
+                  setCustomProjectType('');
+                  setProjectName('');
+                  setUploadedFiles([]);
+                  setDescription('');
+                  setQuantity(1);
+                  setCustomQuantity('');
+                  setRequiredDate('');
+                }}
+                className="btn-secondary"
+                style={{ width: '100%', height: '40px', borderRadius: '6px', fontSize: '0.85rem' }}
+              >
+                Submit Another Request
+              </button>
+            </div>
+          ) : (
+            <>
+              <h2 style={{ fontSize: '1.25rem', color: '#000', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', marginBottom: '1.25rem', fontWeight: '800' }}>
+                Request Prototype Quote
+              </h2>
+
+              <form onSubmit={handleSubmitPrototypeQuote} style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
+                
+                {/* Project Type */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>What are you building?</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '0.4rem' }}>
+                    {['School Project', 'College Project', 'Startup Prototype', 'Research Model', 'Architecture Model', 'Robotics Project', 'Science Model', 'Other'].map(type => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setProjectType(type)}
+                        style={{
+                          padding: '0.5rem 0.25rem', 
+                          fontSize: '0.72rem',
+                          background: projectType === type ? '#000' : 'transparent',
+                          color: projectType === type ? '#fff' : '#000',
+                          border: '1px solid ' + (projectType === type ? '#000' : 'var(--border-color)'),
+                          cursor: 'pointer', 
+                          borderRadius: '6px',
+                          fontWeight: '600',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+
+                  {projectType === 'Other' && (
+                    <input
+                      type="text"
+                      className="input-field animate-fadeIn"
+                      value={customProjectType}
+                      onChange={(e) => setCustomProjectType(e.target.value)}
+                      placeholder='e.g. "Industrial Jig", "Art Installation"'
+                      style={{ fontSize: '0.82rem', height: '36px', borderRadius: '6px', marginTop: '0.5rem' }}
+                      required={projectType === 'Other'}
+                    />
+                  )}
+                </div>
+
+                {/* Project Name */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>Project Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder='e.g. "Smart Dustbin"'
+                    value={projectName}
+                    onChange={(e) => setProjectName(e.target.value)}
+                    className="input-field"
+                    style={{ fontSize: '0.82rem', height: '36px', borderRadius: '6px' }}
+                  />
+                </div>
+
+                {/* File Uploads */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>Upload Reference Files (Sketches, PDF, STL)</label>
+                  <div style={{
+                    border: '1px dashed var(--border-color)',
+                    borderRadius: '6px',
+                    padding: '1rem',
+                    textAlign: 'center',
+                    background: '#fafafa',
+                    position: 'relative',
+                    cursor: 'pointer'
+                  }}>
+                    <input 
+                      type="file" 
+                      id="prototype-files-input" 
+                      multiple
+                      onChange={handleFileUpload} 
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        opacity: 0,
+                        cursor: 'pointer',
+                        width: '100%',
+                        height: '100%'
+                      }}
+                    />
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                      <Upload size={20} />
+                      <span>Click to upload sketches, drawings, PDF or STL files</span>
+                    </div>
+                  </div>
+
+                  {uploadedFiles.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginTop: '0.5rem' }}>
+                      {uploadedFiles.map((f, fIdx) => (
+                        <div key={fIdx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f1f5f9', padding: '4px 8px', borderRadius: '4px', fontSize: '0.72rem' }}>
+                          <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '240px' }}>{f.name}</span>
+                          <button type="button" onClick={() => handleRemoveFile(fIdx)} style={{ background: 'transparent', border: 'none', color: '#ef4444', fontWeight: 'bold', cursor: 'pointer' }}>✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Description */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>Description</label>
+                  <textarea
+                    rows={3}
+                    required
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder='e.g., "Need an enclosure for ESP32. Need LCD cutout. Need ultrasonic sensor holes."'
+                    className="input-field"
+                    style={{ resize: 'none', borderRadius: '6px', fontSize: '0.78rem', padding: '0.5rem 0.75rem' }}
+                  />
+                </div>
+
+                {/* Quantity */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>Quantity</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.4rem' }}>
+                    {[1, 2, 5, 10, 'Other'].map(qty => (
+                      <button
+                        key={qty} 
+                        type="button" 
+                        onClick={() => setQuantity(qty)}
+                        style={{
+                          padding: '0.5rem 0', fontSize: '0.75rem',
+                          background: quantity === qty ? '#000' : 'transparent',
+                          color: quantity === qty ? '#fff' : '#000',
+                          border: '1px solid ' + (quantity === qty ? '#000' : 'var(--border-color)'),
+                          cursor: 'pointer', borderRadius: '6px',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        {qty}
+                      </button>
+                    ))}
+                  </div>
+
+                  {quantity === 'Other' && (
+                    <input
+                      type="number"
+                      min="1"
+                      className="input-field animate-fadeIn"
+                      value={customQuantity}
+                      onChange={(e) => setCustomQuantity(parseInt(e.target.value) || '')}
+                      placeholder="Enter custom quantity"
+                      style={{ fontSize: '0.82rem', height: '36px', borderRadius: '6px', marginTop: '0.5rem' }}
+                      required={quantity === 'Other'}
+                    />
+                  )}
+                </div>
+
+                {/* Required Date */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Calendar size={14} /> Required Date
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={requiredDate}
+                    onChange={(e) => setRequiredDate(e.target.value)}
+                    className="input-field"
+                    style={{ fontSize: '0.8rem', padding: '0.5rem', borderRadius: '6px' }}
+                  />
+                </div>
+
+                {/* Contact Details */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', borderTop: '1px dashed var(--border-color)', paddingTop: '1rem', marginTop: '0.25rem' }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: '700', color: '#000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Contact Details</label>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Full Name</span>
+                      <input
+                        type="text"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="Your Name"
+                        className="input-field"
+                        style={{ borderRadius: '6px', height: '34px', fontSize: '0.78rem' }}
+                        required
+                      />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Email Address</span>
+                      <input
+                        type="email"
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        placeholder="name@email.com"
+                        className="input-field"
+                        style={{ borderRadius: '6px', height: '34px', fontSize: '0.78rem' }}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Phone Number</span>
+                    <input
+                      type="tel"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      placeholder="+91 XXXXX XXXXX"
+                      className="input-field"
+                      style={{ borderRadius: '6px', height: '34px', fontSize: '0.78rem' }}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  style={{ width: '100%', height: '42px', marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  disabled={submitting || !customerName || !customerEmail || !customerPhone}
+                >
+                  {submitting ? 'Sending Request...' : 'Request Prototype Quote'}
+                </button>
+              </form>
+            </>
+          )}
+
+        </div>
       </div>
+
+
+
     </div>
   );
 }

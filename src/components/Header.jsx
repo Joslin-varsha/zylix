@@ -67,9 +67,10 @@ export default function Header({
   const subNavItems = [
     { id: 'home', label: 'Home', tab: 'shop', category: 'home' },
     { id: 'shop', label: 'Products', tab: 'shop', category: 'all', hasDropdown: true },
-    { id: 'ailab', label: 'AI Custom Print Lab', tab: 'ailab', category: null },
-    { id: 'spareparts', label: 'Spare Parts Diagnostic', tab: 'spareparts', category: null },
-    { id: 'student', label: 'Student Hub', tab: 'student', category: null },
+    { id: 'ailab', label: 'Upload File to Print', tab: 'ailab', category: null },
+    { id: 'designer', label: 'Design Your Own', tab: 'designer', category: null },
+    { id: 'spareparts', label: 'Spare Parts', tab: 'spareparts', category: null },
+    { id: 'student', label: 'Prototype Lab', tab: 'student', category: null },
     { id: 'help', label: 'Help', tab: null, category: null, hasHelpDropdown: true },
   ];
 
@@ -320,9 +321,10 @@ export default function Header({
 
               {/* Services */}
               {[
-                { label: '🤖 AI Custom Print Lab', tab: 'ailab' },
-                { label: '🔧 Spare Parts Diagnostic', tab: 'spareparts' },
-                { label: '🎓 Student Hub', tab: 'student' },
+                { label: '🖨️ Upload File to Print', tab: 'ailab' },
+                { label: '🎨 Design Your Own', tab: 'designer' },
+                { label: '🔧 Spare Parts', tab: 'spareparts' },
+                { label: '🔬 Prototype Lab', tab: 'student' },
               ].map(item => (
                 <button key={item.tab} onClick={() => navigateTo(item.tab)} style={{ width: '100%', background: 'transparent', border: 'none', borderBottom: '1px solid #f0f0f0', padding: '0.9rem 1.25rem', textAlign: 'left', fontSize: '0.88rem', fontWeight: activeTab === item.tab ? '700' : '500', color: activeTab === item.tab ? 'var(--accent-color)' : '#000', cursor: 'pointer' }}>
                   {item.label}

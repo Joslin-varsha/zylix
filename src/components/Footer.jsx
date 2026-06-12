@@ -81,9 +81,10 @@ export default function Footer({ setActiveTab }) {
           <h4 style={{ fontSize: '0.78rem', color: '#ffffff', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Services</h4>
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {[
-              { label: 'AI Custom Print Lab', tab: 'ailab' },
-              { label: 'Spare Parts Diagnostic', tab: 'spareparts' },
-              { label: 'Student Hub', tab: 'student' },
+              { label: 'Upload File to Print', tab: 'ailab' },
+              { label: 'Design Your Own', tab: 'designer' },
+              { label: 'Spare Parts', tab: 'spareparts' },
+              { label: 'Prototype Lab', tab: 'student' },
               { label: 'Bulk / B2B Orders', tab: 'shop' },
               { label: 'Custom Order Request', tab: 'shop' },
             ].map((item, i) => (

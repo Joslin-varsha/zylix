@@ -29,10 +29,10 @@ const carouselSlides = [
     tag: "BESTSELLER"
   },
   {
-    title: "AI Custom Print Lab",
-    subtitle: "Upload · Generate · Print",
-    description: "Describe your idea or upload a CAD file — our AI calculates cost instantly and queues your custom print job.",
-    btnText: "Try AI Lab",
+    title: "Upload File to Print",
+    subtitle: "Upload CAD · Get Custom Quote",
+    description: "Upload your CAD file (STL, OBJ, 3MF) and select custom requirements. Our engineers will email your detailed quote ticket within 2 hours.",
+    btnText: "Get Custom Quote",
     category: "all",
     image: "/images/carousel/slide-2.jpg",
     tag: "NEW"

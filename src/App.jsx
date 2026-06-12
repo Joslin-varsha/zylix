@@ -11,6 +11,7 @@ import LoginView from './components/LoginView';
 import TrustBadges from './components/TrustBadges';
 import InfoPage from './components/InfoPage';
 import { X, Trash2, ShoppingCart, Heart } from 'lucide-react';
+import { BrowserRouter, useNavigate, useLocation } from 'react-router-dom';
 
 // Error Boundary — shows error message instead of blank page
 class ErrorBoundary extends React.Component {
@@ -32,9 +33,13 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-export default function App() {
+function AppContent() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = React.useState('shop');
   const [activeCategory, setActiveCategory] = React.useState('home');
+  const lastPathRef = React.useRef('');
+  const lastStateRef = React.useRef({ tab: 'shop', category: 'home' });
   const [searchQuery, setSearchQuery] = React.useState('');
   
   // Shopping Cart & User profile state
@@ -50,12 +55,96 @@ export default function App() {
   const [loginMessage, setLoginMessage] = React.useState('');
   const [welcomeToast, setWelcomeToast] = React.useState('');
 
+  // Customizer & AI Lab state extensions
+  const [labTab, setLabTab] = React.useState('slicer'); // 'slicer', 'designer', 'generator'
+  const [designerPreset, setDesignerPreset] = React.useState('keychain'); // 'keychain', 'nameboard', 'phonestand', 'trophy'
+  const [customizerText, setCustomizerText] = React.useState('');
+
+  const handleCustomizeProduct = (product) => {
+    setActiveTab('designer');
+    
+    const nameLower = product.name.toLowerCase();
+    if (nameLower.includes('keychain') || nameLower.includes('tag')) {
+      setDesignerPreset('keychain');
+      setCustomizerText('MY KEYCHAIN');
+    } else if (nameLower.includes('plaque') || nameLower.includes('board') || nameLower.includes('plate') || nameLower.includes('stencil')) {
+      setDesignerPreset('nameboard');
+      setCustomizerText('JOSLIN VARSHA');
+    } else if (nameLower.includes('stand') || nameLower.includes('holder') || nameLower.includes('dock')) {
+      setDesignerPreset('phonestand');
+      setCustomizerText('STAND');
+    } else if (nameLower.includes('trophy') || nameLower.includes('award')) {
+      setDesignerPreset('trophy');
+      setCustomizerText('CHAMPION');
+    } else if (nameLower.includes('box') || nameLower.includes('light')) {
+      setDesignerPreset('nameboard');
+      setCustomizerText('GLOW LIGHT');
+    } else {
+      setDesignerPreset('keychain');
+      setCustomizerText('CUSTOM');
+    }
+  };
+
   React.useEffect(() => {
     if (welcomeToast) {
       const timer = setTimeout(() => setWelcomeToast(''), 4000);
       return () => clearTimeout(timer);
     }
   }, [welcomeToast]);
+
+  // Synchronize URL pathname with activeTab state using React Router (preventing loops)
+  React.useEffect(() => {
+    const currentPath = location.pathname;
+    const pathKey = currentPath.replace(/^\//, '');
+    
+    // Check if the URL changed since last run
+    const urlChanged = currentPath !== lastPathRef.current;
+    // Check if the state changed since last run
+    const stateChanged = activeTab !== lastStateRef.current.tab || activeCategory !== lastStateRef.current.category;
+
+    if (urlChanged && !stateChanged) {
+      // URL changed (initial load or back/forward browser navigation)
+      let newTab = 'shop';
+      let newCategory = activeCategory;
+      
+      const validTabs = [
+        'shop', 'products', 'ailab', 'designer', 'spareparts', 'student', 'login',
+        'about', 'faq', 'contact', 'refund', 'shipping', 'privacy', 'terms'
+      ];
+
+      if (pathKey === 'products') {
+        newTab = 'shop';
+        newCategory = 'all';
+      } else if (pathKey && validTabs.includes(pathKey)) {
+        newTab = pathKey;
+      } else if (!pathKey) {
+        newTab = 'shop';
+        newCategory = 'home';
+      }
+
+      if (activeTab !== newTab) setActiveTab(newTab);
+      if (activeCategory !== newCategory) setActiveCategory(newCategory);
+
+      lastPathRef.current = currentPath;
+      lastStateRef.current = { tab: newTab, category: newCategory };
+    } 
+    else if (stateChanged) {
+      // React state changed (user clicked a tab or category in the UI)
+      let targetPath = '/';
+      if (activeTab === 'shop') {
+        targetPath = activeCategory === 'home' ? '/' : '/products';
+      } else {
+        targetPath = '/' + activeTab;
+      }
+
+      if (location.pathname !== targetPath) {
+        navigate(targetPath);
+      }
+
+      lastPathRef.current = targetPath;
+      lastStateRef.current = { tab: activeTab, category: activeCategory };
+    }
+  }, [location.pathname, activeTab, activeCategory, navigate]);
 
   // Floating Zylix Lab Console Logs
   const [terminalOpen, setTerminalOpen] = React.useState(false);
@@ -216,21 +305,29 @@ export default function App() {
               />
             </ErrorBoundary>
           )}
-          {activeTab === 'ailab' && (
+          {['ailab', 'designer'].includes(activeTab) && (
             <AIPrintLab
               onAddToCart={handleAddToCart}
+              labTab={activeTab === 'ailab' ? 'slicer' : activeTab}
+              setLabTab={(t) => {
+                setActiveTab(t === 'slicer' ? 'ailab' : t);
+              }}
+              designerPreset={designerPreset}
+              setDesignerPreset={setDesignerPreset}
+              customizerText={customizerText}
+              setCustomizerText={setCustomizerText}
+              user={user}
             />
           )}
           {activeTab === 'spareparts' && (
             <SpareParts
               onAddToCart={handleAddToCart}
+              user={user}
             />
           )}
           {activeTab === 'student' && (
             <StudentHub
-              onAddToCart={handleAddToCart}
-              setStudentApplied={setStudentApplied}
-              studentApplied={studentApplied}
+              user={user}
             />
           )}
           {activeTab === 'login' && (
@@ -261,6 +358,7 @@ export default function App() {
           product={selectedProduct}
           onClose={() => setSelectedProduct(null)}
           onAddToCart={handleAddToCart}
+          onCustomize={handleCustomizeProduct}
         />
       )}
 
@@ -534,5 +632,13 @@ export default function App() {
       )}
 
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   );
 }

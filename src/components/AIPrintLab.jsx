@@ -1,17 +1,53 @@
 import React from 'react';
-import { Upload, HardDrive, Layers, ShoppingCart } from 'lucide-react';
+import { Upload, HardDrive, Layers, Box, Award, Key, Gift, CheckCircle2, FileText } from 'lucide-react';
 
-export default function AIPrintLab({ onAddToCart }) {
+export default function AIPrintLab({ 
+  onAddToCart,
+  labTab = 'slicer',
+  setLabTab,
+  designerPreset = 'keychain',
+  setDesignerPreset,
+  customizerText = '',
+  setCustomizerText,
+  user
+}) {
+  // Sync wrapper states for internal tab rendering
+  const [activeLabTab, setActiveLabTab] = React.useState(labTab);
+
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+  const [customerName, setCustomerName] = React.useState('');
+  const [customerEmail, setCustomerEmail] = React.useState('');
+  const [customerPhone, setCustomerPhone] = React.useState('');
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  React.useEffect(() => {
+    if (user) {
+      setCustomerName(user.name || '');
+      setCustomerEmail(user.email || '');
+    }
+  }, [user]);
+
+  React.useEffect(() => {
+    setActiveLabTab(labTab);
+  }, [labTab]);
+
+  // 1. --- CAD SLICER (UPLOAD FILE TO PRINT) STATES & HANDLERS ---
   const [file, setFile] = React.useState(null);
   const [isScanning, setIsScanning] = React.useState(false);
-  
-  // Custom print configuration states
   const [material, setMaterial] = React.useState('PLA');
   const [infill, setInfill] = React.useState(20);
   const [layerHeight, setLayerHeight] = React.useState('0.20');
   const [color, setColor] = React.useState('Matte Black');
+  const [quantity, setQuantity] = React.useState(1);
+  const [notes, setNotes] = React.useState('');
+  const [quoteSubmitted, setQuoteSubmitted] = React.useState(false);
+  const [submittingQuote, setSubmittingQuote] = React.useState(false);
 
-  // Simulated file stats
   const [fileStats, setFileStats] = React.useState({
     name: '',
     volume: 0,
@@ -19,17 +55,6 @@ export default function AIPrintLab({ onAddToCart }) {
     weight: 0
   });
 
-  const canvasRef = React.useRef(null);
-  const animationRef = React.useRef(null);
-
-  // File templates for quick select simulation
-  const mockCADTemplates = [
-    { name: "ergonomic_mouse_shell.stl", x: 124, y: 68, z: 42, volume: 48.5 },
-    { name: "turbine_fan_impeller.obj", x: 95, y: 95, z: 30, volume: 38.2 },
-    { name: "gopro_helmet_mount.3mf", x: 55, y: 45, z: 35, volume: 18.0 }
-  ];
-
-  // Perform upload scan simulation
   const simulateUpload = (fileName, volume, x, y, z) => {
     setIsScanning(true);
     setFile(null);
@@ -40,12 +65,11 @@ export default function AIPrintLab({ onAddToCart }) {
         name: fileName,
         volume: volume,
         dimensions: { x, y, z },
-        weight: Math.round(volume * 1.25) // approx PLA density 1.25g/cm3
+        weight: Math.round(volume * 1.25)
       });
     }, 1800);
   };
 
-  // Drag and drop events
   const handleDrop = (e) => {
     e.preventDefault();
     const droppedFile = e.dataTransfer.files[0];
@@ -73,619 +97,777 @@ export default function AIPrintLab({ onAddToCart }) {
     }
   };
 
-  // Pricing calculations
-  const calculatePrice = () => {
-    if (!file) return 0;
-    
-    // Rates per gram
-    const rates = { PLA: 6, ABS: 8, PETG: 10, Resin: 18 };
-    const materialRate = rates[material] || 6;
-    
-    // Infill multiplier
-    const infillFactor = 0.4 + (infill / 100) * 0.6;
-    
-    // Layer height factor
-    const layerFactors = { '0.08': 1.4, '0.12': 1.2, '0.20': 1.0, '0.28': 0.85 };
-    const layerFactor = layerFactors[layerHeight] || 1.0;
-
-    const baseWeight = fileStats.weight * infillFactor;
-    const finalPrice = Math.round((baseWeight * materialRate * layerFactor) + 150); // ₹150 base setup machine cost
-    return {
-      weight: Math.round(baseWeight),
-      price: finalPrice,
-      printTime: Math.round((baseWeight * 12 * layerFactor) / 60) // in hours
-    };
-  };
-
-  const priceDetails = calculatePrice();
-
-  const handleAddToCart = () => {
+  const handleSubmitQuote = (e) => {
+    e.preventDefault();
     if (!file) return;
-    const customItem = {
-      id: 'custom-' + Date.now(),
-      name: `Custom CAD [${fileStats.name}]`,
-      isCustom: true,
-      price: priceDetails.price,
-      quantity: 1,
-      material: material,
-      infill: infill,
-      resolution: `${layerHeight}mm`,
-      color: color,
-      image: null
-    };
-    onAddToCart(customItem);
-    alert('Custom 3D Print added to Cart!');
+    setSubmittingQuote(true);
+    setTimeout(() => {
+      setSubmittingQuote(false);
+      setQuoteSubmitted(true);
+    }, 1500);
   };
 
-  // 3D Canvas rendering loop (Upgraded to dynamic layer-by-layer FDM printing simulator)
+
+  // 2. --- PRODUCT DESIGNER (DESIGN YOUR OWN) STATES & HANDLERS ---
+  const [productType, setProductType] = React.useState('keychain'); // 'keychain', 'nameboard', 'trophy', 'phonestand', 'other'
+  const [customProductType, setCustomProductType] = React.useState('');
+  const [nameText, setNameText] = React.useState(customizerText || 'JOSLIN VARSHA');
+  const [designerColor, setDesignerColor] = React.useState('Gold'); // 'Black', 'White', 'Gold', 'Red', 'Blue', 'Other'
+  const [customColor, setCustomColor] = React.useState('');
+  const [designerSize, setDesignerSize] = React.useState('Medium'); // 'Small', 'Medium', 'Large', 'Custom'
+  const [customSize, setCustomSize] = React.useState('');
+  const [referenceFile, setReferenceFile] = React.useState(null);
+  const [additionalNotes, setAdditionalNotes] = React.useState('');
+  const [designerSubmitting, setDesignerSubmitting] = React.useState(false);
+  const [designerSubmitted, setDesignerSubmitted] = React.useState(false);
+  const [designerTicketId, setDesignerTicketId] = React.useState('');
+
   React.useEffect(() => {
-    if (!file || !canvasRef.current) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    
-    let angleX = 0.4; // set stable isometric tilt angles
-    let angleY = 0.5;
-    let printProgress = 0; // percentage 0 - 100
-    let pauseCounter = 0;
+    if (customizerText) {
+      setNameText(customizerText);
+    }
+  }, [customizerText]);
 
-    // Define 3D wireframe cube vertices relative to origin
-    const size = 50;
-    // Z-axis goes from -size (bottom) to size (top)
-    const vertices = [
-      [-size, -size, -size], // 0: bottom back left
-      [size, -size, -size],  // 1: bottom back right
-      [size, size, -size],   // 2: bottom front right
-      [-size, size, -size],  // 3: bottom front left
-      [-size, -size, size],  // 4: top back left
-      [size, -size, size],   // 5: top back right
-      [size, size, size],    // 6: top front right
-      [-size, size, size]    // 7: top front left
-    ];
+  // Sync state with incoming preset from catalog customization redirect
+  React.useEffect(() => {
+    if (designerPreset) {
+      setProductType(designerPreset);
+    }
+  }, [designerPreset]);
 
-    // Connect vertices to draw lines of a cube
-    const edges = [
-      [0, 1], [1, 2], [2, 3], [3, 0], // Bottom face
-      [4, 5], [5, 6], [6, 7], [7, 4], // Top face
-      [0, 4], [1, 5], [2, 6], [3, 7]  // Vertical structural columns
-    ];
+  const handleReferenceFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      setReferenceFile(selectedFile);
+    }
+  };
 
-    const rotateX = (point, rad) => {
-      const cos = Math.cos(rad);
-      const sin = Math.sin(rad);
-      const [x, y, z] = point;
-      return [
-        x,
-        y * cos - z * sin,
-        y * sin + z * cos
-      ];
-    };
-
-    const rotateY = (point, rad) => {
-      const cos = Math.cos(rad);
-      const sin = Math.sin(rad);
-      const [x, y, z] = point;
-      return [
-        x * cos + z * sin,
-        y,
-        -x * sin + z * cos
-      ];
-    };
-
-    const render = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      const width = canvas.width;
-      const height = canvas.height;
-      
-      // Dynamic slow rotation around Y-axis for depth
-      angleY += 0.005;
-
-      // Update simulated print progress
-      if (printProgress < 100) {
-        printProgress += 0.5; // speed of print
-      } else {
-        pauseCounter++;
-        if (pauseCounter > 120) { // Hold finished state for 2 seconds (120 frames)
-          printProgress = 0;
-          pauseCounter = 0;
-        }
-      }
-
-      // Calculate current printing cut-off height along the Z-axis (from -size to size)
-      const currentHeightCutoff = -size + (size * 2) * (printProgress / 100);
-
-      // Project vertices to 2D canvas coordinates
-      const projected = vertices.map(vert => {
-        let rotated = rotateX(vert, angleX);
-        rotated = rotateY(rotated, angleY);
-        
-        // Perspective calculation
-        const distance = 220;
-        const fov = 160;
-        const zScale = fov / (distance + rotated[2]);
-        
-        return [
-          width / 2 + rotated[0] * zScale,
-          height / 2 + rotated[1] * zScale - 20
-        ];
-      });
-
-      // Draw Grid Base bed (heated plate in light grey)
-      ctx.strokeStyle = '#e2e2e2';
-      ctx.lineWidth = 1;
-      for (let i = -5; i <= 5; i++) {
-        // Render grid bed lines
-        ctx.beginPath();
-        ctx.moveTo(width/2 - 80 + i*4, height/2 + 50 + i*5);
-        ctx.lineTo(width/2 + 80 + i*4, height/2 + 50 + i*5);
-        ctx.stroke();
-      }
-
-      // Draw horizontal cross section lines grid for bed reference
-      ctx.beginPath();
-      ctx.moveTo(width/2 - 80, height/2 + 50);
-      ctx.lineTo(width/2, height/2 + 80);
-      ctx.lineTo(width/2 + 80, height/2 + 50);
-      ctx.lineTo(width/2, height/2 + 20);
-      ctx.closePath();
-      ctx.stroke();
-
-      // Render wireframe edges based on slicing progress
-      edges.forEach(([u, v]) => {
-        const z1 = vertices[u][2];
-        const z2 = vertices[v][2];
-
-        // Case 1: Both points printed
-        if (z1 <= currentHeightCutoff && z2 <= currentHeightCutoff) {
-          ctx.strokeStyle = '#000000';
-          ctx.lineWidth = 2;
-          ctx.setLineDash([]);
-          ctx.beginPath();
-          ctx.moveTo(projected[u][0], projected[u][1]);
-          ctx.lineTo(projected[v][0], projected[v][1]);
-          ctx.stroke();
-        }
-        // Case 2: Edge crosses the current print boundary
-        else if ((z1 <= currentHeightCutoff && z2 > currentHeightCutoff) || (z2 <= currentHeightCutoff && z1 > currentHeightCutoff)) {
-          const t = (currentHeightCutoff - z1) / (z2 - z1);
-          // Interpolate the 3D position
-          const xInt = vertices[u][0] + (vertices[v][0] - vertices[u][0]) * t;
-          const yInt = vertices[u][1] + (vertices[v][1] - vertices[u][1]) * t;
-          const zInt = currentHeightCutoff;
-
-          // Project the interpolated point
-          let rotInt = rotateX([xInt, yInt, zInt], angleX);
-          rotInt = rotateY(rotInt, angleY);
-          const zScale = 160 / (220 + rotInt[2]);
-          const pxInt = width / 2 + rotInt[0] * zScale;
-          const pyInt = height / 2 + rotInt[1] * zScale - 20;
-
-          // Draw active printed segment
-          ctx.strokeStyle = '#000000';
-          ctx.lineWidth = 2.5;
-          ctx.setLineDash([]);
-          ctx.beginPath();
-          ctx.moveTo(z1 <= currentHeightCutoff ? projected[u][0] : projected[v][0], z1 <= currentHeightCutoff ? projected[u][1] : projected[v][1]);
-          ctx.lineTo(pxInt, pyInt);
-          ctx.stroke();
-
-          // Draw remaining unprinted outline segment as light dashed line
-          ctx.strokeStyle = '#e0e0e0';
-          ctx.lineWidth = 1;
-          ctx.setLineDash([2, 2]);
-          ctx.beginPath();
-          ctx.moveTo(pxInt, pyInt);
-          ctx.lineTo(z1 > currentHeightCutoff ? projected[u][0] : projected[v][0], z1 > currentHeightCutoff ? projected[u][1] : projected[v][1]);
-          ctx.stroke();
-        }
-        // Case 3: Both above cutoff (unprinted shadow outline)
-        else {
-          ctx.strokeStyle = '#eaeaea';
-          ctx.lineWidth = 1;
-          ctx.setLineDash([3, 3]);
-          ctx.beginPath();
-          ctx.moveTo(projected[u][0], projected[u][1]);
-          ctx.lineTo(projected[v][0], projected[v][1]);
-          ctx.stroke();
-        }
-      });
-
-      // Reset dash style
-      ctx.setLineDash([]);
-
-      // Draw the active printing build horizontal plane indicator line
-      if (printProgress < 100) {
-        // Project the boundary corners of the print cross-section
-        const corners = [
-          [-size, -size, currentHeightCutoff],
-          [size, -size, currentHeightCutoff],
-          [size, size, currentHeightCutoff],
-          [-size, size, currentHeightCutoff]
-        ];
-
-        const projCorners = corners.map(pt => {
-          let rot = rotateX(pt, angleX);
-          rot = rotateY(rot, angleY);
-          const zScale = 160 / (220 + rot[2]);
-          return [width / 2 + rot[0] * zScale, height / 2 + rot[1] * zScale - 20];
-        });
-
-        // Draw cross-section scanning halo ring (Pure Monochrome)
-        ctx.strokeStyle = '#888888';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(projCorners[0][0], projCorners[0][1]);
-        projCorners.forEach(pt => ctx.lineTo(pt[0], pt[1]));
-        ctx.closePath();
-        ctx.stroke();
-
-        // Simulate active extruder nozzle tracing path in real-time coordinates
-        const timeFactor = Date.now() / 150;
-        const index = Math.floor(timeFactor % 4);
-        const nextIdx = (index + 1) % 4;
-        const fraction = (timeFactor % 1);
-
-        // Interpolate nozzle X/Y path coordinate
-        const nozzleX = projCorners[index][0] + (projCorners[nextIdx][0] - projCorners[index][0]) * fraction;
-        const nozzleY = projCorners[index][1] + (projCorners[nextIdx][1] - projCorners[index][1]) * fraction;
-
-        // Draw nozzle structure (stark black lines pointing down)
-        ctx.fillStyle = '#000000';
-        ctx.beginPath();
-        ctx.moveTo(nozzleX, nozzleY);
-        ctx.lineTo(nozzleX - 8, nozzleY - 15);
-        ctx.lineTo(nozzleX + 8, nozzleY - 15);
-        ctx.closePath();
-        ctx.fill();
-
-        // Draw extrusion filament line tracing
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(nozzleX, nozzleY - 15);
-        ctx.lineTo(nozzleX, nozzleY - 45);
-        ctx.stroke();
-
-        // Draw active laser point flash circle (Pure Monochrome white/black flash)
-        ctx.fillStyle = '#ffffff';
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(nozzleX, nozzleY, 4, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.stroke();
-      }
-
-      // Display live rendering data readouts (monospace console text)
-      ctx.fillStyle = '#111111';
-      ctx.font = '9px monospace';
-      ctx.fillText(`LAYER HEIGHT: ${layerHeight}mm`, 10, 18);
-      ctx.fillText(`FEED SPEED  : 150mm/s`, 10, 30);
-      ctx.fillText(`PROGRESS    : ${Math.round(printProgress)}%`, 10, 42);
-      ctx.fillText(`EXTRUDER    : 215°C / BED: 60°C`, 10, 54);
-
-      // Coordinate axes indicator in bottom right
-      ctx.fillStyle = '#888888';
-      ctx.fillText(`X: ${(Math.sin(Date.now() / 100) * 10).toFixed(2)}`, width - 80, height - 38);
-      ctx.fillText(`Y: ${(Math.cos(Date.now() / 150) * 10).toFixed(2)}`, width - 80, height - 26);
-      ctx.fillText(`Z: ${(printProgress * (fileStats.dimensions.z / 100)).toFixed(2)}mm`, width - 80, height - 14);
-
-      animationRef.current = requestAnimationFrame(render);
-    };
-
-    render();
-
-    return () => {
-      cancelAnimationFrame(animationRef.current);
-    };
-  }, [file, fileStats, layerHeight]);
+  const handleSubmitDesignerQuote = (e) => {
+    e.preventDefault();
+    setDesignerSubmitting(true);
+    setTimeout(() => {
+      setDesignerSubmitting(false);
+      setDesignerTicketId('ZYL-DSN-' + (1000 + Math.floor(Math.random() * 9000)));
+      setDesignerSubmitted(true);
+    }, 1500);
+  };
 
   return (
     <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '2rem 1.5rem' }}>
       
       {/* Page Header */}
       <div style={{ marginBottom: '2.5rem', textAlign: 'center' }}>
-        <span className="badge-outline" style={{ marginBottom: '0.5rem' }}>AI PRICING LAB</span>
-        <h1 style={{ fontSize: '2.2rem', fontWeight: '800', textTransform: 'uppercase', color: '#000' }}>AI-Powered 3D Print Calculator</h1>
-        <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0.5rem auto 0' }}>
-          Upload STL, OBJ, or 3MF files. Our automated calculator analyzes bounding boxes and geometry grids to output a precise production invoice.
-        </p>
+        {activeLabTab === 'slicer' && (
+          <>
+            <span className="badge-outline" style={{ marginBottom: '0.5rem' }}>ZYLIX PRINT SERVICES</span>
+            <h1 style={{ fontSize: '2.2rem', fontWeight: '800', textTransform: 'uppercase', color: '#000' }}>Upload File to Print</h1>
+            <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0.5rem auto 0', fontSize: '0.9rem' }}>
+              Upload your custom CAD models (STL, OBJ, or 3MF) to request a custom printing quote from our manufacturing engineers.
+            </p>
+          </>
+        )}
+        {activeLabTab === 'designer' && (
+          <>
+            <span className="badge-outline" style={{ marginBottom: '0.5rem' }}>ZYLIX 3D DESIGNER</span>
+            <h1 style={{ fontSize: '2.2rem', fontWeight: '800', textTransform: 'uppercase', color: '#000' }}>Design Your Own Product</h1>
+            <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0.5rem auto 0', fontSize: '0.9rem' }}>
+              Submit your product specifications, sketches, custom text, and color choices to request a custom model draft and print quote.
+            </p>
+          </>
+        )}
       </div>
 
+      {/* Grid Content Panel */}
       <div className="print-lab-grid" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
         gap: '2.5rem',
         alignItems: 'start'
       }}>
-        {/* Left Column: Upload & 3D Viewer */}
+        
+        {/* LEFT PANEL: Guides and File Status */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
-          {/* Main Upload Drop Area */}
-          {!file && !isScanning && (
-            <div 
-              onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('active'); }}
-              onDragLeave={(e) => { e.preventDefault(); e.currentTarget.classList.remove('active'); }}
-              onDrop={handleDrop}
-              className="upload-zone"
-              style={{ padding: '4.5rem 2rem' }}
-            >
-              <Upload size={40} style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }} />
-              <h3 style={{ fontSize: '1.1rem', color: '#000', marginBottom: '0.5rem' }}>Upload CAD / mesh files</h3>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-                Drag and drop your files here, or click to choose from system files.
-              </p>
-              
-              <input 
-                type="file" 
-                id="file-input" 
-                accept=".stl,.obj,.3mf" 
-                onChange={handleFileChange} 
-                style={{ display: 'none' }} 
-              />
-              <label htmlFor="file-input" className="btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
-                Browse Files
-              </label>
-            </div>
+          {/* TAB 1: CAD upload container */}
+          {activeLabTab === 'slicer' && (
+            <>
+              {!file && !isScanning && (
+                <div 
+                  onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('active'); }}
+                  onDragLeave={(e) => { e.preventDefault(); e.currentTarget.classList.remove('active'); }}
+                  onDrop={handleDrop}
+                  className="upload-zone"
+                  style={{ padding: '4.5rem 2rem', borderRadius: '12px' }}
+                >
+                  <Upload size={40} style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }} />
+                  <h3 style={{ fontSize: '1.1rem', color: '#000', marginBottom: '0.5rem' }}>Upload CAD / Mesh file</h3>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+                    Drag and drop your files here, or click to choose from system files.
+                  </p>
+                  
+                  <input 
+                    type="file" 
+                    id="file-input" 
+                    accept=".stl,.obj,.3mf" 
+                    onChange={handleFileChange} 
+                    style={{ display: 'none' }} 
+                  />
+                  <label htmlFor="file-input" className="btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
+                    Browse Files
+                  </label>
+                </div>
+              )}
+
+              {isScanning && (
+                <div className="glass-panel" style={{
+                  padding: '4.5rem 2rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  minHeight: '260px'
+                }}>
+                  <div className="scanning-bar" />
+                  <Upload size={32} className="animate-pulse-slow" style={{ color: '#000', marginBottom: '1rem' }} />
+                  <h4 style={{ fontSize: '0.95rem', color: '#000', letterSpacing: '0.05em' }}>AI ANALYZING MESH GEOMETRY</h4>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                    Calculating volume density, layers, and wall tolerances...
+                  </p>
+                </div>
+              )}
+            </>
           )}
 
-          {/* Scanning Animation */}
-          {isScanning && (
-            <div className="glass-panel" style={{
-              padding: '4.5rem 2rem',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative',
-              overflow: 'hidden',
-              minHeight: '260px'
-            }}>
-              <div className="scanning-bar" />
-              <Upload size={32} className="animate-pulse-slow" style={{ color: '#000', marginBottom: '1rem' }} />
-              <h4 style={{ fontSize: '1rem', color: '#000', letterSpacing: '0.05em' }}>AI ANALYZING MESH GEOMETRY</h4>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                Calculating volume density, layers, and wall tolerances...
-              </p>
-            </div>
-          )}
-
-          {/* 3D Wireframe Viewer Canvas */}
-          {file && !isScanning && (
-            <div className="glass-panel" style={{ padding: '1.5rem', backgroundColor: '#ffffff' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#000' }}>{file.name}</span>
+          {/* Tab 1: Slicer File Status Block */}
+          {activeLabTab === 'slicer' && file && !isScanning && (
+            <div className="glass-panel" style={{ padding: '2rem', backgroundColor: '#ffffff', borderRadius: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#16a34a' }}>
+                  ✓ SECURE FILE UPLOADED
+                </span>
                 <button 
-                  onClick={() => setFile(null)} 
-                  style={{
-                    background: 'transparent',
-                    border: '1px solid var(--border-color)',
-                    color: '#000',
-                    padding: '0.2rem 0.5rem',
-                    fontSize: '0.75rem',
-                    cursor: 'pointer'
-                  }}
+                  onClick={() => { setFile(null); setQuoteSubmitted(false); }} 
+                  className="btn-secondary"
+                  style={{ padding: '0.3rem 0.8rem', fontSize: '0.75rem', height: '28px', borderRadius: '14px' }}
                 >
                   Change File
                 </button>
               </div>
 
-              {/* Spinning Canvas */}
-              <div style={{
-                position: 'relative',
-                width: '100%',
-                aspectRatio: '1.33',
-                backgroundColor: '#fafafa',
-                border: '1px solid var(--border-color)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <canvas 
-                  ref={canvasRef} 
-                  width={340} 
-                  height={250} 
-                  style={{ maxWidth: '100%', height: 'auto' }}
-                />
+              <div style={{ textAlign: 'center', padding: '1.5rem 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+                <div style={{
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: '50%',
+                  backgroundColor: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#16a34a',
+                  boxShadow: '0 4px 10px rgba(22,163,74,0.06)'
+                }}>
+                  <Box size={28} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#000', margin: 0 }}>{fileStats.name}</h3>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                    Geometry file successfully analyzed
+                  </p>
+                </div>
               </div>
 
-              {/* File details checklist below */}
+              {/* Progress Stepper List */}
               <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
+                marginTop: '1.5rem',
+                borderTop: '1px solid var(--border-color)',
+                paddingTop: '1.5rem',
+                display: 'flex',
+                flexDirection: 'column',
                 gap: '1rem',
-                marginTop: '1rem',
                 fontSize: '0.8rem'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <HardDrive size={14} style={{ color: 'var(--text-muted)' }} />
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                  <div style={{ width: '18px', height: '18px', borderRadius: '50%', backgroundColor: '#000000', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 'bold', marginTop: '2px' }}>1</div>
                   <div>
-                    <span style={{ color: 'var(--text-secondary)' }}>Calculated Vol: </span>
-                    <span style={{ fontWeight: '600', color: '#000' }}>{fileStats.volume} cm³</span>
+                    <span style={{ fontWeight: '700', color: '#000', display: 'block' }}>Upload CAD Mesh File</span>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.72rem' }}>Geometry uploaded and checked successfully.</span>
                   </div>
                 </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Layers size={14} style={{ color: 'var(--text-muted)' }} />
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                  <div style={{ width: '18px', height: '18px', borderRadius: '50%', backgroundColor: quoteSubmitted ? '#000' : 'var(--accent-color)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 'bold', marginTop: '2px' }}>2</div>
                   <div>
-                    <span style={{ color: 'var(--text-secondary)' }}>Est. Weight: </span>
-                    <span style={{ fontWeight: '600', color: '#000' }}>{fileStats.weight}g</span>
+                    <span style={{ fontWeight: '700', color: '#000', display: 'block' }}>Configure Manufacturing Options</span>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.72rem' }}>Select material, color, quantity, and requirements notes.</span>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                  <div style={{ width: '18px', height: '18px', borderRadius: '50%', backgroundColor: quoteSubmitted ? 'var(--accent-color)' : '#e2e8f0', color: quoteSubmitted ? '#ffffff' : '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 'bold', marginTop: '2px' }}>3</div>
+                  <div>
+                    <span style={{ fontWeight: '700', color: quoteSubmitted ? '#000' : 'var(--text-secondary)', display: 'block' }}>Engineering Quote Analysis</span>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.72rem' }}>Admin reviews mesh printability and dispatches custom PDF quote.</span>
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Quick templates presets to test with */}
-          <div className="glass-panel" style={{ padding: '1.25rem' }}>
-            <h4 style={{ fontSize: '0.85rem', marginBottom: '0.75rem', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>
-              No STL on hand? Try a template:
-            </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {mockCADTemplates.map((temp, index) => (
-                <button
-                  key={index}
-                  onClick={() => simulateUpload(temp.name, temp.volume, temp.x, temp.y, temp.z)}
-                  className="btn-secondary"
-                  style={{
-                    padding: '0.5rem',
-                    fontSize: '0.75rem',
-                    textAlign: 'left',
-                    justifyContent: 'flex-start',
-                    width: '100%'
-                  }}
-                  disabled={isScanning}
-                >
-                  Load {temp.name} ({temp.x}x{temp.y}x{temp.z}mm)
-                </button>
-              ))}
+          {/* TAB 2: Design Workflow Guide (Flat) */}
+          {activeLabTab === 'designer' && (
+            <div className="glass-panel" style={{ padding: '2rem', backgroundColor: '#ffffff', borderRadius: '12px' }}>
+              <span className="badge-outline" style={{ marginBottom: '0.75rem', display: 'inline-block' }}>Design Workflow</span>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#000', marginBottom: '1rem' }}>How Design Requests Work</h3>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '1.5rem' }}>
+                Have a specific design idea in mind? Our expert team can turn your concepts, text, and sketches into high-quality physical 3D prints.
+              </p>
+
+              {/* Guide Steps */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#000000', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold', flexShrink: 0 }}>1</div>
+                  <div>
+                    <h4 style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000', margin: '0 0 0.15rem 0' }}>Submit Specifications</h4>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', margin: 0, lineHeight: '1.4' }}>
+                      Choose your product type, custom text, preferred color, and size. Add reference sketches or logos to help us visualize your needs.
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#000000', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold', flexShrink: 0 }}>2</div>
+                  <div>
+                    <h4 style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000', margin: '0 0 0.15rem 0' }}>Manual Engineering Review</h4>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', margin: 0, lineHeight: '1.4' }}>
+                      Our manufacturing engineers manually review your request. We draft the 3D model geometry blueprints based on your specifications.
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#000000', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold', flexShrink: 0 }}>3</div>
+                  <div>
+                    <h4 style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000', margin: '0 0 0.15rem 0' }}>Quote & Design Preview</h4>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', margin: 0, lineHeight: '1.4' }}>
+                      Within 2 hours, we will email you a digital design preview blueprint along with a customized pricing quote ticket to start production.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
+
         </div>
 
-        {/* Right Column: Print parameter configuration forms */}
-        <div className="glass-panel" style={{ padding: '2rem' }}>
-          <h2 style={{ fontSize: '1.3rem', color: '#000', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
-            Parameters & Config
-          </h2>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {/* 1. Material Selector */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#000' }}>1. Print Material</label>
-              <select 
-                value={material} 
-                onChange={(e) => setMaterial(e.target.value)} 
-                className="select-field"
-              >
-                <option value="PLA">PLA (Polylactic Acid) - Basic Prototyping</option>
-                <option value="ABS">ABS (Acrylonitrile Butadiene Styrene) - Heat & Strength</option>
-                <option value="PETG">PETG (Polyethylene Terephthalate Glycol) - Tough Outdoors</option>
-                <option value="Resin">Resin (Photopolymer) - Ultra High Resolution Detail</option>
-              </select>
-            </div>
-
-            {/* 2. Color Selection */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#000' }}>2. Filament Color</label>
-              <select 
-                value={color} 
-                onChange={(e) => setColor(e.target.value)} 
-                className="select-field"
-              >
-                <option value="Matte Black">Matte Black</option>
-                <option value="Arctic White">Arctic White</option>
-                <option value="Industrial Silver">Industrial Silver</option>
-                <option value="Crimson Red">Crimson Red</option>
-              </select>
-            </div>
-
-            {/* 3. Infill Density Slider */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <div style={{ display: 'flex', justifyItems: 'space-between', justifyContent: 'space-between', alignItems: 'center' }}>
-                <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#000' }}>3. Infill Density</label>
-                <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#000' }}>{infill}%</span>
-              </div>
-              <input 
-                type="range" 
-                min="10" 
-                max="100" 
-                step="5" 
-                value={infill} 
-                onChange={(e) => setInfill(parseInt(e.target.value))}
-                style={{ 
-                  width: '100%', 
-                  accentColor: '#000', 
-                  background: 'var(--border-color)',
-                  height: '4px',
-                  outline: 'none',
-                  cursor: 'pointer'
-                }} 
-              />
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                <span>10% (Visual/Light)</span>
-                <span>40% (Structural)</span>
-                <span>100% (Solid Steel-like)</span>
-              </div>
-            </div>
-
-            {/* 4. Layer Resolution */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: '600', color: '#000' }}>4. Layer Height (Resolution)</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                {[
-                  { label: "0.28mm (Coarse)", val: "0.28" },
-                  { label: "0.20mm (Standard)", val: "0.20" },
-                  { label: "0.12mm (Fine)", val: "0.12" },
-                  { label: "0.08mm (Ultra)", val: "0.08" }
-                ].map((item) => (
-                  <button
-                    key={item.val}
-                    type="button"
-                    onClick={() => setLayerHeight(item.val)}
-                    style={{
-                      padding: '0.5rem',
-                      fontSize: '0.75rem',
-                      background: layerHeight === item.val ? '#000' : 'transparent',
-                      color: layerHeight === item.val ? '#fff' : '#000',
-                      border: '1px solid ' + (layerHeight === item.val ? '#000' : 'var(--border-color)'),
-                      cursor: 'pointer',
-                      transition: 'var(--transition-fast)'
-                    }}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Price breakdown display */}
-            <div style={{
-              borderTop: '1px solid var(--border-color)',
-              paddingTop: '1.5rem',
-              marginTop: '1rem',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.75rem',
-              fontSize: '0.85rem'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Calculated Print Weight</span>
-                <span style={{ color: '#000' }}>{file ? `${priceDetails.weight}g` : '0g'}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Est. Print Duration</span>
-                <span style={{ color: '#000' }}>{file ? `${priceDetails.printTime} Hours` : '0 Hours'}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Material Rate</span>
-                <span style={{ color: '#000' }}>{material} @ ₹{material === 'PLA' ? '6' : material === 'ABS' ? '8' : material === 'PETG' ? '10' : '18'}/g</span>
-              </div>
+        {/* RIGHT PANEL: Form configurations depending on selected Tab */}
+        <div className="glass-panel" style={{ padding: '2rem', backgroundColor: '#ffffff' }}>
+          
+          {/* ───────────────── SLICER CONFIG PANEL (REQUEST QUOTE FLOW) ───────────────── */}
+          {activeLabTab === 'slicer' && quoteSubmitted && (
+            <div style={{ textAlign: 'center', padding: '1.5rem 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}>
               <div style={{
+                width: '60px',
+                height: '60px',
+                borderRadius: '50%',
+                backgroundColor: '#f0fdf4',
+                border: '1px solid #bbf7d0',
                 display: 'flex',
-                justifyContent: 'space-between',
-                fontSize: '1.2rem',
-                fontWeight: '700',
-                borderTop: '1px dashed var(--border-color)',
-                paddingTop: '0.75rem',
-                fontFamily: 'var(--font-display)',
-                color: '#000'
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#16a34a',
+                boxShadow: '0 4px 10px rgba(22,163,74,0.06)'
               }}>
-                <span>Instant Quote</span>
-                <span>₹{file ? priceDetails.price.toLocaleString('en-IN') : '0'}</span>
+                <CheckCircle2 size={28} />
               </div>
+              <div>
+                <h2 style={{ fontSize: '1.35rem', fontWeight: '800', color: '#000', marginBottom: '0.25rem' }}>Quote Submitted!</h2>
+                <span style={{ fontSize: '0.72rem', backgroundColor: '#f1f5f9', padding: '0.2rem 0.6rem', borderRadius: '12px', color: '#475569', fontWeight: 'bold' }}>
+                  TICKET: #ZYL-{(1000 + Math.floor(Math.random() * 9000))}-{(Math.floor(10 + Math.random() * 89))}
+                </span>
+              </div>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.6', maxWidth: '380px', margin: '0 auto' }}>
+                Thank you! Our CAD engineers are reviewing your file structure, printability, and requirements. We will email your detailed PDF quote within 2 hours.
+              </p>
+              <div style={{
+                width: '100%',
+                backgroundColor: '#f8fafc',
+                borderRadius: '8px',
+                padding: '1rem',
+                border: '1px solid #e2e8f0',
+                textAlign: 'left',
+                fontSize: '0.76rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.4rem'
+              }}>
+                <div><span style={{ color: 'var(--text-secondary)' }}>File Uploaded:</span> <strong style={{ color: '#000' }}>{fileStats.name}</strong></div>
+                <div><span style={{ color: 'var(--text-secondary)' }}>Material Selected:</span> <strong style={{ color: '#000' }}>{material}</strong></div>
+                <div><span style={{ color: 'var(--text-secondary)' }}>Color Selected:</span> <strong style={{ color: '#000' }}>{color}</strong></div>
+                <div><span style={{ color: 'var(--text-secondary)' }}>Quantity:</span> <strong style={{ color: '#000' }}>{quantity} pcs</strong></div>
+                <div><span style={{ color: 'var(--text-secondary)' }}>Contact Info:</span> <strong style={{ color: '#000' }}>{customerName} ({customerEmail}) | {customerPhone}</strong></div>
+                {notes && <div><span style={{ color: 'var(--text-secondary)' }}>Notes:</span> <strong style={{ color: '#000' }}>"{notes}"</strong></div>}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setFile(null);
+                  setQuoteSubmitted(false);
+                  setQuantity(1);
+                  setNotes('');
+                }}
+                className="btn-secondary"
+                style={{ width: '100%', height: '40px', borderRadius: '6px', fontSize: '0.85rem' }}
+              >
+                Submit Another Quote
+              </button>
             </div>
+          )}
 
-            {/* Submission Actions */}
-            <button
-              onClick={handleAddToCart}
-              className="btn-primary"
-              style={{ width: '100%', height: '48px', marginTop: '0.5rem' }}
-              disabled={!file}
-            >
-              <ShoppingCart size={16} /> Add Custom Print to Cart
-            </button>
-          </div>
+          {activeLabTab === 'slicer' && !quoteSubmitted && (
+            <>
+              <h2 style={{ fontSize: '1.3rem', color: '#000', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem', fontWeight: '800' }}>
+                Request Custom Print Quote
+              </h2>
+
+              <form onSubmit={handleSubmitQuote} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+                {/* Print Material */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: '600', color: '#000' }}>1. Print Material</label>
+                  <select value={material} onChange={(e) => setMaterial(e.target.value)} className="select-field" style={{ borderRadius: '6px', height: '36px', padding: '0.35rem 0.75rem', fontSize: '0.78rem' }}>
+                    <option value="PLA">PLA</option>
+                    <option value="ABS">ABS</option>
+                    <option value="PETG">PETG</option>
+                    <option value="Resin">Resin</option>
+                    <option value="Carbon Fiber">Carbon Fiber</option>
+                    <option value="Nylon">Nylon</option>
+                  </select>
+                </div>
+
+                {/* Filament Color */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: '600', color: '#000' }}>2. Material Color</label>
+                  <select value={color} onChange={(e) => setColor(e.target.value)} className="select-field" style={{ borderRadius: '6px', height: '36px', padding: '0.35rem 0.75rem', fontSize: '0.78rem' }}>
+                    <option value="Matte Black">Matte Black</option>
+                    <option value="Arctic White">Arctic White</option>
+                    <option value="Industrial Silver">Industrial Silver</option>
+                    <option value="Crimson Red">Crimson Red</option>
+                    <option value="Royal Blue">Royal Blue</option>
+                    <option value="Silk Gold">Silk Gold</option>
+                  </select>
+                </div>
+
+                {/* Quantity */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: '600', color: '#000' }}>3. Quantity</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="1000"
+                    value={quantity}
+                    onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                    className="input-field"
+                    style={{ borderRadius: '6px', height: '36px', fontSize: '0.78rem' }}
+                    required
+                  />
+                </div>
+
+                {/* Additional Notes */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: '600', color: '#000' }}>4. Additional Notes / Requirements</label>
+                  <textarea
+                    rows={2}
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder='e.g., "Need strong print, must resist heat up to 80C, high infill density, etc."'
+                    className="input-field"
+                    style={{ resize: 'none', borderRadius: '6px', fontSize: '0.78rem', padding: '0.5rem 0.75rem' }}
+                  />
+                </div>
+
+                {/* Contact Details */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', borderTop: '1px dashed var(--border-color)', paddingTop: '1rem', marginTop: '0.25rem' }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: '700', color: '#000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Contact Details</label>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Full Name</span>
+                      <input
+                        type="text"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="Your Name"
+                        className="input-field"
+                        style={{ borderRadius: '6px', height: '34px', fontSize: '0.78rem' }}
+                        required
+                      />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Email Address</span>
+                      <input
+                        type="email"
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        placeholder="name@email.com"
+                        className="input-field"
+                        style={{ borderRadius: '6px', height: '34px', fontSize: '0.78rem' }}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Phone Number</span>
+                    <input
+                      type="tel"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      placeholder="+91 XXXXX XXXXX"
+                      className="input-field"
+                      style={{ borderRadius: '6px', height: '34px', fontSize: '0.78rem' }}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  style={{ width: '100%', height: '42px', marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  disabled={!file || submittingQuote}
+                >
+                  {submittingQuote ? (
+                    <>Submitting Request...</>
+                  ) : (
+                    <>
+                      <Upload size={14} /> Request Custom Quote
+                    </>
+                  )}
+                </button>
+              </form>
+            </>
+          )}
+
+          {/* ───────────────── DESIGNER CONFIG PANEL (DESIGN YOUR OWN) ───────────────── */}
+          {activeLabTab === 'designer' && designerSubmitted && (
+            <div style={{ textAlign: 'center', padding: '1.5rem 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}>
+              <div style={{
+                width: '60px',
+                height: '60px',
+                borderRadius: '50%',
+                backgroundColor: '#f0fdf4',
+                border: '1px solid #bbf7d0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#16a34a',
+                boxShadow: '0 4px 10px rgba(22,163,74,0.06)'
+              }}>
+                <CheckCircle2 size={28} />
+              </div>
+              <div>
+                <h2 style={{ fontSize: '1.35rem', fontWeight: '800', color: '#000', marginBottom: '0.25rem' }}>Design Request Received!</h2>
+                <span style={{ fontSize: '0.72rem', backgroundColor: '#f1f5f9', padding: '0.2rem 0.6rem', borderRadius: '12px', color: '#475569', fontWeight: 'bold' }}>
+                  TICKET ID: {designerTicketId}
+                </span>
+              </div>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.6', maxWidth: '380px', margin: '0 auto' }}>
+                Your customized design request specifications have been dispatched to our modeling engineers. We will email your manual CAD design preview and print quote within 2 hours.
+              </p>
+              <div style={{
+                width: '100%',
+                backgroundColor: '#f8fafc',
+                borderRadius: '8px',
+                padding: '1rem',
+                border: '1px solid #e2e8f0',
+                textAlign: 'left',
+                fontSize: '0.76rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem'
+              }}>
+                <div><span style={{ color: 'var(--text-secondary)' }}>Product Type:</span> <strong style={{ color: '#000', textTransform: 'capitalize' }}>{productType === 'other' ? (customProductType || 'Custom Shape') : (productType === 'nameboard' ? 'Name Board' : productType === 'phonestand' ? 'Phone Stand' : productType)}</strong></div>
+                <div><span style={{ color: 'var(--text-secondary)' }}>Custom Text/Name:</span> <strong style={{ color: '#000' }}>{nameText || 'None'}</strong></div>
+                <div><span style={{ color: 'var(--text-secondary)' }}>Color Selected:</span> <strong style={{ color: '#000', textTransform: 'capitalize' }}>{designerColor === 'Other' ? (customColor || 'Custom Color') : designerColor}</strong></div>
+                <div><span style={{ color: 'var(--text-secondary)' }}>Size Requested:</span> <strong style={{ color: '#000', textTransform: 'capitalize' }}>{designerSize === 'Custom' ? (customSize || 'Custom Size') : designerSize}</strong></div>
+                {referenceFile && <div><span style={{ color: 'var(--text-secondary)' }}>Reference Sketch:</span> <strong style={{ color: '#000' }}>{referenceFile.name}</strong></div>}
+                {additionalNotes && <div><span style={{ color: 'var(--text-secondary)' }}>Notes:</span> <strong style={{ color: '#000' }}>"{additionalNotes}"</strong></div>}
+                <div><span style={{ color: 'var(--text-secondary)' }}>Contact Info:</span> <strong style={{ color: '#000' }}>{customerName} ({customerEmail}) | {customerPhone}</strong></div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setDesignerSubmitted(false);
+                  setProductType('keychain');
+                  setCustomProductType('');
+                  setNameText('JOSLIN VARSHA');
+                  setDesignerColor('Gold');
+                  setCustomColor('');
+                  setDesignerSize('Medium');
+                  setCustomSize('');
+                  setReferenceFile(null);
+                  setAdditionalNotes('');
+                }}
+                className="btn-secondary"
+                style={{ width: '100%', height: '40px', borderRadius: '6px', fontSize: '0.85rem' }}
+              >
+                Submit Another Request
+              </button>
+            </div>
+          )}
+
+          {activeLabTab === 'designer' && !designerSubmitted && (
+            <>
+              <h2 style={{ fontSize: '1.3rem', color: '#000', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem', fontWeight: '800' }}>
+                Design Your Own Product
+              </h2>
+
+              <form onSubmit={handleSubmitDesignerQuote} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                
+                {/* Product Type Selection */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>What would you like to create?</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '0.5rem' }}>
+                    {[
+                      { id: 'keychain', label: 'Keychain', icon: <Key size={14} /> },
+                      { id: 'nameboard', label: 'Name Board', icon: <Gift size={14} /> },
+                      { id: 'trophy', label: 'Trophy', icon: <Award size={14} /> },
+                      { id: 'phonestand', label: 'Phone Stand', icon: <Box size={14} /> },
+                      { id: 'other', label: 'Other', icon: <FileText size={14} /> }
+                    ].map(p => (
+                      <button
+                        key={p.id} 
+                        type="button" 
+                        onClick={() => setProductType(p.id)}
+                        style={{
+                          padding: '0.65rem 0.5rem', 
+                          fontSize: '0.75rem',
+                          background: productType === p.id ? '#000' : 'transparent',
+                          color: productType === p.id ? '#fff' : '#000',
+                          border: '1px solid ' + (productType === p.id ? '#000' : 'var(--border-color)'),
+                          cursor: 'pointer', 
+                          borderRadius: '6px',
+                          display: 'flex', 
+                          flexDirection: 'column', 
+                          alignItems: 'center', 
+                          gap: '6px',
+                          fontWeight: '600',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {p.icon} <span>{p.label}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {productType === 'other' && (
+                    <input
+                      type="text"
+                      className="input-field animate-fadeIn"
+                      value={customProductType}
+                      onChange={(e) => setCustomProductType(e.target.value)}
+                      placeholder='e.g. "Mechanical Bracket", "Custom Phone Case"'
+                      style={{ fontSize: '0.82rem', height: '36px', borderRadius: '6px', marginTop: '0.5rem' }}
+                      required={productType === 'other'}
+                    />
+                  )}
+                </div>
+
+                {/* Custom text */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>Enter Name / Text</label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    value={nameText}
+                    onChange={(e) => setNameText(e.target.value)}
+                    placeholder='e.g. "JOSLIN VARSHA"'
+                    style={{ fontSize: '0.82rem', height: '36px', borderRadius: '6px' }}
+                    required
+                  />
+                </div>
+
+                {/* Upload Reference Sketch / Logo */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>Upload Reference Image / Logo (Optional)</label>
+                  <div style={{
+                    border: '1px dashed var(--border-color)',
+                    borderRadius: '6px',
+                    padding: '0.75rem',
+                    textAlign: 'center',
+                    background: '#fafafa',
+                    position: 'relative',
+                    cursor: 'pointer'
+                  }}>
+                    <input 
+                      type="file" 
+                      id="designer-file-input" 
+                      accept="image/*,.pdf" 
+                      onChange={handleReferenceFileChange} 
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        opacity: 0,
+                        cursor: 'pointer',
+                        width: '100%',
+                        height: '100%'
+                      }}
+                    />
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                      <Upload size={14} />
+                      <span>{referenceFile ? `Attached: ${referenceFile.name}` : 'Choose logo, sketch or sample image...'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Color Choices */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>Color</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(75px, 1fr))', gap: '0.4rem' }}>
+                    {['Black', 'White', 'Gold', 'Red', 'Blue', 'Other'].map(col => (
+                      <button
+                        key={col} 
+                        type="button" 
+                        onClick={() => setDesignerColor(col)}
+                        style={{
+                          padding: '0.5rem', 
+                          fontSize: '0.75rem',
+                          background: designerColor === col ? '#000' : 'transparent',
+                          color: designerColor === col ? '#fff' : '#000',
+                          border: '1px solid ' + (designerColor === col ? '#000' : 'var(--border-color)'),
+                          cursor: 'pointer', 
+                          borderRadius: '6px',
+                          fontWeight: '600',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {col}
+                      </button>
+                    ))}
+                  </div>
+
+                  {designerColor === 'Other' && (
+                    <input
+                      type="text"
+                      className="input-field animate-fadeIn"
+                      value={customColor}
+                      onChange={(e) => setCustomColor(e.target.value)}
+                      placeholder='e.g. "Silky Bronze", "Clear Transparent"'
+                      style={{ fontSize: '0.82rem', height: '36px', borderRadius: '6px', marginTop: '0.5rem' }}
+                      required={designerColor === 'Other'}
+                    />
+                  )}
+                </div>
+
+                {/* Size Choices */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>Size</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.4rem' }}>
+                    {['Small', 'Medium', 'Large', 'Custom'].map(sz => (
+                      <button
+                        key={sz} 
+                        type="button" 
+                        onClick={() => setDesignerSize(sz)}
+                        style={{
+                          padding: '0.5rem', 
+                          fontSize: '0.75rem',
+                          background: designerSize === sz ? '#000' : 'transparent',
+                          color: designerSize === sz ? '#fff' : '#000',
+                          border: '1px solid ' + (designerSize === sz ? '#000' : 'var(--border-color)'),
+                          cursor: 'pointer', 
+                          borderRadius: '6px',
+                          fontWeight: '600',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {sz}
+                      </button>
+                    ))}
+                  </div>
+
+                  {designerSize === 'Custom' && (
+                    <input
+                      type="text"
+                      className="input-field animate-fadeIn"
+                      value={customSize}
+                      onChange={(e) => setCustomSize(e.target.value)}
+                      placeholder='e.g. "12cm x 5cm x 2cm"'
+                      style={{ fontSize: '0.82rem', height: '36px', borderRadius: '6px', marginTop: '0.5rem' }}
+                      required={designerSize === 'Custom'}
+                    />
+                  )}
+                </div>
+
+                {/* Additional Notes */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>Additional Notes</label>
+                  <textarea
+                    rows={2}
+                    value={additionalNotes}
+                    onChange={(e) => setAdditionalNotes(e.target.value)}
+                    placeholder='e.g. "Need glossy finish, need before 15 Aug, heavy weight infill, etc."'
+                    className="input-field"
+                    style={{ resize: 'none', borderRadius: '6px', fontSize: '0.78rem', padding: '0.5rem 0.75rem' }}
+                  />
+                </div>
+
+                {/* Contact Details */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', borderTop: '1px dashed var(--border-color)', paddingTop: '1rem', marginTop: '0.25rem' }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: '700', color: '#000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Contact Details</label>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Full Name</span>
+                      <input
+                        type="text"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="Your Name"
+                        className="input-field"
+                        style={{ borderRadius: '6px', height: '34px', fontSize: '0.78rem' }}
+                        required
+                      />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Email Address</span>
+                      <input
+                        type="email"
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        placeholder="name@email.com"
+                        className="input-field"
+                        style={{ borderRadius: '6px', height: '34px', fontSize: '0.78rem' }}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Phone Number</span>
+                    <input
+                      type="tel"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      placeholder="+91 XXXXX XXXXX"
+                      className="input-field"
+                      style={{ borderRadius: '6px', height: '34px', fontSize: '0.78rem' }}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  style={{ width: '100%', height: '44px', marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  disabled={designerSubmitting || !customerName || !customerEmail || !customerPhone}
+                >
+                  {designerSubmitting ? 'Sending Request...' : 'Request Design & Quote'}
+                </button>
+              </form>
+            </>
+          )}
+
         </div>
       </div>
     </div>

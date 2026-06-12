@@ -7,6 +7,13 @@ export default function LoginView({ onLogin, setActiveTab, loginMessage, setLogi
   const [password, setPassword] = React.useState('');
   const [name, setName] = React.useState('');
   const [validationError, setValidationError] = React.useState('');
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -35,15 +42,17 @@ export default function LoginView({ onLogin, setActiveTab, loginMessage, setLogi
 
   return (
     <div style={{
-      maxWidth: '800px',
-      margin: '1rem auto',
+      maxWidth: isMobile ? '440px' : '800px',
+      width: isMobile ? 'calc(100% - 2.5rem)' : 'auto',
+      margin: isMobile ? '2rem auto' : '1rem auto',
       backgroundColor: '#ffffff',
       border: '1px solid var(--border-color)',
       borderRadius: '12px',
       boxShadow: '0 15px 35px rgba(0, 0, 0, 0.05)',
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-      minHeight: '440px',
+      display: isMobile ? 'flex' : 'grid',
+      flexDirection: isMobile ? 'column' : 'row',
+      gridTemplateColumns: isMobile ? 'none' : 'repeat(auto-fit, minmax(300px, 1fr))',
+      minHeight: isMobile ? 'auto' : '440px',
       overflow: 'hidden',
       animation: 'fadeInUp 0.4s ease-out'
     }}>
@@ -53,19 +62,20 @@ export default function LoginView({ onLogin, setActiveTab, loginMessage, setLogi
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         color: '#ffffff',
-        padding: '2rem 1.5rem',
+        padding: isMobile ? '1.5rem 1rem' : '2rem 1.5rem',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
         textAlign: 'center',
-        gap: '0.5rem'
+        gap: '0.5rem',
+        height: isMobile ? '110px' : 'auto'
       }}>
         <img 
           src="/logo.png" 
           alt="Zylix Logo" 
           style={{ 
-            width: '280px',
+            width: isMobile ? '180px' : '280px',
             height: 'auto',
             objectFit: 'contain',
             cursor: 'pointer'
@@ -75,7 +85,7 @@ export default function LoginView({ onLogin, setActiveTab, loginMessage, setLogi
       </div>
 
       {/* Right Panel: Stark White with Login Inputs */}
-      <div style={{ padding: '2rem 2.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <div style={{ padding: isMobile ? '1.5rem 1.25rem' : '2rem 2.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <h2 style={{ fontSize: '1.35rem', color: '#000', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>
           {isRegister ? "Create Account" : "Welcome Back"}
         </h2>
