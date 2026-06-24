@@ -1,0 +1,23 @@
+[
+  {
+    "id": "10b1f935-c753-4011-9e33-1de18cace222",
+    "created_at": "2026-06-14T16:36:55.822Z",
+    "name": "Vipin Kumar",
+    "email": "customer_23966@example.com",
+    "password": "25a7e0195b6ffc9a952f884b5b25ef52befb224e5d5358112dad58bb2dadb9a1"
+  },
+  {
+    "id": "79a1b0d4-77d5-4845-845b-a9b5ba33b1b4",
+    "created_at": "2026-06-14T16:39:09.829Z",
+    "name": "Vipin Kumar",
+    "email": "customer_33756@example.com",
+    "password": "25a7e0195b6ffc9a952f884b5b25ef52befb224e5d5358112dad58bb2dadb9a1"
+  },
+  {
+    "id": "3703bffa-7c95-4931-90c1-d9d32a5e58d4",
+    "created_at": "2026-06-14T16:41:47.651Z",
+    "name": "John Doe",
+    "email": "john_doe_test@example.com",
+    "password": "008c70392e3abfbd0fa47bbc2ed96aa99bd49e159727fcba0f2e6abeb3a9d601"
+  }
+]

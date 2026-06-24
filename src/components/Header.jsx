@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingCart, Search, Heart, LogIn, LogOut, ChevronDown, Menu, X, ChevronRight } from 'lucide-react';
+import { ShoppingCart, Search, Heart, LogIn, LogOut, ChevronDown, Menu, X, ChevronRight, ClipboardList } from 'lucide-react';
 
 export default function Header({ 
   activeTab, 
@@ -42,6 +42,7 @@ export default function Header({
     { label: 'Shipping Policy', tab: 'shipping' },
     { label: 'Privacy Policy', tab: 'privacy' },
     { label: 'Terms & Conditions', tab: 'terms' },
+    { label: '⚙️ Admin Portal', tab: 'admin' },
   ];
 
   const navigateTo = (tab, category) => {
@@ -139,6 +140,11 @@ export default function Header({
                   </button>
                   {profileDropdownOpen && (
                     <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '0.5rem', backgroundColor: '#ffffff', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', width: '150px', overflow: 'hidden', zIndex: 110 }}>
+                      {user && (user.email === 'admin@zylix.com' || user.name.toLowerCase() === 'admin') && (
+                        <button onClick={() => { navigateTo('admin'); setProfileDropdownOpen(false); }} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', padding: '0.75rem 1rem', width: '100%', textAlign: 'left', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid #eee' }}>
+                          ⚙️ Admin Portal
+                        </button>
+                      )}
                       <button onClick={() => { if (window.confirm("Are you sure you want to log out?")) { onLogout(); setProfileDropdownOpen(false); } }} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', padding: '0.75rem 1rem', width: '100%', textAlign: 'left', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <LogOut size={14} /> Log Out
                       </button>
@@ -153,6 +159,10 @@ export default function Header({
               <button onClick={() => setWishlistOpen(true)} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', position: 'relative', display: 'flex', alignItems: 'center' }} title="Wishlist">
                 <Heart size={20} />
                 {wishlistCount > 0 && <span style={{ position: 'absolute', top: '-6px', right: '-8px', background: 'var(--accent-color)', color: '#ffffff', width: '16px', height: '16px', borderRadius: '50%', fontSize: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700' }}>{wishlistCount}</span>}
+              </button>
+              <button onClick={() => navigateTo('orders')} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }} title="My Orders">
+                <ClipboardList size={20} />
+                <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>My Orders</span>
               </button>
               <button onClick={() => setCartOpen(true)} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', position: 'relative', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <ShoppingCart size={20} />
@@ -325,6 +335,8 @@ export default function Header({
                 { label: '🎨 Design Your Own', tab: 'designer' },
                 { label: '🔧 Spare Parts', tab: 'spareparts' },
                 { label: '🔬 Prototype Lab', tab: 'student' },
+                { label: '📋 My Orders', tab: 'orders' },
+                { label: '⚙️ Admin Portal', tab: 'admin' },
               ].map(item => (
                 <button key={item.tab} onClick={() => navigateTo(item.tab)} style={{ width: '100%', background: 'transparent', border: 'none', borderBottom: '1px solid #f0f0f0', padding: '0.9rem 1.25rem', textAlign: 'left', fontSize: '0.88rem', fontWeight: activeTab === item.tab ? '700' : '500', color: activeTab === item.tab ? 'var(--accent-color)' : '#000', cursor: 'pointer' }}>
                   {item.label}

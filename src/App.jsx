@@ -4,9 +4,12 @@ import Footer from './components/Footer';
 import ECommerceCatalog from './components/ECommerceCatalog';
 import ProductDetailModal from './components/ProductDetailModal';
 import CartDrawer from './components/CartDrawer';
+import CartPage from './components/CartPage';
 import AIPrintLab from './components/AIPrintLab';
+
 import SpareParts from './components/SpareParts';
 import StudentHub from './components/StudentHub';
+import MyOrders from './components/MyOrders';
 import LoginView from './components/LoginView';
 import TrustBadges from './components/TrustBadges';
 import InfoPage from './components/InfoPage';
@@ -47,10 +50,62 @@ function AppContent() {
   const [cartOpen, setCartOpen] = React.useState(false);
   const [studentApplied, setStudentApplied] = React.useState(false);
   const [selectedProduct, setSelectedProduct] = React.useState(null);
+  const [cartLoaded, setCartLoaded] = React.useState(false);
   
   // States: Login, Wishlist & Toggles
-  const [user, setUser] = React.useState(null);
+  const [user, setUser] = React.useState(() => {
+    const saved = localStorage.getItem('zylix_user');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [wishlist, setWishlist] = React.useState([]);
+
+  // Fetch cart from backend on mount or user login
+  React.useEffect(() => {
+    const fetchCart = async () => {
+      if (user && user.email) {
+        try {
+          const res = await fetch(`http://localhost:5000/api/cart?email=${encodeURIComponent(user.email)}`);
+          if (res.ok) {
+            const items = await res.json();
+            setCartItems(items || []);
+          }
+        } catch (err) {
+          console.error('Failed to fetch user cart from backend:', err);
+        } finally {
+          setCartLoaded(true);
+        }
+      } else {
+        setCartItems([]);
+        setCartLoaded(true);
+      }
+    };
+
+    fetchCart();
+  }, [user]);
+
+  // Sync cart to backend on cart changes (only after backend cart is loaded)
+  React.useEffect(() => {
+    const syncCart = async () => {
+      if (user && user.email && cartLoaded) {
+        try {
+          await fetch('http://localhost:5000/api/cart', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              email: user.email,
+              items: cartItems
+            })
+          });
+        } catch (err) {
+          console.error('Failed to sync cart to backend:', err);
+        }
+      }
+    };
+
+    syncCart();
+  }, [cartItems, user, cartLoaded]);
   const [wishlistOpen, setWishlistOpen] = React.useState(false);
   const [loginMessage, setLoginMessage] = React.useState('');
   const [welcomeToast, setWelcomeToast] = React.useState('');
@@ -108,7 +163,7 @@ function AppContent() {
       let newCategory = activeCategory;
       
       const validTabs = [
-        'shop', 'products', 'ailab', 'designer', 'spareparts', 'student', 'login',
+        'shop', 'products', 'ailab', 'designer', 'spareparts', 'student', 'orders', 'cart', 'login',
         'about', 'faq', 'contact', 'refund', 'shipping', 'privacy', 'terms'
       ];
 
@@ -145,6 +200,14 @@ function AppContent() {
       lastStateRef.current = { tab: activeTab, category: activeCategory };
     }
   }, [location.pathname, activeTab, activeCategory, navigate]);
+
+  // Redirect guest users away from orders and require login
+  React.useEffect(() => {
+    if ((activeTab === 'orders' || activeTab === 'cart') && !user) {
+      setLoginMessage('Please sign in to view your cart and orders.');
+      setActiveTab('login');
+    }
+  }, [activeTab, user]);
 
   // Floating Zylix Lab Console Logs
   const [terminalOpen, setTerminalOpen] = React.useState(false);
@@ -207,6 +270,18 @@ function AppContent() {
     setCartItems([]);
   };
 
+  const handleUpdateQuantity = (index, newQty) => {
+    setCartItems(prevItems => {
+      const updated = [...prevItems];
+      if (newQty <= 0) {
+        updated.splice(index, 1);
+      } else {
+        updated[index] = { ...updated[index], quantity: newQty };
+      }
+      return updated;
+    });
+  };
+
   // Toggle items in wishlist (favorites)
   const handleToggleWishlist = (product) => {
     if (!user) {
@@ -231,12 +306,17 @@ function AppContent() {
   // User Actions
   const handleLogin = (userData) => {
     setUser(userData);
+    localStorage.setItem('zylix_user', JSON.stringify(userData));
     setLoginMessage('');
     setWelcomeToast(`Welcome back, ${userData.name}!`);
+    setCartLoaded(false); // Trigger refetch of cart items for the logged-in user
   };
 
   const handleLogout = () => {
     setUser(null);
+    localStorage.removeItem('zylix_user');
+    setCartItems([]);
+    setCartLoaded(true);
   };
 
   // Live cart count
@@ -317,17 +397,27 @@ function AppContent() {
               customizerText={customizerText}
               setCustomizerText={setCustomizerText}
               user={user}
+              setActiveTab={setActiveTab}
             />
           )}
+
           {activeTab === 'spareparts' && (
             <SpareParts
               onAddToCart={handleAddToCart}
               user={user}
+              setActiveTab={setActiveTab}
             />
           )}
           {activeTab === 'student' && (
             <StudentHub
               user={user}
+              setActiveTab={setActiveTab}
+            />
+          )}
+          {activeTab === 'orders' && (
+            <MyOrders
+              user={user}
+              setActiveTab={setActiveTab}
             />
           )}
           {activeTab === 'login' && (
@@ -340,6 +430,16 @@ function AppContent() {
           )}
           {['about','contact','privacy','terms','refund','shipping','faq'].includes(activeTab) && (
             <InfoPage page={activeTab} setActiveTab={setActiveTab} />
+          )}
+          {activeTab === 'cart' && (
+            <CartPage
+              cartItems={cartItems}
+              onRemoveItem={handleRemoveItem}
+              onUpdateQuantity={handleUpdateQuantity}
+              onClearCart={handleClearCart}
+              user={user}
+              setActiveTab={setActiveTab}
+            />
           )}
         </div>
       </main>
@@ -368,9 +468,7 @@ function AppContent() {
         onClose={() => setCartOpen(false)}
         cartItems={cartItems}
         onRemoveItem={handleRemoveItem}
-        studentApplied={studentApplied}
-        setStudentApplied={setStudentApplied}
-        onClearCart={handleClearCart}
+        setActiveTab={setActiveTab}
       />
 
       {/* Wishlist Drawer Overlay panel */}

@@ -5,7 +5,7 @@ import {
   Key, Gift, Image, PenTool, Lightbulb, Smile, Sparkles, Box,
   Filter, Zap, ArrowRight, TrendingUp
 } from 'lucide-react';
-import { mockProducts } from '../data/products';
+import { mockProducts as staticProducts } from '../data/products';
 
 const categoriesConfig = [
   { id: 'keychains', label: 'Custom Keychains', icon: <Key size={22} />, img: '/images/categories/keychains.jpg' },
@@ -74,6 +74,32 @@ export default function ECommerceCatalog({
   setActiveTab,
   setActiveCategory
 }) {
+  const [products, setProducts] = React.useState([]);
+  const [loadingProducts, setLoadingProducts] = React.useState(true);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/products');
+        if (!res.ok) throw new Error('Failed to fetch products');
+        const data = await res.json();
+        if (isMounted) {
+          setProducts(data);
+          setLoadingProducts(false);
+        }
+      } catch (err) {
+        console.error('[Catalog Fetch Error]:', err);
+        if (isMounted) {
+          setProducts(staticProducts);
+          setLoadingProducts(false);
+        }
+      }
+    };
+    fetchProducts();
+    return () => { isMounted = false; };
+  }, []);
+
   const [carouselIndex, setCarouselIndex] = React.useState(0);
   const [animatingSlide, setAnimatingSlide] = React.useState(false);
   const [selectedCats, setSelectedCats] = React.useState([]);
@@ -140,7 +166,7 @@ export default function ECommerceCatalog({
     setActiveCategory('all');
   };
 
-  const filteredProducts = mockProducts.filter(product => {
+  const filteredProducts = products.filter(product => {
     const matchesCategory = selectedCats.length === 0 || selectedCats.includes(product.category);
     const matchesSearch = searchQuery === '' || 
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -381,7 +407,7 @@ export default function ECommerceCatalog({
               <button onClick={() => scroll(newRef, 'left')} className="carousel-nav-btn" style={{ left: '-20px' }} aria-label="Scroll left"><ChevronLeft size={20} /></button>
               <button onClick={() => scroll(newRef, 'right')} className="carousel-nav-btn" style={{ right: '-20px' }} aria-label="Scroll right"><ChevronRight size={20} /></button>
               <div ref={newRef} className="products-scroll-container">
-                {mockProducts.filter(p => ['keychains', 'miniatures', 'holders', 'lightbox'].includes(p.category)).map((product, i) => {
+                {products.filter(p => ['keychains', 'miniatures', 'holders', 'lightbox'].includes(p.category)).map((product, i) => {
                   const isWishlisted = wishlist.some(item => item.id === product.id);
                   return <ProductCard key={product.id} product={product} isWishlisted={isWishlisted} onToggleWishlist={onToggleWishlist} onProductClick={onProductClick} onAddToCart={onAddToCart} animDelay={i * 0.1} />;
                 })}
@@ -404,7 +430,7 @@ export default function ECommerceCatalog({
               <button onClick={() => scroll(featuredRef, 'left')} className="carousel-nav-btn" style={{ left: '-20px' }} aria-label="Scroll left"><ChevronLeft size={20} /></button>
               <button onClick={() => scroll(featuredRef, 'right')} className="carousel-nav-btn" style={{ right: '-20px' }} aria-label="Scroll right"><ChevronRight size={20} /></button>
               <div ref={featuredRef} className="products-scroll-container">
-                {mockProducts.filter(p => ['masks', 'stencils', 'gifts', 'wallart'].includes(p.category)).map((product, i) => {
+                {products.filter(p => ['masks', 'stencils', 'gifts', 'wallart'].includes(p.category)).map((product, i) => {
                   const isWishlisted = wishlist.some(item => item.id === product.id);
                   return <ProductCard key={product.id} product={product} isWishlisted={isWishlisted} onToggleWishlist={onToggleWishlist} onProductClick={onProductClick} onAddToCart={onAddToCart} animDelay={i * 0.1} />;
                 })}
@@ -423,7 +449,7 @@ export default function ECommerceCatalog({
               <button onClick={() => scroll(moreRef, 'left')} className="carousel-nav-btn" style={{ left: '-20px' }} aria-label="Scroll left"><ChevronLeft size={20} /></button>
               <button onClick={() => scroll(moreRef, 'right')} className="carousel-nav-btn" style={{ right: '-20px' }} aria-label="Scroll right"><ChevronRight size={20} /></button>
               <div ref={moreRef} className="products-scroll-container">
-                {mockProducts.slice(1).filter((_, i) => i % 2 === 0).slice(0, 8).map((product, i) => {
+                {products.slice(1).filter((_, i) => i % 2 === 0).slice(0, 8).map((product, i) => {
                   const isWishlisted = wishlist.some(item => item.id === product.id);
                   return <ProductCard key={product.id} product={product} isWishlisted={isWishlisted} onToggleWishlist={onToggleWishlist} onProductClick={onProductClick} onAddToCart={onAddToCart} animDelay={i * 0.1} />;
                 })}
@@ -715,28 +741,6 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, onProductClick, 
           }}>
             {product.badge}
           </span>
-        )}
-        {hovered && !isSoldOut && (
-          <div
-            style={{ 
-              position: 'absolute', 
-              bottom: 0, left: 0, right: 0, 
-              backgroundColor: 'rgba(15, 23, 42, 0.75)', 
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              padding: '10px', 
-              display: 'flex', 
-              justifyContent: 'center', 
-              animation: 'slideUpOverlay 0.25s cubic-bezier(0.16, 1, 0.3, 1)', 
-              cursor: 'pointer',
-              zIndex: 6
-            }}
-            onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
-          >
-            <span style={{ color: '#fff', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <ShoppingCart size={12} /> Quick Add
-            </span>
-          </div>
         )}
       </div>
 

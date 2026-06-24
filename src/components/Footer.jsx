@@ -15,6 +15,7 @@ export default function Footer({ setActiveTab }) {
     { label: 'Shipping Policy', tab: 'shipping' },
     { label: 'Bulk / B2B Orders', tab: 'contact' },
     { label: 'About Us', tab: 'about' },
+    { label: '⚙️ Admin Portal', tab: 'admin' },
   ];
 
   const linkStyle = {

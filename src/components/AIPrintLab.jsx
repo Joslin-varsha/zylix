@@ -9,7 +9,8 @@ export default function AIPrintLab({
   setDesignerPreset,
   customizerText = '',
   setCustomizerText,
-  user
+  user,
+  setActiveTab
 }) {
   // Sync wrapper states for internal tab rendering
   const [activeLabTab, setActiveLabTab] = React.useState(labTab);
@@ -38,7 +39,6 @@ export default function AIPrintLab({
 
   // 1. --- CAD SLICER (UPLOAD FILE TO PRINT) STATES & HANDLERS ---
   const [file, setFile] = React.useState(null);
-  const [isScanning, setIsScanning] = React.useState(false);
   const [material, setMaterial] = React.useState('PLA');
   const [infill, setInfill] = React.useState(20);
   const [layerHeight, setLayerHeight] = React.useState('0.20');
@@ -47,64 +47,56 @@ export default function AIPrintLab({
   const [notes, setNotes] = React.useState('');
   const [quoteSubmitted, setQuoteSubmitted] = React.useState(false);
   const [submittingQuote, setSubmittingQuote] = React.useState(false);
-
-  const [fileStats, setFileStats] = React.useState({
-    name: '',
-    volume: 0,
-    dimensions: { x: 0, y: 0, z: 0 },
-    weight: 0
-  });
-
-  const simulateUpload = (fileName, volume, x, y, z) => {
-    setIsScanning(true);
-    setFile(null);
-    setTimeout(() => {
-      setIsScanning(false);
-      setFile({ name: fileName });
-      setFileStats({
-        name: fileName,
-        volume: volume,
-        dimensions: { x, y, z },
-        weight: Math.round(volume * 1.25)
-      });
-    }, 1800);
-  };
+  const [slicerTicketId, setSlicerTicketId] = React.useState('');
 
   const handleDrop = (e) => {
     e.preventDefault();
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) {
-      simulateUpload(
-        droppedFile.name, 
-        Math.floor(15 + Math.random() * 60), 
-        Math.floor(40 + Math.random() * 100),
-        Math.floor(40 + Math.random() * 100),
-        Math.floor(20 + Math.random() * 60)
-      );
+      setFile(droppedFile);
     }
   };
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
-      simulateUpload(
-        selectedFile.name,
-        Math.floor(15 + Math.random() * 60), 
-        Math.floor(40 + Math.random() * 100),
-        Math.floor(40 + Math.random() * 100),
-        Math.floor(20 + Math.random() * 60)
-      );
+      setFile(selectedFile);
     }
   };
 
-  const handleSubmitQuote = (e) => {
+  const handleSubmitQuote = async (e) => {
     e.preventDefault();
     if (!file) return;
     setSubmittingQuote(true);
-    setTimeout(() => {
-      setSubmittingQuote(false);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('material', material);
+      formData.append('color', color);
+      formData.append('quantity', quantity);
+      formData.append('notes', notes);
+      formData.append('customerName', customerName);
+      formData.append('customerEmail', customerEmail);
+      formData.append('customerPhone', customerPhone);
+
+      const response = await fetch('http://localhost:5000/api/quotes/slicer', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit quote request to backend.');
+      }
+
+      const resData = await response.json();
+      setSlicerTicketId(resData.ticketId);
       setQuoteSubmitted(true);
-    }, 1500);
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    } finally {
+      setSubmittingQuote(false);
+    }
   };
 
 
@@ -142,14 +134,44 @@ export default function AIPrintLab({
     }
   };
 
-  const handleSubmitDesignerQuote = (e) => {
+  const handleSubmitDesignerQuote = async (e) => {
     e.preventDefault();
     setDesignerSubmitting(true);
-    setTimeout(() => {
-      setDesignerSubmitting(false);
-      setDesignerTicketId('ZYL-DSN-' + (1000 + Math.floor(Math.random() * 9000)));
+    try {
+      const formData = new FormData();
+      if (referenceFile) {
+        formData.append('referenceFile', referenceFile);
+      }
+      formData.append('productType', productType);
+      formData.append('customProductType', customProductType);
+      formData.append('nameText', nameText);
+      formData.append('designerColor', designerColor);
+      formData.append('customColor', customColor);
+      formData.append('designerSize', designerSize);
+      formData.append('customSize', customSize);
+      formData.append('additionalNotes', additionalNotes);
+      formData.append('customerName', customerName);
+      formData.append('customerEmail', customerEmail);
+      formData.append('customerPhone', customerPhone);
+
+      const response = await fetch('http://localhost:5000/api/quotes/designer', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit design request to backend.');
+      }
+
+      const resData = await response.json();
+      setDesignerTicketId(resData.ticketId);
       setDesignerSubmitted(true);
-    }, 1500);
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    } finally {
+      setDesignerSubmitting(false);
+    }
   };
 
   return (
@@ -191,7 +213,7 @@ export default function AIPrintLab({
           {/* TAB 1: CAD upload container */}
           {activeLabTab === 'slicer' && (
             <>
-              {!file && !isScanning && (
+              {!file && (
                 <div 
                   onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('active'); }}
                   onDragLeave={(e) => { e.preventDefault(); e.currentTarget.classList.remove('active'); }}
@@ -217,31 +239,11 @@ export default function AIPrintLab({
                   </label>
                 </div>
               )}
-
-              {isScanning && (
-                <div className="glass-panel" style={{
-                  padding: '4.5rem 2rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  minHeight: '260px'
-                }}>
-                  <div className="scanning-bar" />
-                  <Upload size={32} className="animate-pulse-slow" style={{ color: '#000', marginBottom: '1rem' }} />
-                  <h4 style={{ fontSize: '0.95rem', color: '#000', letterSpacing: '0.05em' }}>AI ANALYZING MESH GEOMETRY</h4>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                    Calculating volume density, layers, and wall tolerances...
-                  </p>
-                </div>
-              )}
             </>
           )}
 
           {/* Tab 1: Slicer File Status Block */}
-          {activeLabTab === 'slicer' && file && !isScanning && (
+          {activeLabTab === 'slicer' && file && (
             <div className="glass-panel" style={{ padding: '2rem', backgroundColor: '#ffffff', borderRadius: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
                 <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#16a34a' }}>
@@ -272,9 +274,9 @@ export default function AIPrintLab({
                   <Box size={28} />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#000', margin: 0 }}>{fileStats.name}</h3>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#000', margin: 0 }}>{file.name}</h3>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                    Geometry file successfully analyzed
+                    File successfully attached
                   </p>
                 </div>
               </div>
@@ -383,7 +385,7 @@ export default function AIPrintLab({
               <div>
                 <h2 style={{ fontSize: '1.35rem', fontWeight: '800', color: '#000', marginBottom: '0.25rem' }}>Quote Submitted!</h2>
                 <span style={{ fontSize: '0.72rem', backgroundColor: '#f1f5f9', padding: '0.2rem 0.6rem', borderRadius: '12px', color: '#475569', fontWeight: 'bold' }}>
-                  TICKET: #ZYL-{(1000 + Math.floor(Math.random() * 9000))}-{(Math.floor(10 + Math.random() * 89))}
+                  TICKET: {slicerTicketId || `#ZYL-MOCK`}
                 </span>
               </div>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.6', maxWidth: '380px', margin: '0 auto' }}>
@@ -401,7 +403,7 @@ export default function AIPrintLab({
                 flexDirection: 'column',
                 gap: '0.4rem'
               }}>
-                <div><span style={{ color: 'var(--text-secondary)' }}>File Uploaded:</span> <strong style={{ color: '#000' }}>{fileStats.name}</strong></div>
+                <div><span style={{ color: 'var(--text-secondary)' }}>File Uploaded:</span> <strong style={{ color: '#000' }}>{file?.name}</strong></div>
                 <div><span style={{ color: 'var(--text-secondary)' }}>Material Selected:</span> <strong style={{ color: '#000' }}>{material}</strong></div>
                 <div><span style={{ color: 'var(--text-secondary)' }}>Color Selected:</span> <strong style={{ color: '#000' }}>{color}</strong></div>
                 <div><span style={{ color: 'var(--text-secondary)' }}>Quantity:</span> <strong style={{ color: '#000' }}>{quantity} pcs</strong></div>
@@ -530,20 +532,47 @@ export default function AIPrintLab({
                   </div>
                 </div>
 
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  style={{ width: '100%', height: '42px', marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                  disabled={!file || submittingQuote}
-                >
-                  {submittingQuote ? (
-                    <>Submitting Request...</>
-                  ) : (
-                    <>
-                      <Upload size={14} /> Request Custom Quote
-                    </>
-                  )}
-                </button>
+                {user ? (
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    style={{ width: '100%', height: '42px', marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                    disabled={!file || submittingQuote}
+                  >
+                    {submittingQuote ? (
+                      <>Submitting Request...</>
+                    ) : (
+                      <>
+                        <Upload size={14} /> Request Custom Quote
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('login')}
+                      className="btn-primary"
+                      style={{
+                        width: '100%',
+                        height: '42px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        backgroundColor: '#f1f5f9',
+                        color: '#475569',
+                        border: '1px solid #cbd5e1',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      🔒 Sign In to Submit Quote Request
+                    </button>
+                    <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', marginTop: '0.4rem' }}>
+                      *Sign in is required to submit custom print quotes & track orders.
+                    </span>
+                  </div>
+                )}
               </form>
             </>
           )}
@@ -856,14 +885,41 @@ export default function AIPrintLab({
                   </div>
                 </div>
 
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  style={{ width: '100%', height: '44px', marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                  disabled={designerSubmitting || !customerName || !customerEmail || !customerPhone}
-                >
-                  {designerSubmitting ? 'Sending Request...' : 'Request Design & Quote'}
-                </button>
+                {user ? (
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    style={{ width: '100%', height: '44px', marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                    disabled={designerSubmitting || !customerName || !customerEmail || !customerPhone}
+                  >
+                    {designerSubmitting ? 'Sending Request...' : 'Request Design & Quote'}
+                  </button>
+                ) : (
+                  <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('login')}
+                      className="btn-primary"
+                      style={{
+                        width: '100%',
+                        height: '44px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        backgroundColor: '#f1f5f9',
+                        color: '#475569',
+                        border: '1px solid #cbd5e1',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      🔒 Sign In to Submit Quote Request
+                    </button>
+                    <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', marginTop: '0.4rem' }}>
+                      *Sign in is required to submit custom print quotes & track orders.
+                    </span>
+                  </div>
+                )}
               </form>
             </>
           )}

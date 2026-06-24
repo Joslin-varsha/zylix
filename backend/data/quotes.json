@@ -1,0 +1,99 @@
+[
+  {
+    "id": "ZYL-SLI-6202",
+    "created_at": "2026-06-13T15:10:14.684Z",
+    "type": "slicer",
+    "status": "Quoted",
+    "material": "PETG",
+    "color": "Crimson Red",
+    "quantity": 2,
+    "notes": "Need solid walls.",
+    "customer_name": "Anya Sharma",
+    "customer_email": "anya@example.com",
+    "customer_phone": "+91 99999 88888",
+    "file_url": "http://localhost:5000/uploads/1781363414658-68801.stl",
+    "file_name": "test_gear.stl",
+    "price_estimate": 450,
+    "admin_notes": "Checked STL. Slicing time is 1h 12m. Sized to specs.",
+    "extra_data": {
+      "volume": 35.5,
+      "weight": 44.3,
+      "dimensions": {
+        "x": 50,
+        "y": 50,
+        "z": 25
+      }
+    }
+  },
+  {
+    "id": "ZYL-DSN-3803",
+    "created_at": "2026-06-13T15:10:14.758Z",
+    "type": "designer",
+    "status": "Pending",
+    "material": "N/A (Designer Draft)",
+    "color": "Gold",
+    "quantity": 1,
+    "notes": "Please sand the edges.",
+    "customer_name": "Rohan Patel",
+    "customer_email": "rohan@example.com",
+    "customer_phone": "+91 77777 66666",
+    "file_url": "http://localhost:5000/uploads/1781363414753-83493.png",
+    "file_name": "sketch.png",
+    "price_estimate": null,
+    "admin_notes": "",
+    "extra_data": {
+      "productType": "keychain",
+      "customProductType": "",
+      "nameText": "ZYLIX",
+      "designerSize": "Small"
+    }
+  },
+  {
+    "id": "ZYL-PART-9815",
+    "created_at": "2026-06-13T15:10:14.783Z",
+    "type": "spareparts",
+    "status": "Pending",
+    "material": "Duplication (Engineered)",
+    "color": "Technical Black/Grey",
+    "quantity": 1,
+    "notes": "Plastic tab broke off.",
+    "customer_name": "Kabir Sen",
+    "customer_email": "kabir@example.com",
+    "customer_phone": "+91 88888 77777",
+    "file_url": "http://localhost:5000/uploads/1781363414781-49358.jpg",
+    "file_name": "broken_part.jpg",
+    "price_estimate": null,
+    "admin_notes": "",
+    "extra_data": {
+      "partName": "Car AC vent clip",
+      "dimensions": {
+        "length": "30",
+        "width": "15",
+        "height": "10"
+      }
+    }
+  },
+  {
+    "id": "ZYL-DSN-2200",
+    "created_at": "2026-06-14T07:21:30.623Z",
+    "type": "designer",
+    "status": "Approved",
+    "material": "N/A (Designer Draft)",
+    "color": "Red",
+    "quantity": 1,
+    "notes": "",
+    "customer_name": "jossss",
+    "customer_email": "joslinvarsha55@gmail.com",
+    "customer_phone": "9999999999999999999999",
+    "file_url": "http://localhost:5000/uploads/1781421690621-84203.jpg",
+    "file_name": "download.jpg",
+    "price_estimate": 789,
+    "admin_notes": "",
+    "extra_data": {
+      "productType": "keychain",
+      "customProductType": "",
+      "nameText": "JOSLIN VARSHA",
+      "designerSize": "Small"
+    }
+  }
+]

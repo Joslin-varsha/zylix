@@ -15,7 +15,7 @@ export default function LoginView({ onLogin, setActiveTab, loginMessage, setLogi
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setValidationError('');
 
@@ -35,9 +35,29 @@ export default function LoginView({ onLogin, setActiveTab, loginMessage, setLogi
       return;
     }
 
-    const username = isRegister ? name : email.split('@')[0];
-    onLogin({ name: username, email });
-    setActiveTab('shop'); // Redirect to e-store after mock login
+    try {
+      const endpoint = isRegister ? 'register' : 'login';
+      const bodyData = isRegister ? { name, email, password } : { email, password };
+
+      const response = await fetch(`http://localhost:5000/api/auth/${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(bodyData)
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Authentication failed.');
+      }
+
+      onLogin(data.user);
+      setActiveTab('shop'); // Redirect to e-store after login
+    } catch (err) {
+      console.error(err);
+      setValidationError(err.message);
+    }
   };
 
   return (

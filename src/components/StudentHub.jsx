@@ -1,7 +1,7 @@
 import React from 'react';
 import { Upload, CheckCircle2, Calendar } from 'lucide-react';
 
-export default function StudentHub({ user }) {
+export default function StudentHub({ user, setActiveTab }) {
   const [projectType, setProjectType] = React.useState('College Project');
   const [customProjectType, setCustomProjectType] = React.useState('');
   const [projectName, setProjectName] = React.useState('');
@@ -46,14 +46,45 @@ export default function StudentHub({ user }) {
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmitPrototypeQuote = (e) => {
+  const handleSubmitPrototypeQuote = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
-      setTicketId('ZYL-PROTO-' + (1000 + Math.floor(Math.random() * 9000)));
+    try {
+      const formData = new FormData();
+      formData.append('projectType', projectType);
+      formData.append('customProjectType', customProjectType);
+      formData.append('projectName', projectName);
+      formData.append('description', description);
+      formData.append('quantity', quantity);
+      formData.append('customQuantity', customQuantity);
+      formData.append('requiredDate', requiredDate);
+      formData.append('customerName', customerName);
+      formData.append('customerEmail', customerEmail);
+      formData.append('customerPhone', customerPhone);
+
+      // Append multiple files
+      uploadedFiles.forEach((file) => {
+        formData.append('files', file);
+      });
+
+      const response = await fetch('http://localhost:5000/api/quotes/prototype', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit prototype request to backend.');
+      }
+
+      const resData = await response.json();
+      setTicketId(resData.ticketId);
       setSubmitted(true);
-    }, 1500);
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
 
@@ -415,14 +446,41 @@ export default function StudentHub({ user }) {
                   </div>
                 </div>
 
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  style={{ width: '100%', height: '42px', marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                  disabled={submitting || !customerName || !customerEmail || !customerPhone}
-                >
-                  {submitting ? 'Sending Request...' : 'Request Prototype Quote'}
-                </button>
+                {user ? (
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    style={{ width: '100%', height: '42px', marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                    disabled={submitting || !customerName || !customerEmail || !customerPhone}
+                  >
+                    {submitting ? 'Sending Request...' : 'Request Prototype Quote'}
+                  </button>
+                ) : (
+                  <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('login')}
+                      className="btn-primary"
+                      style={{
+                        width: '100%',
+                        height: '42px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        backgroundColor: '#f1f5f9',
+                        color: '#475569',
+                        border: '1px solid #cbd5e1',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      🔒 Sign In to Submit Quote Request
+                    </button>
+                    <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', marginTop: '0.4rem' }}>
+                      *Sign in is required to submit custom print quotes & track orders.
+                    </span>
+                  </div>
+                )}
               </form>
             </>
           )}

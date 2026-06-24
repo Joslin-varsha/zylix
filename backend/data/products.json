@@ -1,0 +1,606 @@
+[
+  {
+    "id": 1,
+    "name": "Custom Name Keychain",
+    "category": "keychains",
+    "categoryLabel": "Custom Keychains",
+    "price": 99,
+    "originalPrice": 149,
+    "discount": 34,
+    "rating": 4.8,
+    "reviewsCount": 124,
+    "image": "/product-1.webp",
+    "description": "Personalized 3D printed keychain with your name or initials. Available in multiple colors and fonts.",
+    "specs": {
+      "Material": "PLA",
+      "Size": "5 x 2 cm",
+      "Customization": "Name / Initials"
+    },
+    "materials": [
+      "PLA"
+    ],
+    "badge": "-34%",
+    "inStock": true
+  },
+  {
+    "id": 2,
+    "name": "Couple Keychain Set",
+    "category": "keychains",
+    "categoryLabel": "Custom Keychains",
+    "price": 149,
+    "originalPrice": 199,
+    "discount": 25,
+    "rating": 4.9,
+    "reviewsCount": 88,
+    "image": "/product-2.webp",
+    "description": "Matching couple keychain set — interlocking heart design. Perfect anniversary or Valentine's gift.",
+    "specs": {
+      "Material": "PLA",
+      "Set": "2 keychains",
+      "Design": "Interlocking Heart"
+    },
+    "materials": [
+      "PLA"
+    ],
+    "badge": "-25%",
+    "inStock": true
+  },
+  {
+    "id": 3,
+    "name": "Anime Character Miniature",
+    "category": "miniatures",
+    "categoryLabel": "Custom Miniature",
+    "price": 349,
+    "originalPrice": 499,
+    "discount": 30,
+    "rating": 4.7,
+    "reviewsCount": 65,
+    "image": "/product-3.webp",
+    "description": "High-detail resin-printed anime character miniature. Fully painted and base-mounted.",
+    "specs": {
+      "Material": "Grey Resin",
+      "Height": "8 cm",
+      "Finish": "Hand-painted"
+    },
+    "materials": [
+      "Resin"
+    ],
+    "badge": "-30%",
+    "inStock": true
+  },
+  {
+    "id": 4,
+    "name": "Custom Your Face Miniature",
+    "category": "miniatures",
+    "categoryLabel": "Custom Miniature",
+    "price": 599,
+    "originalPrice": 799,
+    "discount": 25,
+    "rating": 4.6,
+    "reviewsCount": 42,
+    "image": "/product-4.jpg",
+    "description": "Send us your photo and we'll 3D print a mini version of you. Perfect gift for yourself or loved ones.",
+    "specs": {
+      "Material": "Resin",
+      "Height": "10 cm",
+      "Customization": "Photo Required"
+    },
+    "materials": [
+      "Resin"
+    ],
+    "badge": "CUSTOM",
+    "inStock": true
+  },
+  {
+    "id": 5,
+    "name": "Desk Pen & Phone Holder",
+    "category": "holders",
+    "categoryLabel": "3D Printed Holders",
+    "price": 199,
+    "originalPrice": 249,
+    "discount": 20,
+    "rating": 4.5,
+    "reviewsCount": 57,
+    "image": "/product-5.jpg",
+    "description": "Multi-functional desk organizer. Holds your phone, pens, and small items in a sleek modular design.",
+    "specs": {
+      "Material": "PETG",
+      "Dimensions": "15 x 10 x 8 cm",
+      "Phone Slot": "Universal fit"
+    },
+    "materials": [
+      "PETG"
+    ],
+    "badge": "-20%",
+    "inStock": true
+  },
+  {
+    "id": 6,
+    "name": "Headphone Stand",
+    "category": "holders",
+    "categoryLabel": "3D Printed Holders",
+    "price": 249,
+    "originalPrice": 349,
+    "discount": 29,
+    "rating": 4.7,
+    "reviewsCount": 38,
+    "image": "/product-6.jpg",
+    "description": "Minimal and sturdy headphone stand. Keeps your setup clean and your headphones safe.",
+    "specs": {
+      "Material": "PLA + Wood Infill",
+      "Max Load": "500g",
+      "Base": "Non-slip rubber"
+    },
+    "materials": [
+      "PLA"
+    ],
+    "badge": "-29%",
+    "inStock": true
+  },
+  {
+    "id": 7,
+    "name": "Geometric Wolf Light Box",
+    "category": "lightbox",
+    "categoryLabel": "Light Box",
+    "price": 849,
+    "originalPrice": 1199,
+    "discount": 29,
+    "rating": 4.9,
+    "reviewsCount": 91,
+    "image": "/product-7.jpg",
+    "description": "Multilayered 3D lightbox with depth illusion effect when lit. USB LED strip pre-installed inside.",
+    "specs": {
+      "Material": "PLA + Acrylic",
+      "Power": "USB 5V",
+      "Dimensions": "20 x 20 x 6 cm"
+    },
+    "materials": [
+      "PLA"
+    ],
+    "badge": "-29%",
+    "inStock": true
+  },
+  {
+    "id": 8,
+    "name": "Custom Name LED Light Box",
+    "category": "lightbox",
+    "categoryLabel": "Light Box",
+    "price": 999,
+    "originalPrice": 1399,
+    "discount": 29,
+    "rating": 4.8,
+    "reviewsCount": 53,
+    "image": "/product-8.webp",
+    "description": "Custom name or word printed in layered 3D and backlit with warm LED. Perfect room decor gift.",
+    "specs": {
+      "Material": "PLA + LED Strip",
+      "Power": "USB 5V",
+      "Text": "Up to 8 characters"
+    },
+    "materials": [
+      "PLA"
+    ],
+    "badge": "-29%",
+    "inStock": true
+  },
+  {
+    "id": 9,
+    "name": "Cyberpunk Oni Mask",
+    "category": "masks",
+    "categoryLabel": "3D Mask",
+    "price": 1199,
+    "originalPrice": 1499,
+    "discount": 20,
+    "rating": 4.8,
+    "reviewsCount": 47,
+    "image": "/product-9.jpg",
+    "description": "Full wearable Oni mask with mechanical ventilation slots and adjustable elastic straps.",
+    "specs": {
+      "Material": "ABS",
+      "Scale": "1:1 Wearable",
+      "Strap": "Adjustable elastic"
+    },
+    "materials": [
+      "ABS"
+    ],
+    "badge": "-20%",
+    "inStock": true
+  },
+  {
+    "id": 10,
+    "name": "Iron Man Helmet",
+    "category": "masks",
+    "categoryLabel": "3D Mask",
+    "price": 1499,
+    "originalPrice": 1999,
+    "discount": 25,
+    "rating": 4.9,
+    "reviewsCount": 72,
+    "image": "/product-10.jpg",
+    "description": "Full-scale wearable Iron Man helmet. Removable faceplate with LED eye lights built-in.",
+    "specs": {
+      "Material": "ABS + PLA",
+      "Scale": "1:1",
+      "LED": "Red LED eyes (USB)"
+    },
+    "materials": [
+      "ABS"
+    ],
+    "badge": "-25%",
+    "inStock": true
+  },
+  {
+    "id": 11,
+    "name": "Floral Pattern Stencil",
+    "category": "stencils",
+    "categoryLabel": "Stencil",
+    "price": 149,
+    "originalPrice": 199,
+    "discount": 25,
+    "rating": 4.4,
+    "reviewsCount": 33,
+    "image": "/product-11.jpg",
+    "description": "Reusable flexible floral stencil for walls, canvas, fabric, and more. Washable and durable.",
+    "specs": {
+      "Material": "Flexible PP",
+      "Thickness": "0.4 mm",
+      "Size": "30 x 30 cm",
+      "Reusable": "Yes"
+    },
+    "materials": [
+      "PP"
+    ],
+    "badge": "-25%",
+    "inStock": true
+  },
+  {
+    "id": 12,
+    "name": "Mandala Art Stencil",
+    "category": "stencils",
+    "categoryLabel": "Stencil",
+    "price": 179,
+    "originalPrice": 229,
+    "discount": 22,
+    "rating": 4.6,
+    "reviewsCount": 28,
+    "image": "/product-12.jpg",
+    "description": "Intricate mandala stencil for wall art and decor. Perfect for DIY home decoration projects.",
+    "specs": {
+      "Material": "Flexible PET",
+      "Thickness": "0.3 mm",
+      "Size": "40 x 40 cm",
+      "Reusable": "Yes"
+    },
+    "materials": [
+      "PET"
+    ],
+    "badge": "-22%",
+    "inStock": true
+  },
+  {
+    "id": 13,
+    "name": "Custom Name Plaque",
+    "category": "gifts",
+    "categoryLabel": "Gifts",
+    "price": 299,
+    "originalPrice": 399,
+    "discount": 25,
+    "rating": 4.9,
+    "reviewsCount": 143,
+    "image": "/product-13.jpg",
+    "description": "Personalized name plaque for doors, desks, and shelves. Elegant matte finish with raised lettering.",
+    "specs": {
+      "Material": "Silk PLA",
+      "Max Length": "30 cm",
+      "Finish": "Matte"
+    },
+    "materials": [
+      "PLA"
+    ],
+    "badge": "-25%",
+    "inStock": true
+  },
+  {
+    "id": 14,
+    "name": "Birthday Gift Box Set",
+    "category": "gifts",
+    "categoryLabel": "Gifts",
+    "price": 499,
+    "originalPrice": 699,
+    "discount": 29,
+    "rating": 4.8,
+    "reviewsCount": 76,
+    "image": "/product-14.webp",
+    "description": "Curated 3D printed gift set — includes name keychain, mini figurine, and custom plaque. Boxed beautifully.",
+    "specs": {
+      "Includes": "Keychain + Plaque + Mini",
+      "Material": "PLA",
+      "Box": "Premium packaging"
+    },
+    "materials": [
+      "PLA"
+    ],
+    "badge": "-29%",
+    "inStock": true
+  },
+  {
+    "id": 15,
+    "name": "Arcane Jinx Wall Art",
+    "category": "wallart",
+    "categoryLabel": "Wall Art",
+    "price": 499,
+    "originalPrice": 699,
+    "discount": 29,
+    "rating": 4.8,
+    "reviewsCount": 62,
+    "image": "/product-15.jpg",
+    "description": "Detailed 3D printed wall panel featuring Jinx from Arcane. Layered depth design with matte finish.",
+    "specs": {
+      "Material": "PLA",
+      "Dimensions": "30 x 30 x 1.5 cm",
+      "Mounting": "Adhesive + Wall hooks"
+    },
+    "materials": [
+      "PLA"
+    ],
+    "badge": "-29%",
+    "inStock": true
+  },
+  {
+    "id": 16,
+    "name": "Stranger Things Upside Down Wall Art",
+    "category": "wallart",
+    "categoryLabel": "Wall Art",
+    "price": 549,
+    "originalPrice": 749,
+    "discount": 27,
+    "rating": 4.9,
+    "reviewsCount": 84,
+    "image": "/product-16.jpg",
+    "description": "Iconic Stranger Things Upside Down silhouette wall art. Multi-layer 3D printed, ready to hang.",
+    "specs": {
+      "Material": "PLA",
+      "Dimensions": "40 x 20 x 2 cm",
+      "Mounting": "Hooks included"
+    },
+    "materials": [
+      "PLA"
+    ],
+    "badge": "-27%",
+    "inStock": true
+  },
+  {
+    "id": 17,
+    "name": "Carbon Fiber Smart Tag Keychain",
+    "category": "keychains",
+    "categoryLabel": "Custom Keychains",
+    "price": 199,
+    "originalPrice": 249,
+    "discount": 20,
+    "rating": 4.8,
+    "reviewsCount": 46,
+    "image": "/product-17.jpg",
+    "description": "Lightweight and ultra-durable carbon-infused 3D printed keychain with secure smart-tag slot.",
+    "specs": {
+      "Material": "Carbon Fiber PLA",
+      "Size": "6 x 3 cm",
+      "Smart Tag Slot": "Compatible with standard tags"
+    },
+    "materials": [
+      "PLA"
+    ],
+    "badge": "-20%",
+    "inStock": true
+  },
+  {
+    "id": 18,
+    "name": "Dragon Hatchling Miniature",
+    "category": "miniatures",
+    "categoryLabel": "Custom Miniature",
+    "price": 399,
+    "originalPrice": 499,
+    "discount": 20,
+    "rating": 4.9,
+    "reviewsCount": 39,
+    "image": "/product-18.jpg",
+    "description": "Cute dragon egg and hatchling resin-printed miniature. Featuring translucent crystalline accents.",
+    "specs": {
+      "Material": "Translucent Resin",
+      "Height": "9 cm",
+      "Base": "Obsidian stone print"
+    },
+    "materials": [
+      "Resin"
+    ],
+    "badge": "NEW",
+    "inStock": true
+  },
+  {
+    "id": 19,
+    "name": "Nintendo Switch Controller Dock",
+    "category": "holders",
+    "categoryLabel": "3D Printed Holders",
+    "price": 299,
+    "originalPrice": 399,
+    "discount": 25,
+    "rating": 4.7,
+    "reviewsCount": 51,
+    "image": "/product-19.jpg",
+    "description": "Sleek table-top dock for Pro Controllers and Joy-Cons. Features velvet linings on slots.",
+    "specs": {
+      "Material": "PLA",
+      "Capacity": "2 controllers",
+      "Dimensions": "12 x 10 x 9 cm"
+    },
+    "materials": [
+      "PLA"
+    ],
+    "badge": "-25%",
+    "inStock": true
+  },
+  {
+    "id": 20,
+    "name": "Astronaut Moon Ambient Lamp",
+    "category": "lightbox",
+    "categoryLabel": "Light Box",
+    "price": 949,
+    "originalPrice": 1299,
+    "discount": 27,
+    "rating": 4.8,
+    "reviewsCount": 64,
+    "image": "/product-20.jpg",
+    "description": "3D printed lithophane-style lamp displaying an astronaut on the moon with glowing multi-color LED settings.",
+    "specs": {
+      "Material": "PLA + LED",
+      "Power": "USB 5V / Remote control",
+      "Base": "Wooden mount"
+    },
+    "materials": [
+      "PLA"
+    ],
+    "badge": "BESTSELLER",
+    "inStock": true
+  },
+  {
+    "id": 21,
+    "name": "Steampunk Goggles & Half-Mask",
+    "category": "masks",
+    "categoryLabel": "3D Mask",
+    "price": 899,
+    "originalPrice": 1199,
+    "discount": 25,
+    "rating": 4.6,
+    "reviewsCount": 29,
+    "image": "/product-21.jpg",
+    "description": "Detailed 3D printed mechanical half-mask with integrated steampunk cog decorations.",
+    "specs": {
+      "Material": "PLA",
+      "Style": "Cyber-Steampunk",
+      "Fit": "Unisex adjustable"
+    },
+    "materials": [
+      "PLA"
+    ],
+    "badge": "-25%",
+    "inStock": true
+  },
+  {
+    "id": 22,
+    "name": "Abstract Geometric Stencil",
+    "category": "stencils",
+    "categoryLabel": "Stencil",
+    "price": 129,
+    "originalPrice": 169,
+    "discount": 23,
+    "rating": 4.5,
+    "reviewsCount": 19,
+    "image": "/product-22.jpg",
+    "description": "Modern retro geometric stencil pattern for clean mid-century modern painting projects.",
+    "specs": {
+      "Material": "Flexible PP",
+      "Size": "25 x 25 cm",
+      "Thickness": "0.35 mm"
+    },
+    "materials": [
+      "PP"
+    ],
+    "badge": "-23%",
+    "inStock": true
+  },
+  {
+    "id": 23,
+    "name": "Personalized Lithophane Night Light",
+    "category": "gifts",
+    "categoryLabel": "Gifts",
+    "price": 699,
+    "originalPrice": 899,
+    "discount": 22,
+    "rating": 4.9,
+    "reviewsCount": 112,
+    "image": "/product-23.jpg",
+    "description": "Upload your custom photo and watch it come to life as a glowing lithophane light box when turned on.",
+    "specs": {
+      "Material": "High-Res White PLA",
+      "Power": "Plug-in wall LED",
+      "Dimensions": "10 x 10 cm"
+    },
+    "materials": [
+      "PLA"
+    ],
+    "badge": "CUSTOM",
+    "inStock": true
+  },
+  {
+    "id": 24,
+    "name": "Minimalist Mountain Range Wall Art",
+    "category": "wallart",
+    "categoryLabel": "Wall Art",
+    "price": 399,
+    "originalPrice": 499,
+    "discount": 20,
+    "rating": 4.7,
+    "reviewsCount": 41,
+    "image": "/product-24.jpg",
+    "description": "Three-panel geometric mountain range wall panels. Easy to hang, gives an industrial modern texture.",
+    "specs": {
+      "Material": "PLA",
+      "Panels": "3 panels (interlocking)",
+      "Total Width": "90 cm"
+    },
+    "materials": [
+      "PLA"
+    ],
+    "badge": "-20%",
+    "inStock": true
+  },
+  {
+    "id": 25,
+    "created_at": "2026-06-21T15:53:15.794Z",
+    "name": "Golden Dragon Hatchling",
+    "category": "holders",
+    "category_label": "3D Printed Holders",
+    "price": 499,
+    "original_price": 699,
+    "discount": null,
+    "rating": 5,
+    "reviews_count": 0,
+    "image": "https://aghpqypwkqdpchdzcjtw.supabase.co/storage/v1/object/public/zylix-quotes/products/1782057192935-12570.png",
+    "description": "A beautiful gold-finish 3D printed dragon hatchling desk accessory.",
+    "specs": {
+      "Material": "Silk PLA",
+      "Dimensions": "10 x 9 x 8 cm"
+    },
+    "materials": [
+      "PLA"
+    ],
+    "badge": "NEW",
+    "in_stock": true,
+    "categoryLabel": "3D Printed Holders",
+    "inStock": true
+  },
+  {
+    "id": 26,
+    "created_at": "2026-06-21T16:20:00.054Z",
+    "name": "Golden Dragon Hatchling",
+    "category": "holders",
+    "category_label": "3D Printed Holders",
+    "price": 499,
+    "original_price": 699,
+    "discount": null,
+    "rating": 5,
+    "reviews_count": 0,
+    "image": "https://aghpqypwkqdpchdzcjtw.supabase.co/storage/v1/object/public/zylix-quotes/products/1782058798768-4599.png",
+    "description": "A beautiful gold-finish 3D printed dragon hatchling desk accessory.",
+    "specs": {
+      "Material": "Silk PLA",
+      "Dimensions": "10 x 9 x 8 cm"
+    },
+    "materials": [
+      "PLA"
+    ],
+    "badge": "NEW",
+    "in_stock": true,
+    "categoryLabel": "3D Printed Holders",
+    "inStock": true
+  }
+]

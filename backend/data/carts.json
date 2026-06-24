@@ -1,0 +1,26 @@
+[
+  {
+    "id": "05839700-642b-45d5-9c05-0986bbd40453",
+    "email": "customer_23966@example.com",
+    "items": [],
+    "updated_at": "2026-06-14T16:36:57.111Z"
+  },
+  {
+    "id": "6071b158-1114-4e94-88d6-58dce28cdc2a",
+    "email": "customer_33756@example.com",
+    "items": [],
+    "updated_at": "2026-06-14T16:39:11.060Z"
+  },
+  {
+    "id": "a7e224df-142d-4c4d-8b54-829a81ed3762",
+    "email": "john_doe_test@example.com",
+    "items": [],
+    "updated_at": "2026-06-14T16:48:45.568Z"
+  },
+  {
+    "id": "75997aa5-1db0-4489-82e5-a1b003f93391",
+    "email": "joslin@gmail.com",
+    "items": [],
+    "updated_at": "2026-06-24T14:07:14.339Z"
+  }
+]

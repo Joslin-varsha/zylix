@@ -1,7 +1,7 @@
 import React from 'react';
 import { Camera, Ruler, Upload, CheckCircle2, FileText } from 'lucide-react';
 
-export default function SpareParts({ onAddToCart, user }) {
+export default function SpareParts({ onAddToCart, user, setActiveTab }) {
   const [photo, setPhoto] = React.useState(null);
   const [photoFile, setPhotoFile] = React.useState(null);
   const [partName, setPartName] = React.useState('');
@@ -50,18 +50,50 @@ export default function SpareParts({ onAddToCart, user }) {
     setNotes("This part is broken. Need same design.");
   };
 
-  const handleSubmitQuote = (e) => {
+  const handleSubmitQuote = async (e) => {
     e.preventDefault();
     if (!photo) {
       alert("Please upload a photo of the broken part first.");
       return;
     }
     setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
-      setTicketId('ZYL-PART-' + (1000 + Math.floor(Math.random() * 9000)));
+    try {
+      const formData = new FormData();
+      if (photoFile && !(photoFile instanceof File)) {
+        // Fetch mock image to convert it into a real File Blob
+        const response = await fetch(photo);
+        const blob = await response.blob();
+        formData.append('photo', blob, 'broken_gear_sample.png');
+      } else {
+        formData.append('photo', photoFile);
+      }
+      formData.append('partName', partName);
+      formData.append('length', dims.length);
+      formData.append('width', dims.width);
+      formData.append('height', dims.height);
+      formData.append('notes', notes);
+      formData.append('customerName', customerName);
+      formData.append('customerEmail', customerEmail);
+      formData.append('customerPhone', customerPhone);
+
+      const response = await fetch('http://localhost:5000/api/quotes/spareparts', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit spare parts request to backend.');
+      }
+
+      const data = await response.json();
+      setTicketId(data.ticketId);
       setSubmitted(true);
-    }, 1500);
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -369,14 +401,41 @@ export default function SpareParts({ onAddToCart, user }) {
                   </div>
                 </div>
 
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  style={{ width: '100%', height: '42px', marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                  disabled={submitting || !photo || !customerName || !customerEmail || !customerPhone}
-                >
-                  {submitting ? 'Sending Request...' : 'Request Spare Part Quote'}
-                </button>
+                {user ? (
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    style={{ width: '100%', height: '42px', marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                    disabled={submitting || !photo || !customerName || !customerEmail || !customerPhone}
+                  >
+                    {submitting ? 'Sending Request...' : 'Request Spare Part Quote'}
+                  </button>
+                ) : (
+                  <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('login')}
+                      className="btn-primary"
+                      style={{
+                        width: '100%',
+                        height: '42px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        backgroundColor: '#f1f5f9',
+                        color: '#475569',
+                        border: '1px solid #cbd5e1',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      🔒 Sign In to Submit Quote Request
+                    </button>
+                    <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', marginTop: '0.4rem' }}>
+                      *Sign in is required to submit custom print quotes & track orders.
+                    </span>
+                  </div>
+                )}
               </form>
             </>
           )}
