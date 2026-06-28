@@ -107,159 +107,167 @@ if (isRazorpayConfigured) {
   console.log('[Payment] Razorpay not configured — payment endpoints will use sandbox/test mode.');
 }
 
-// Email Alert Helper
-async function sendAdminEmailNotification({ type, ticketId, clientName, clientEmail, details }) {
+// Unified Email Alert Helper (Supports Resend API & SMTP Fallback)
+const sendMailHelper = async ({ to, subject, html }) => {
+  const resendKey = process.env.RESEND_API_KEY;
+  if (resendKey && resendKey.trim().length > 0 && !resendKey.includes('your_resend_api_key')) {
+    const fromAddress = process.env.RESEND_FROM || 'Zylix 3D <onboarding@resend.dev>';
+    try {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendKey.trim()}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: fromAddress,
+          to: to,
+          subject: subject,
+          html: html
+        })
+      });
+
+      const resData = await response.json();
+      if (!response.ok) {
+        throw new Error(resData.message || `Resend API error: ${response.status}`);
+      }
+      console.log(`[Email Alert] Success via Resend to ${to}. ID: ${resData.id}`);
+      return true;
+    } catch (err) {
+      console.error(`[Email Alert] Resend API failed, trying SMTP fallback:`, err.message);
+    }
+  }
+
   const smtpHost = process.env.SMTP_HOST;
   const smtpPort = process.env.SMTP_PORT || 587;
   const smtpUser = process.env.SMTP_USER;
   const smtpPass = process.env.SMTP_PASS;
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@zylix.in';
 
   if (!smtpUser || !smtpPass) {
-    console.log(`[Email Notification] SMTP credentials not configured. Skipping email alert for ticket ${ticketId}.`);
-    return;
+    console.log(`[Email Alert] SMTP/Resend credentials not configured. Skipping email to ${to}.`);
+    return false;
   }
 
-  try {
-    const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: Number(smtpPort),
-      secure: Number(smtpPort) === 465,
-      auth: {
-        user: smtpUser,
-        pass: smtpPass
-      },
-      connectionTimeout: 5000,
-      greetingTimeout: 5000,
-      socketTimeout: 5000
-    });
+  const transporter = nodemailer.createTransport({
+    host: smtpHost,
+    port: Number(smtpPort),
+    secure: Number(smtpPort) === 465,
+    auth: {
+      user: smtpUser,
+      pass: smtpPass
+    },
+    connectionTimeout: 5000,
+    greetingTimeout: 5000,
+    socketTimeout: 5000
+  });
 
-    const mailOptions = {
-      from: `"Zylix 3D Alert" <${smtpUser}>`,
-      to: adminEmail,
-      subject: `🚨 New Zylix ${type}: Ticket ${ticketId}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-          <div style="background: #0f172a; padding: 1.5rem; color: #ffffff; text-align: center;">
-            <h1 style="margin: 0; font-size: 1.5rem; letter-spacing: 0.05em; text-transform: uppercase;">New ${type} Alert</h1>
-            <span style="background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; margin-top: 8px; display: inline-block;">
-              TICKET ID: ${ticketId}
-            </span>
-          </div>
-          <div style="padding: 1.5rem; color: #334155; line-height: 1.6;">
-            <p style="margin-top: 0;">Hello Admin,</p>
-            <p>A new <strong>${type}</strong> has been submitted on the Zylix storefront.</p>
-            
-            <h3 style="color: #0f172a; border-bottom: 1px dashed #cbd5e1; padding-bottom: 4px; margin-top: 1.5rem;">Client Details</h3>
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-              <tr>
-                <td style="padding: 4px 0; color: #64748b; width: 120px;">Name:</td>
-                <td style="padding: 4px 0; color: #0f172a; font-weight: bold;">${clientName}</td>
-              </tr>
-              <tr>
-                <td style="padding: 4px 0; color: #64748b;">Email:</td>
-                <td style="padding: 4px 0; color: #0f172a;">${clientEmail}</td>
-              </tr>
-            </table>
+  const mailOptions = {
+    from: `"Zylix 3D Alert" <${smtpUser}>`,
+    to: to,
+    subject: subject,
+    html: html
+  };
 
-            <h3 style="color: #0f172a; border-bottom: 1px dashed #cbd5e1; padding-bottom: 4px; margin-top: 1.5rem;">Submission Specifications</h3>
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-              ${Object.entries(details).map(([key, value]) => `
-                <tr>
-                  <td style="padding: 6px 0; color: #64748b; width: 120px; text-transform: capitalize;">${key}:</td>
-                  <td style="padding: 6px 0; color: #0f172a; font-weight: 500;">${value}</td>
-                </tr>
-              `).join('')}
-            </table>
+  await transporter.sendMail(mailOptions);
+  console.log(`[Email Alert] Success via SMTP to ${to}.`);
+  return true;
+};
 
-            <div style="margin-top: 2rem; text-align: center;">
-              <a href="http://localhost:3001" style="background: #000000; color: #ffffff; padding: 10px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 0.88rem; display: inline-block;">
-                Open Admin Dashboard
-              </a>
-            </div>
-          </div>
-          <div style="background: #f8fafc; padding: 1rem; color: #94a3b8; text-align: center; font-size: 0.75rem; border-top: 1px solid #e2e8f0;">
-            Zylix 3D Printing Lab &copy; 2026
-          </div>
+// Admin Alert Notification
+async function sendAdminEmailNotification({ type, ticketId, clientName, clientEmail, details }) {
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@zylix.in';
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+      <div style="background: #0f172a; padding: 1.5rem; color: #ffffff; text-align: center;">
+        <h1 style="margin: 0; font-size: 1.5rem; letter-spacing: 0.05em; text-transform: uppercase;">New ${type} Alert</h1>
+        <span style="background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; margin-top: 8px; display: inline-block;">
+          TICKET ID: ${ticketId}
+        </span>
+      </div>
+      <div style="padding: 1.5rem; color: #334155; line-height: 1.6;">
+        <p style="margin-top: 0;">Hello Admin,</p>
+        <p>A new <strong>${type}</strong> has been submitted on the Zylix storefront.</p>
+        
+        <h3 style="color: #0f172a; border-bottom: 1px dashed #cbd5e1; padding-bottom: 4px; margin-top: 1.5rem;">Client Details</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+          <tr>
+            <td style="padding: 4px 0; color: #64748b; width: 120px;">Name:</td>
+            <td style="padding: 4px 0; color: #0f172a; font-weight: bold;">${clientName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; color: #64748b;">Email:</td>
+            <td style="padding: 4px 0; color: #0f172a;">${clientEmail}</td>
+          </tr>
+        </table>
+
+        <h3 style="color: #0f172a; border-bottom: 1px dashed #cbd5e1; padding-bottom: 4px; margin-top: 1.5rem;">Submission Specifications</h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+          ${Object.entries(details).map(([key, value]) => `
+            <tr>
+              <td style="padding: 6px 0; color: #64748b; width: 120px; text-transform: capitalize;">${key}:</td>
+              <td style="padding: 6px 0; color: #0f172a; font-weight: 500;">${value}</td>
+            </tr>
+          `).join('')}
+        </table>
+
+        <div style="margin-top: 2rem; text-align: center;">
+          <a href="http://localhost:3001" style="background: #000000; color: #ffffff; padding: 10px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 0.88rem; display: inline-block;">
+            Open Admin Dashboard
+          </a>
         </div>
-      `
-    };
+      </div>
+      <div style="background: #f8fafc; padding: 1rem; color: #94a3b8; text-align: center; font-size: 0.75rem; border-top: 1px solid #e2e8f0;">
+        Zylix 3D Printing Lab &copy; 2026
+      </div>
+    </div>
+  `;
 
-    await transporter.sendMail(mailOptions);
-    console.log(`[Email Notification] Success: Sent alert email for ticket ${ticketId}.`);
+  try {
+    await sendMailHelper({ to: adminEmail, subject: `🚨 New Zylix ${type}: Ticket ${ticketId}`, html });
   } catch (err) {
-    console.error(`[Email Notification] Error sending mail for ticket ${ticketId}:`, err.message);
+    console.error(`[Email Notification] Error sending admin alert:`, err.message);
   }
 }
 
 // Email Customer Quote Ready Helper
 async function sendCustomerQuoteReadyEmail(quote) {
-  const smtpHost = process.env.SMTP_HOST;
-  const smtpPort = process.env.SMTP_PORT || 587;
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPass = process.env.SMTP_PASS;
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+      <div style="background: #0f172a; padding: 1.5rem; color: #ffffff; text-align: center;">
+        <h1 style="margin: 0; font-size: 1.5rem; letter-spacing: 0.05em; text-transform: uppercase;">Quote Estimated</h1>
+        <span style="background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; margin-top: 8px; display: inline-block;">
+          TICKET ID: ${quote.id}
+        </span>
+      </div>
+      <div style="padding: 1.5rem; color: #334155; line-height: 1.6;">
+        <p style="margin-top: 0;">Hi ${quote.customer_name},</p>
+        <p>Good news! Our team has reviewed your custom 3D printing/design submission and prepared your pricing estimate.</p>
+        
+        <div style="background: #f8fafc; border-left: 4px solid #000000; padding: 1rem; margin: 1.5rem 0;">
+          <div style="font-size: 0.85rem; color: #64748b; text-transform: uppercase;">Amount Quoted:</div>
+          <div style="font-size: 1.8rem; font-weight: bold; color: #0f172a; margin-top: 4px;">₹${quote.price_estimate}</div>
+          ${quote.admin_notes ? `<div style="font-size: 0.85rem; color: #334155; margin-top: 8px; font-style: italic;"><strong>Admin Notes:</strong> ${quote.admin_notes}</div>` : ''}
+        </div>
 
-  if (!smtpUser || !smtpPass) {
-    console.log(`[Email Notification] SMTP credentials not configured. Skipping customer alert email for ticket ${quote.id}.`);
-    return;
-  }
+        <p>You can view your order progress, shipping options, and complete your secure checkout using our online tracker.</p>
+
+        <div style="margin-top: 2rem; text-align: center;">
+          <a href="https://zylix.onrender.com/track-orders" style="background: #000000; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 0.9rem; display: inline-block;">
+            Approve & Pay Quote
+          </a>
+        </div>
+      </div>
+      <div style="background: #f8fafc; padding: 1rem; color: #94a3b8; text-align: center; font-size: 0.75rem; border-top: 1px solid #e2e8f0;">
+        If you have any questions, feel free to reply directly to this email.<br/>
+        Zylix 3D Printing Lab &copy; 2026
+      </div>
+    </div>
+  `;
 
   try {
-    const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: Number(smtpPort),
-      secure: Number(smtpPort) === 465,
-      auth: {
-        user: smtpUser,
-        pass: smtpPass
-      },
-      connectionTimeout: 5000,
-      greetingTimeout: 5000,
-      socketTimeout: 5000
-    });
-
-    const mailOptions = {
-      from: `"Zylix 3D Printing" <${smtpUser}>`,
-      to: quote.customer_email,
-      subject: `🎉 Your Zylix Quote is Ready! Ticket ${quote.id}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-          <div style="background: #0f172a; padding: 1.5rem; color: #ffffff; text-align: center;">
-            <h1 style="margin: 0; font-size: 1.5rem; letter-spacing: 0.05em; text-transform: uppercase;">Quote Estimated</h1>
-            <span style="background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; margin-top: 8px; display: inline-block;">
-              TICKET ID: ${quote.id}
-            </span>
-          </div>
-          <div style="padding: 1.5rem; color: #334155; line-height: 1.6;">
-            <p style="margin-top: 0;">Hi ${quote.customer_name},</p>
-            <p>Good news! Our team has reviewed your custom 3D printing/design submission and prepared your pricing estimate.</p>
-            
-            <div style="background: #f8fafc; border-left: 4px solid #000000; padding: 1rem; margin: 1.5rem 0;">
-              <div style="font-size: 0.85rem; color: #64748b; text-transform: uppercase;">Amount Quoted:</div>
-              <div style="font-size: 1.8rem; font-weight: bold; color: #0f172a; margin-top: 4px;">₹${quote.price_estimate}</div>
-              ${quote.admin_notes ? `<div style="font-size: 0.85rem; color: #334155; margin-top: 8px; font-style: italic;"><strong>Admin Notes:</strong> ${quote.admin_notes}</div>` : ''}
-            </div>
-
-            <p>You can view your order progress, shipping options, and complete your secure checkout using our online tracker.</p>
-
-            <div style="margin-top: 2rem; text-align: center;">
-              <a href="http://localhost:5173/track-orders" style="background: #000000; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 0.9rem; display: inline-block;">
-                Approve & Pay Quote
-              </a>
-            </div>
-          </div>
-          <div style="background: #f8fafc; padding: 1rem; color: #94a3b8; text-align: center; font-size: 0.75rem; border-top: 1px solid #e2e8f0;">
-            If you have any questions, feel free to reply directly to this email.<br/>
-            Zylix 3D Printing Lab &copy; 2026
-          </div>
-        </div>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
-    console.log(`[Email Notification] Success: Sent quote ready alert email to client ${quote.customer_email} for ticket ${quote.id}.`);
+    await sendMailHelper({ to: quote.customer_email, subject: `🎉 Your Zylix Quote is Ready! Ticket ${quote.id}`, html });
   } catch (err) {
-    console.error(`[Email Notification] Error sending quote ready mail to client for ticket ${quote.id}:`, err.message);
+    console.error(`[Email Notification] Error sending customer quote alert:`, err.message);
   }
 }
 
@@ -887,54 +895,27 @@ const resetOtpStore = new Map();    // email -> { otp, expires }
 
 // OTP Email Helper
 const sendOtpEmail = async (email, otp, subject, heading, text) => {
-  const smtpHost = process.env.SMTP_HOST;
-  const smtpPort = process.env.SMTP_PORT;
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPass = process.env.SMTP_PASS;
-
-  if (!smtpHost || !smtpUser || !smtpPass) {
-    console.warn('[SMTP] Mail settings missing, logged OTP:', otp);
-    return;
-  }
-  const transporter = nodemailer.createTransport({
-    host: smtpHost,
-    port: Number(smtpPort),
-    secure: Number(smtpPort) === 465,
-    auth: {
-      user: smtpUser,
-      pass: smtpPass
-    },
-    connectionTimeout: 5000,
-    greetingTimeout: 5000,
-    socketTimeout: 5000
-  });
-
-  const mailOptions = {
-    from: `"Zylix 3D Verification" <${smtpUser}>`,
-    to: email,
-    subject: subject,
-    html: `
-      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 500px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); background-color: #ffffff;">
-        <div style="background: #000000; padding: 2rem; color: #ffffff; text-align: center;">
-          <h1 style="margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;">ZYLIX 3D</h1>
-          <p style="margin: 0.5rem 0 0; font-size: 0.85rem; color: #a0aec0; letter-spacing: 0.05em;">SECURE VERIFICATION</p>
-        </div>
-        <div style="padding: 2rem; color: #2d3748; line-height: 1.6;">
-          <h2 style="margin-top: 0; font-size: 1.25rem; font-weight: 700; color: #1a202c;">${heading}</h2>
-          <p style="font-size: 0.9rem; color: #4a5568;">${text}</p>
-          <div style="background-color: #f7fafc; border: 1px dashed #cbd5e0; border-radius: 8px; padding: 1.25rem; text-align: center; margin: 1.5rem 0;">
-            <span style="font-family: monospace; font-size: 2.2rem; font-weight: 800; letter-spacing: 0.2em; color: #000000; margin-left: 0.2em;">${otp}</span>
-          </div>
-          <p style="font-size: 0.78rem; color: #718096; margin-bottom: 0;">This OTP code is valid for 10 minutes. If you did not request this, you can safely ignore this email.</p>
-        </div>
-        <div style="background: #f7fafc; padding: 1rem; border-top: 1px solid #edf2f7; text-align: center; font-size: 0.72rem; color: #a0aec0;">
-          © ${new Date().getFullYear()} Zylix 3D. Precision Printed.
-        </div>
+  const html = `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 500px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); background-color: #ffffff;">
+      <div style="background: #000000; padding: 2rem; color: #ffffff; text-align: center;">
+        <h1 style="margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;">ZYLIX 3D</h1>
+        <p style="margin: 0.5rem 0 0; font-size: 0.85rem; color: #a0aec0; letter-spacing: 0.05em;">SECURE VERIFICATION</p>
       </div>
-    `
-  };
+      <div style="padding: 2rem; color: #2d3748; line-height: 1.6;">
+        <h2 style="margin-top: 0; font-size: 1.25rem; font-weight: 700; color: #1a202c;">${heading}</h2>
+        <p style="font-size: 0.9rem; color: #4a5568;">${text}</p>
+        <div style="background-color: #f7fafc; border: 1px dashed #cbd5e0; border-radius: 8px; padding: 1.25rem; text-align: center; margin: 1.5rem 0;">
+          <span style="font-family: monospace; font-size: 2.2rem; font-weight: 800; letter-spacing: 0.2em; color: #000000; margin-left: 0.2em;">${otp}</span>
+        </div>
+        <p style="font-size: 0.78rem; color: #718096; margin-bottom: 0;">This OTP code is valid for 10 minutes. If you did not request this, you can safely ignore this email.</p>
+      </div>
+      <div style="background: #f7fafc; padding: 1rem; border-top: 1px solid #edf2f7; text-align: center; font-size: 0.72rem; color: #a0aec0;">
+        © ${new Date().getFullYear()} Zylix 3D. Precision Printed.
+      </div>
+    </div>
+  `;
 
-  await transporter.sendMail(mailOptions);
+  await sendMailHelper({ to: email, subject, html });
 };
 
 // Send OTP for Register
