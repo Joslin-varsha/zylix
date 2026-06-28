@@ -128,7 +128,10 @@ async function sendAdminEmailNotification({ type, ticketId, clientName, clientEm
       auth: {
         user: smtpUser,
         pass: smtpPass
-      }
+      },
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 5000
     });
 
     const mailOptions = {
@@ -209,7 +212,10 @@ async function sendCustomerQuoteReadyEmail(quote) {
       auth: {
         user: smtpUser,
         pass: smtpPass
-      }
+      },
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 5000
     });
 
     const mailOptions = {
@@ -897,7 +903,10 @@ const sendOtpEmail = async (email, otp, subject, heading, text) => {
     auth: {
       user: smtpUser,
       pass: smtpPass
-    }
+    },
+    connectionTimeout: 5000,
+    greetingTimeout: 5000,
+    socketTimeout: 5000
   });
 
   const mailOptions = {
