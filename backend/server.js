@@ -881,6 +881,11 @@ const resetOtpStore = new Map();    // email -> { otp, expires }
 
 // OTP Email Helper
 const sendOtpEmail = async (email, otp, subject, heading, text) => {
+  const smtpHost = process.env.SMTP_HOST;
+  const smtpPort = process.env.SMTP_PORT;
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
+
   if (!smtpHost || !smtpUser || !smtpPass) {
     console.warn('[SMTP] Mail settings missing, logged OTP:', otp);
     return;
