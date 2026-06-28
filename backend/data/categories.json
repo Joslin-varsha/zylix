@@ -1,0 +1,50 @@
+[
+  {
+    "id": "keychains",
+    "label": "Custom Keychains",
+    "icon": "Key",
+    "img": "/images/categories/keychains.webp"
+  },
+  {
+    "id": "miniatures",
+    "label": "Custom Miniature",
+    "icon": "Sparkles",
+    "img": "/images/categories/miniatures.jpg"
+  },
+  {
+    "id": "holders",
+    "label": "3D Printed Holders",
+    "icon": "Box",
+    "img": "/images/categories/holders.jpg"
+  },
+  {
+    "id": "lightbox",
+    "label": "Light Box",
+    "icon": "Lightbulb",
+    "img": "/images/categories/lightbox.jpg"
+  },
+  {
+    "id": "masks",
+    "label": "3D Mask",
+    "icon": "Smile",
+    "img": "/images/categories/masks.jpg"
+  },
+  {
+    "id": "stencils",
+    "label": "Stencil",
+    "icon": "PenTool",
+    "img": "/images/categories/stencils.jpg"
+  },
+  {
+    "id": "gifts",
+    "label": "Gifts",
+    "icon": "Gift",
+    "img": "/images/categories/gifts.jpg"
+  },
+  {
+    "id": "wallart",
+    "label": "Wall Art",
+    "icon": "Image",
+    "img": "/images/categories/wallart.jpg"
+  }
+]

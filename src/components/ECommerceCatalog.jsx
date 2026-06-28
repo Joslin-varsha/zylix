@@ -1,22 +1,33 @@
 import React from 'react';
 import { 
   Star, ShoppingCart, Heart, ChevronLeft, ChevronRight, 
-  Package, Award, SlidersHorizontal,
-  Key, Gift, Image, PenTool, Lightbulb, Smile, Sparkles, Box,
-  Filter, Zap, ArrowRight, TrendingUp
+  Package, Award, SlidersHorizontal, Key, Gift, Image, 
+  PenTool, Lightbulb, Smile, Sparkles, Box, Filter, Zap, 
+  ArrowRight, TrendingUp, Wrench, Shield, Compass, Palette, X
 } from 'lucide-react';
 import { mockProducts as staticProducts } from '../data/products';
 
-const categoriesConfig = [
-  { id: 'keychains', label: 'Custom Keychains', icon: <Key size={22} />, img: '/images/categories/keychains.jpg' },
-  { id: 'miniatures', label: 'Custom Miniature', icon: <Sparkles size={22} />, img: '/images/categories/miniatures.jpg' },
-  { id: 'holders', label: '3D Printed Holders', icon: <Box size={22} />, img: '/images/categories/holders.jpg' },
-  { id: 'lightbox', label: 'Light Box', icon: <Lightbulb size={22} />, img: '/images/categories/lightbox.jpg' },
-  { id: 'masks', label: '3D Mask', icon: <Smile size={22} />, img: '/images/categories/masks.jpg' },
-  { id: 'stencils', label: 'Stencil', icon: <PenTool size={22} />, img: '/images/categories/stencils.jpg' },
-  { id: 'gifts', label: 'Gifts', icon: <Gift size={22} />, img: '/images/categories/gifts.jpg' },
-  { id: 'wallart', label: 'Wall Art', icon: <Image size={22} />, img: '/images/categories/wallart.jpg' }
+const staticCategories = [
+  { id: 'keychains', label: 'Custom Keychains', icon: 'Key', img: '/images/categories/keychains.webp' },
+  { id: 'miniatures', label: 'Custom Miniature', icon: 'Sparkles', img: '/images/categories/miniatures.jpg' },
+  { id: 'holders', label: '3D Printed Holders', icon: 'Box', img: '/images/categories/holders.jpg' },
+  { id: 'lightbox', label: 'Light Box', icon: 'Lightbulb', img: '/images/categories/lightbox.jpg' },
+  { id: 'masks', label: '3D Mask', icon: 'Smile', img: '/images/categories/masks.jpg' },
+  { id: 'stencils', label: 'Stencil', icon: 'PenTool', img: '/images/categories/stencils.jpg' },
+  { id: 'gifts', label: 'Gifts', icon: 'Gift', img: '/images/categories/gifts.jpg' },
+  { id: 'wallart', label: 'Wall Art', icon: 'Image', img: '/images/categories/wallart.jpg' }
 ];
+
+const iconMap = {
+  Key, Gift, Image, PenTool, Lightbulb, Smile, Sparkles, Box,
+  Package, Award, Zap, TrendingUp, Star, ShoppingCart, Heart, Filter,
+  Wrench, Shield, Compass, Palette
+};
+
+const renderCategoryIcon = (iconName, size = 22) => {
+  const IconComponent = iconMap[iconName] || Package;
+  return <IconComponent size={size} />;
+};
 
 const carouselSlides = [
   {
@@ -74,14 +85,16 @@ export default function ECommerceCatalog({
   setActiveTab,
   setActiveCategory
 }) {
+  const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
   const [products, setProducts] = React.useState([]);
   const [loadingProducts, setLoadingProducts] = React.useState(true);
+  const [categories, setCategories] = React.useState(staticCategories);
 
   React.useEffect(() => {
     let isMounted = true;
     const fetchProducts = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/products');
+        const res = await fetch(`${API_BASE}/api/products`);
         if (!res.ok) throw new Error('Failed to fetch products');
         const data = await res.json();
         if (isMounted) {
@@ -98,7 +111,25 @@ export default function ECommerceCatalog({
     };
     fetchProducts();
     return () => { isMounted = false; };
-  }, []);
+  }, [API_BASE]);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/categories`);
+        if (!res.ok) throw new Error('Failed to fetch categories');
+        const data = await res.json();
+        if (isMounted && data && data.length > 0) {
+          setCategories(data);
+        }
+      } catch (err) {
+        console.error('[Categories Fetch Error]:', err);
+      }
+    };
+    fetchCategories();
+    return () => { isMounted = false; };
+  }, [API_BASE]);
 
   const [carouselIndex, setCarouselIndex] = React.useState(0);
   const [animatingSlide, setAnimatingSlide] = React.useState(false);
@@ -109,10 +140,21 @@ export default function ECommerceCatalog({
   const [sortBy, setSortBy] = React.useState('best');
   const [currentPage, setCurrentPage] = React.useState(1);
   const itemsPerPage = 8;
+  const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
 
   const newRef = React.useRef(null);
   const featuredRef = React.useRef(null);
   const moreRef = React.useRef(null);
+  const categoriesRef = React.useRef(null);
+
+  const maxProductPrice = React.useMemo(() => products.length > 0 ? Math.max(...products.map(p => p.price)) : 1500, [products]);
+
+  React.useEffect(() => {
+    if (products.length > 0) {
+      const maxPrice = Math.max(...products.map(p => p.price));
+      setPriceRange(maxPrice);
+    }
+  }, [products]);
 
   const scroll = (ref, direction) => {
     if (ref.current) {
@@ -161,7 +203,7 @@ export default function ECommerceCatalog({
 
   const clearFilters = () => {
     setSelectedCats([]);
-    setPriceRange(1500);
+    setPriceRange(maxProductPrice);
     setInStockOnly(false);
     setActiveCategory('all');
   };
@@ -205,7 +247,7 @@ export default function ECommerceCatalog({
   const slide = carouselSlides[carouselIndex];
 
   return (
-    <div className="main-catalog-container" style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 1.5rem 2rem' }}>
+    <div className="main-catalog-container" style={{ maxWidth: '95%', margin: '0 auto', padding: '0 1.5rem 2rem' }}>
       {viewMode === 'home' ? (
         <div>
           {/* ===== MARQUEE TICKER ===== */}
@@ -331,65 +373,71 @@ export default function ECommerceCatalog({
                 VIEW ALL <ArrowRight size={12} />
               </button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.75rem' }}>
-              {categoriesConfig.map((cat, i) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.id)}
-                  onMouseEnter={() => setHoveredCategory(cat.id)}
-                  onMouseLeave={() => setHoveredCategory(null)}
-                  style={{
-                    position: 'relative',
-                    height: '110px',
-                    border: hoveredCategory === cat.id ? '2px solid var(--accent-color)' : '2px solid transparent',
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    cursor: 'pointer',
-                    background: 'none',
-                    padding: 0,
-                    transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                    transform: hoveredCategory === cat.id ? 'translateY(-4px)' : 'translateY(0)',
-                    boxShadow: hoveredCategory === cat.id ? '0 12px 24px var(--accent-glow)' : '0 4px 12px rgba(0, 0, 0, 0.02)',
-                    animationDelay: `${i * 0.06}s`,
-                    animation: 'fadeInUp 0.5s ease-out both'
-                  }}
-                >
-                  {/* Background image */}
-                  <div style={{
-                    position: 'absolute', inset: 0,
-                    backgroundImage: `url(${cat.img})`,
-                    backgroundSize: 'cover', backgroundPosition: 'center',
-                    transition: 'transform 0.4s ease',
-                    transform: hoveredCategory === cat.id ? 'scale(1.08)' : 'scale(1)'
-                  }} />
-                  {/* Dark overlay */}
-                  <div style={{
-                    position: 'absolute', inset: 0,
-                    background: hoveredCategory === cat.id
-                      ? 'rgba(15, 23, 42, 0.65)'
-                      : 'rgba(15, 23, 42, 0.45)',
-                    transition: 'background 0.3s ease'
-                  }} />
-                  {/* Label */}
-                  <div style={{
-                    position: 'relative', zIndex: 2,
-                    height: '100%',
-                    display: 'flex', flexDirection: 'column',
-                    alignItems: 'center', justifyContent: 'center', gap: '6px',
-                    color: '#fff'
-                  }}>
-                    <span style={{ 
-                      opacity: 0.9,
-                      transform: hoveredCategory === cat.id ? 'translateY(-2px)' : 'translateY(0)',
-                      transition: 'transform 0.3s ease',
-                      color: hoveredCategory === cat.id ? 'var(--accent-color)' : '#fff'
-                    }}>{cat.icon}</span>
-                    <span style={{ fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', lineHeight: '1.2', padding: '0 8px' }}>
-                      {cat.label}
-                    </span>
-                  </div>
-                </button>
-              ))}
+            <div className="carousel-wrapper" style={{ position: 'relative' }}>
+              <button onClick={() => scroll(categoriesRef, 'left')} className="carousel-nav-btn" style={{ left: '-20px' }} aria-label="Scroll left"><ChevronLeft size={20} /></button>
+              <button onClick={() => scroll(categoriesRef, 'right')} className="carousel-nav-btn" style={{ right: '-20px' }} aria-label="Scroll right"><ChevronRight size={20} /></button>
+              <div ref={categoriesRef} className="products-scroll-container" style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', scrollBehavior: 'smooth', padding: '4px 0 12px' }}>
+                {categories.map((cat, i) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setActiveCategory(cat.id)}
+                    onMouseEnter={() => setHoveredCategory(cat.id)}
+                    onMouseLeave={() => setHoveredCategory(null)}
+                    style={{
+                      position: 'relative',
+                      height: '110px',
+                      width: '140px',
+                      flexShrink: 0,
+                      border: hoveredCategory === cat.id ? '2px solid var(--accent-color)' : '2px solid transparent',
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      background: 'none',
+                      padding: 0,
+                      transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                      transform: hoveredCategory === cat.id ? 'translateY(-4px)' : 'translateY(0)',
+                      boxShadow: hoveredCategory === cat.id ? '0 12px 24px var(--accent-glow)' : '0 4px 12px rgba(0, 0, 0, 0.02)',
+                      animationDelay: `${i * 0.06}s`,
+                      animation: 'fadeInUp 0.5s ease-out both'
+                    }}
+                  >
+                    {/* Background image */}
+                    <div style={{
+                      position: 'absolute', inset: 0,
+                      backgroundImage: `url(${cat.img})`,
+                      backgroundSize: 'cover', backgroundPosition: 'center',
+                      transition: 'transform 0.4s ease',
+                      transform: hoveredCategory === cat.id ? 'scale(1.08)' : 'scale(1)'
+                    }} />
+                    {/* Dark overlay */}
+                    <div style={{
+                      position: 'absolute', inset: 0,
+                      background: hoveredCategory === cat.id
+                        ? 'rgba(15, 23, 42, 0.65)'
+                        : 'rgba(15, 23, 42, 0.45)',
+                      transition: 'background 0.3s ease'
+                    }} />
+                    {/* Label */}
+                    <div style={{
+                      position: 'relative', zIndex: 2,
+                      height: '100%',
+                      display: 'flex', flexDirection: 'column',
+                      alignItems: 'center', justifyContent: 'center', gap: '6px',
+                      color: '#fff'
+                    }}>
+                      <span style={{ 
+                        opacity: 0.9,
+                        transform: hoveredCategory === cat.id ? 'translateY(-2px)' : 'translateY(0)',
+                        transition: 'transform 0.3s ease',
+                        color: hoveredCategory === cat.id ? 'var(--accent-color)' : '#fff'
+                      }}>{renderCategoryIcon(cat.icon)}</span>
+                      <span style={{ fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', lineHeight: '1.2', padding: '0 8px' }}>
+                        {cat.label}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
           {/* ===== NEW PRODUCTS SHELF ===== */}
@@ -516,6 +564,102 @@ export default function ECommerceCatalog({
             </div>
           </div>
 
+          <div className="mobile-filter-bar">
+            <button className="mobile-filter-btn" onClick={() => setMobileFiltersOpen(true)}>
+              <Filter size={14} /> Filter {selectedCats.length > 0 ? `(${selectedCats.length})` : ''}
+            </button>
+            <div className="mobile-filter-btn" style={{ position: 'relative' }}>
+              <SlidersHorizontal size={14} /> 
+              <select 
+                value={sortBy} 
+                onChange={(e) => setSortBy(e.target.value)}
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  opacity: 0,
+                  width: '100%',
+                  height: '100%',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="best">Featured</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+                <option value="rating">Top Rated</option>
+                <option value="name-asc">Name: A to Z</option>
+              </select>
+              <span style={{ fontSize: '0.78rem', fontWeight: 700 }}>Sort</span>
+            </div>
+          </div>
+
+          <div className={`mobile-filter-drawer-overlay ${mobileFiltersOpen ? 'active' : ''}`} onClick={() => setMobileFiltersOpen(false)}>
+            <div className="mobile-filter-drawer" onClick={(e) => e.stopPropagation()}>
+              <div className="mobile-filter-drawer-header">
+                <span style={{ fontSize: '0.85rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px', textTransform: 'uppercase' }}>
+                  <Filter size={14} /> Filters
+                </span>
+                <button 
+                  onClick={() => setMobileFiltersOpen(false)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#000000', padding: '4px' }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="mobile-filter-drawer-content">
+                {/* Categories checklist */}
+                <div>
+                  <h4 style={{ fontSize: '0.75rem', fontWeight: '700', textTransform: 'uppercase', color: '#000', marginBottom: '0.75rem' }}>Categories</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                    {categories.map(cat => (
+                      <label key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.82rem', cursor: 'pointer', color: selectedCats.includes(cat.id) ? '#000' : 'var(--text-secondary)', fontWeight: selectedCats.includes(cat.id) ? '600' : '400' }}>
+                        <input type="checkbox" checked={selectedCats.includes(cat.id)} onChange={() => handleCatCheckbox(cat.id)} style={{ accentColor: '#000', cursor: 'pointer', scale: '1.1' }} />
+                        {cat.label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Max Price slider */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                    <h4 style={{ fontSize: '0.75rem', fontWeight: '700', textTransform: 'uppercase', color: '#000' }}>Max Price</h4>
+                    <span style={{ fontSize: '0.82rem', fontWeight: '700' }}>₹{priceRange.toLocaleString('en-IN')}</span>
+                  </div>
+                  <input type="range" min="15" max={maxProductPrice} step="10" value={priceRange} onChange={(e) => setPriceRange(parseInt(e.target.value))} style={{ width: '100%', accentColor: '#000', cursor: 'pointer' }} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                    <span>₹15</span><span>₹{maxProductPrice.toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+
+                {/* Stock status toggle */}
+                <div>
+                  <h4 style={{ fontSize: '0.75rem', fontWeight: '700', textTransform: 'uppercase', color: '#000', marginBottom: '0.75rem' }}>Availability</h4>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.82rem', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+                    <input type="checkbox" checked={inStockOnly} onChange={(e) => setInStockOnly(e.target.checked)} style={{ accentColor: '#000', cursor: 'pointer', scale: '1.1' }} />
+                    Exclude Out of Stock
+                  </label>
+                </div>
+              </div>
+              <div className="mobile-filter-drawer-footer">
+                <button 
+                  onClick={() => setMobileFiltersOpen(false)}
+                  className="btn-primary"
+                  style={{ width: '100%', padding: '0.8rem', fontSize: '0.8rem', fontWeight: '800', letterSpacing: '0.05em' }}
+                >
+                  APPLY FILTERS ({filteredProducts.length} PRODUCTS)
+                </button>
+                {(selectedCats.length > 0 || priceRange < maxProductPrice || inStockOnly) && (
+                  <button 
+                    onClick={() => { clearFilters(); setMobileFiltersOpen(false); }}
+                    style={{ width: '100%', background: 'none', border: 'none', textDecoration: 'underline', color: 'var(--text-muted)', fontSize: '0.72rem', cursor: 'pointer', marginTop: '0.6rem' }}
+                  >
+                    Clear All Filters
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div className="catalog-layout-container" style={{ display: 'flex', gap: '2rem', marginTop: '1.5rem', alignItems: 'start' }}>
             {/* SIDEBAR */}
             <div className="catalog-sidebar" style={{ width: '230px', flexShrink: 0, backgroundColor: '#ffffff', border: '1px solid var(--border-color)', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.75rem', position: 'sticky', top: '90px' }}>
@@ -531,7 +675,7 @@ export default function ECommerceCatalog({
               <div>
                 <h4 style={{ fontSize: '0.75rem', fontWeight: '700', textTransform: 'uppercase', color: '#000', marginBottom: '0.75rem' }}>Categories</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {categoriesConfig.map(cat => (
+                  {categories.map(cat => (
                     <label key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', cursor: 'pointer', color: selectedCats.includes(cat.id) ? '#000' : 'var(--text-secondary)', fontWeight: selectedCats.includes(cat.id) ? '600' : '400' }}>
                       <input type="checkbox" checked={selectedCats.includes(cat.id)} onChange={() => handleCatCheckbox(cat.id)} style={{ accentColor: '#000', cursor: 'pointer' }} />
                       {cat.label}
@@ -545,9 +689,9 @@ export default function ECommerceCatalog({
                   <h4 style={{ fontSize: '0.75rem', fontWeight: '700', textTransform: 'uppercase', color: '#000' }}>Max Price</h4>
                   <span style={{ fontSize: '0.78rem', fontWeight: '700' }}>₹{priceRange.toLocaleString('en-IN')}</span>
                 </div>
-                <input type="range" min="15" max="1500" step="10" value={priceRange} onChange={(e) => setPriceRange(parseInt(e.target.value))} style={{ width: '100%', accentColor: '#000', cursor: 'pointer' }} />
+                <input type="range" min="15" max={maxProductPrice} step="10" value={priceRange} onChange={(e) => setPriceRange(parseInt(e.target.value))} style={{ width: '100%', accentColor: '#000', cursor: 'pointer' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.66rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  <span>₹15</span><span>₹1,500</span>
+                  <span>₹15</span><span>₹{maxProductPrice.toLocaleString('en-IN')}</span>
                 </div>
               </div>
 
@@ -569,7 +713,7 @@ export default function ECommerceCatalog({
               {selectedCats.length > 0 && (
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                   {selectedCats.map(catId => {
-                    const cat = categoriesConfig.find(c => c.id === catId);
+                    const cat = categories.find(c => c.id === catId);
                     return (
                       <span key={catId} onClick={() => handleCatCheckbox(catId)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', backgroundColor: '#000', color: '#fff', fontSize: '0.7rem', fontWeight: '600', padding: '3px 10px', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer' }}>
                         {cat?.label} ×

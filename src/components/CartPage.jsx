@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Trash2, Plus, Minus, ArrowLeft, CreditCard, CheckCircle2, Shield, Truck, Package } from 'lucide-react';
 
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
+
 const calculateShipping = (zip, subtotal) => {
   if (subtotal > 5000) return 0;
   if (!zip || zip.trim().length < 6) return 150; // default shipping estimate
@@ -53,7 +55,7 @@ export default function CartPage({
     if (zip.length === 6 && /^\d+$/.test(zip)) {
       const fetchPincodeData = async () => {
         try {
-          const res = await fetch(`http://localhost:5000/api/pincode/${zip}`);
+          const res = await fetch(`${API_BASE}/api/pincode/${zip}`);
           if (res.ok) {
             const data = await res.json();
             if (data.success) {
@@ -112,7 +114,7 @@ export default function CartPage({
 
     try {
       // Step 1: Create payment order on backend
-      const createRes = await fetch('http://localhost:5000/api/payment/create-order', {
+      const createRes = await fetch(`${API_BASE}/api/payment/create-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -128,7 +130,7 @@ export default function CartPage({
       // Step 2: Check if sandbox mode or real Razorpay
       if (createData.sandbox) {
         // Sandbox mode — skip Razorpay modal, go straight to verify
-        const verifyRes = await fetch('http://localhost:5000/api/payment/verify', {
+        const verifyRes = await fetch(`${API_BASE}/api/payment/verify`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -174,7 +176,7 @@ export default function CartPage({
         handler: async function (response) {
           // Payment successful — verify on backend
           try {
-            const verifyRes = await fetch('http://localhost:5000/api/payment/verify', {
+            const verifyRes = await fetch(`${API_BASE}/api/payment/verify`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({

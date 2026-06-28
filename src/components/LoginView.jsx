@@ -1,6 +1,8 @@
 import React from 'react';
 import { Mail, Lock, User, ShieldCheck } from 'lucide-react';
 
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
+
 export default function LoginView({ onLogin, setActiveTab, loginMessage, setLoginMessage }) {
   const [isRegister, setIsRegister] = React.useState(false);
   const [email, setEmail] = React.useState('');
@@ -39,7 +41,7 @@ export default function LoginView({ onLogin, setActiveTab, loginMessage, setLogi
       const endpoint = isRegister ? 'register' : 'login';
       const bodyData = isRegister ? { name, email, password } : { email, password };
 
-      const response = await fetch(`http://localhost:5000/api/auth/${endpoint}`, {
+      const response = await fetch(`${API_BASE}/api/auth/${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -8,6 +8,7 @@ import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
 import Razorpay from 'razorpay';
+import nodemailer from 'nodemailer';
 import { mockProducts } from '../src/data/products.js';
 
 // Set up directory paths for local fallback storage
@@ -25,11 +26,23 @@ app.use(cors());
 app.use(express.json());
 
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
+const mockCategories = [
+  { id: 'keychains', label: 'Custom Keychains', icon: 'Key', img: '/images/categories/keychains.webp' },
+  { id: 'miniatures', label: 'Custom Miniature', icon: 'Sparkles', img: '/images/categories/miniatures.jpg' },
+  { id: 'holders', label: '3D Printed Holders', icon: 'Box', img: '/images/categories/holders.jpg' },
+  { id: 'lightbox', label: 'Light Box', icon: 'Lightbulb', img: '/images/categories/lightbox.jpg' },
+  { id: 'masks', label: '3D Mask', icon: 'Smile', img: '/images/categories/masks.jpg' },
+  { id: 'stencils', label: 'Stencil', icon: 'PenTool', img: '/images/categories/stencils.jpg' },
+  { id: 'gifts', label: 'Gifts', icon: 'Gift', img: '/images/categories/gifts.jpg' },
+  { id: 'wallart', label: 'Wall Art', icon: 'Image', img: '/images/categories/wallart.jpg' }
+];
+
 const DATA_DIR = path.join(__dirname, 'data');
 const QUOTES_FILE = path.join(DATA_DIR, 'quotes.json');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const CARTS_FILE = path.join(DATA_DIR, 'carts.json');
 const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
+const CATEGORIES_FILE = path.join(DATA_DIR, 'categories.json');
 
 // Ensure local folders exist
 if (!fs.existsSync(UPLOADS_DIR)) {
@@ -49,6 +62,9 @@ if (!fs.existsSync(CARTS_FILE)) {
 }
 if (!fs.existsSync(PRODUCTS_FILE)) {
   fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(mockProducts, null, 2));
+}
+if (!fs.existsSync(CATEGORIES_FILE)) {
+  fs.writeFileSync(CATEGORIES_FILE, JSON.stringify(mockCategories, null, 2));
 }
 
 // Serve local uploads statically (fallback mode)
@@ -89,6 +105,156 @@ if (isRazorpayConfigured) {
   }
 } else {
   console.log('[Payment] Razorpay not configured — payment endpoints will use sandbox/test mode.');
+}
+
+// Email Alert Helper
+async function sendAdminEmailNotification({ type, ticketId, clientName, clientEmail, details }) {
+  const smtpHost = process.env.SMTP_HOST;
+  const smtpPort = process.env.SMTP_PORT || 587;
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@zylix.in';
+
+  if (!smtpUser || !smtpPass) {
+    console.log(`[Email Notification] SMTP credentials not configured. Skipping email alert for ticket ${ticketId}.`);
+    return;
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: Number(smtpPort),
+      secure: Number(smtpPort) === 465,
+      auth: {
+        user: smtpUser,
+        pass: smtpPass
+      }
+    });
+
+    const mailOptions = {
+      from: `"Zylix 3D Alert" <${smtpUser}>`,
+      to: adminEmail,
+      subject: `🚨 New Zylix ${type}: Ticket ${ticketId}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+          <div style="background: #0f172a; padding: 1.5rem; color: #ffffff; text-align: center;">
+            <h1 style="margin: 0; font-size: 1.5rem; letter-spacing: 0.05em; text-transform: uppercase;">New ${type} Alert</h1>
+            <span style="background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; margin-top: 8px; display: inline-block;">
+              TICKET ID: ${ticketId}
+            </span>
+          </div>
+          <div style="padding: 1.5rem; color: #334155; line-height: 1.6;">
+            <p style="margin-top: 0;">Hello Admin,</p>
+            <p>A new <strong>${type}</strong> has been submitted on the Zylix storefront.</p>
+            
+            <h3 style="color: #0f172a; border-bottom: 1px dashed #cbd5e1; padding-bottom: 4px; margin-top: 1.5rem;">Client Details</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+              <tr>
+                <td style="padding: 4px 0; color: #64748b; width: 120px;">Name:</td>
+                <td style="padding: 4px 0; color: #0f172a; font-weight: bold;">${clientName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 0; color: #64748b;">Email:</td>
+                <td style="padding: 4px 0; color: #0f172a;">${clientEmail}</td>
+              </tr>
+            </table>
+
+            <h3 style="color: #0f172a; border-bottom: 1px dashed #cbd5e1; padding-bottom: 4px; margin-top: 1.5rem;">Submission Specifications</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+              ${Object.entries(details).map(([key, value]) => `
+                <tr>
+                  <td style="padding: 6px 0; color: #64748b; width: 120px; text-transform: capitalize;">${key}:</td>
+                  <td style="padding: 6px 0; color: #0f172a; font-weight: 500;">${value}</td>
+                </tr>
+              `).join('')}
+            </table>
+
+            <div style="margin-top: 2rem; text-align: center;">
+              <a href="http://localhost:3001" style="background: #000000; color: #ffffff; padding: 10px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 0.88rem; display: inline-block;">
+                Open Admin Dashboard
+              </a>
+            </div>
+          </div>
+          <div style="background: #f8fafc; padding: 1rem; color: #94a3b8; text-align: center; font-size: 0.75rem; border-top: 1px solid #e2e8f0;">
+            Zylix 3D Printing Lab &copy; 2026
+          </div>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`[Email Notification] Success: Sent alert email for ticket ${ticketId}.`);
+  } catch (err) {
+    console.error(`[Email Notification] Error sending mail for ticket ${ticketId}:`, err.message);
+  }
+}
+
+// Email Customer Quote Ready Helper
+async function sendCustomerQuoteReadyEmail(quote) {
+  const smtpHost = process.env.SMTP_HOST;
+  const smtpPort = process.env.SMTP_PORT || 587;
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
+
+  if (!smtpUser || !smtpPass) {
+    console.log(`[Email Notification] SMTP credentials not configured. Skipping customer alert email for ticket ${quote.id}.`);
+    return;
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: Number(smtpPort),
+      secure: Number(smtpPort) === 465,
+      auth: {
+        user: smtpUser,
+        pass: smtpPass
+      }
+    });
+
+    const mailOptions = {
+      from: `"Zylix 3D Printing" <${smtpUser}>`,
+      to: quote.customer_email,
+      subject: `🎉 Your Zylix Quote is Ready! Ticket ${quote.id}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+          <div style="background: #0f172a; padding: 1.5rem; color: #ffffff; text-align: center;">
+            <h1 style="margin: 0; font-size: 1.5rem; letter-spacing: 0.05em; text-transform: uppercase;">Quote Estimated</h1>
+            <span style="background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; margin-top: 8px; display: inline-block;">
+              TICKET ID: ${quote.id}
+            </span>
+          </div>
+          <div style="padding: 1.5rem; color: #334155; line-height: 1.6;">
+            <p style="margin-top: 0;">Hi ${quote.customer_name},</p>
+            <p>Good news! Our team has reviewed your custom 3D printing/design submission and prepared your pricing estimate.</p>
+            
+            <div style="background: #f8fafc; border-left: 4px solid #000000; padding: 1rem; margin: 1.5rem 0;">
+              <div style="font-size: 0.85rem; color: #64748b; text-transform: uppercase;">Amount Quoted:</div>
+              <div style="font-size: 1.8rem; font-weight: bold; color: #0f172a; margin-top: 4px;">₹${quote.price_estimate}</div>
+              ${quote.admin_notes ? `<div style="font-size: 0.85rem; color: #334155; margin-top: 8px; font-style: italic;"><strong>Admin Notes:</strong> ${quote.admin_notes}</div>` : ''}
+            </div>
+
+            <p>You can view your order progress, shipping options, and complete your secure checkout using our online tracker.</p>
+
+            <div style="margin-top: 2rem; text-align: center;">
+              <a href="http://localhost:5173/track-orders" style="background: #000000; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 0.9rem; display: inline-block;">
+                Approve & Pay Quote
+              </a>
+            </div>
+          </div>
+          <div style="background: #f8fafc; padding: 1rem; color: #94a3b8; text-align: center; font-size: 0.75rem; border-top: 1px solid #e2e8f0;">
+            If you have any questions, feel free to reply directly to this email.<br/>
+            Zylix 3D Printing Lab &copy; 2026
+          </div>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`[Email Notification] Success: Sent quote ready alert email to client ${quote.customer_email} for ticket ${quote.id}.`);
+  } catch (err) {
+    console.error(`[Email Notification] Error sending quote ready mail to client for ticket ${quote.id}:`, err.message);
+  }
 }
 
 // Configure multer (memory storage to stream files directly to local disk or Supabase)
@@ -165,6 +331,24 @@ const writeLocalProducts = (products) => {
     fs.writeFileSync(PRODUCTS_FILE, JSON.stringify(products, null, 2));
   } catch (err) {
     console.error('Error writing local products:', err);
+  }
+};
+
+const readLocalCategories = () => {
+  try {
+    const data = fs.readFileSync(CATEGORIES_FILE, 'utf8');
+    return JSON.parse(data);
+  } catch (err) {
+    console.error('Error reading local categories:', err);
+    return [];
+  }
+};
+
+const writeLocalCategories = (categories) => {
+  try {
+    fs.writeFileSync(CATEGORIES_FILE, JSON.stringify(categories, null, 2));
+  } catch (err) {
+    console.error('Error writing local categories:', err);
   }
 };
 
@@ -249,6 +433,19 @@ app.post('/api/quotes/slicer', upload.single('file'), async (req, res) => {
       customerPhone = ''
     } = req.body;
 
+    // Backend Input Validation
+    if (!customerName || customerName.trim().length < 2) {
+      return res.status(400).json({ error: 'Full name must be at least 2 characters.' });
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!customerEmail || !emailRegex.test(customerEmail)) {
+      return res.status(400).json({ error: 'Please provide a valid email address.' });
+    }
+    const phoneClean = customerPhone ? customerPhone.replace(/\D/g, '') : '';
+    if (!phoneClean || phoneClean.length < 10) {
+      return res.status(400).json({ error: 'Please provide a valid 10-digit phone number.' });
+    }
+
     // Upload file
     const fileResult = await uploadFileHelper(req.file, 'slicer');
 
@@ -282,6 +479,21 @@ app.post('/api/quotes/slicer', upload.single('file'), async (req, res) => {
       writeLocalQuotes(quotes);
     }
 
+    // Trigger Admin Email Alert
+    sendAdminEmailNotification({
+      type: 'CAD Slicer Request',
+      ticketId,
+      clientName: customerName,
+      clientEmail: customerEmail,
+      details: {
+        Material: material,
+        Color: color,
+        Quantity: quantity,
+        Notes: notes,
+        Phone: customerPhone
+      }
+    }).catch(err => console.error('Failed to trigger email notification:', err));
+
     res.status(201).json({ success: true, ticketId, quote: quoteData });
   } catch (err) {
     console.error('Slicer quote error:', err);
@@ -304,6 +516,22 @@ app.post('/api/quotes/prototype', upload.array('files', 10), async (req, res) =>
       customerEmail = '',
       customerPhone = ''
     } = req.body;
+
+    // Backend Input Validation
+    if (!projectName || !projectName.trim()) {
+      return res.status(400).json({ error: 'Project name is required.' });
+    }
+    if (!customerName || customerName.trim().length < 2) {
+      return res.status(400).json({ error: 'Full name must be at least 2 characters.' });
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!customerEmail || !emailRegex.test(customerEmail)) {
+      return res.status(400).json({ error: 'Please provide a valid email address.' });
+    }
+    const phoneClean = customerPhone ? customerPhone.replace(/\D/g, '') : '';
+    if (!phoneClean || phoneClean.length < 10) {
+      return res.status(400).json({ error: 'Please provide a valid 10-digit phone number.' });
+    }
 
     const uploadedFilesData = [];
     if (req.files && req.files.length > 0) {
@@ -348,6 +576,22 @@ app.post('/api/quotes/prototype', upload.array('files', 10), async (req, res) =>
       writeLocalQuotes(quotes);
     }
 
+    // Trigger Admin Email Alert
+    sendAdminEmailNotification({
+      type: 'Prototype Lab Request',
+      ticketId,
+      clientName: customerName,
+      clientEmail: customerEmail,
+      details: {
+        'Project Name': projectName,
+        'Project Type': projectType === 'Other' ? customProjectType : projectType,
+        Quantity: finalQty || 1,
+        'Required Date': requiredDate,
+        Description: description,
+        Phone: customerPhone
+      }
+    }).catch(err => console.error('Failed to trigger email notification:', err));
+
     res.status(201).json({ success: true, ticketId, quote: quoteData });
   } catch (err) {
     console.error('Prototype quote error:', err);
@@ -371,6 +615,25 @@ app.post('/api/quotes/designer', upload.single('referenceFile'), async (req, res
       customerEmail = '',
       customerPhone = ''
     } = req.body;
+
+    // Backend Input Validation
+    if (productType === 'keychain' && (!nameText || !nameText.trim())) {
+      return res.status(400).json({ error: 'Please specify the text/name details for your custom design.' });
+    }
+    if (productType === 'other' && (!customProductType || !customProductType.trim())) {
+      return res.status(400).json({ error: 'Please specify the custom product type.' });
+    }
+    if (!customerName || customerName.trim().length < 2) {
+      return res.status(400).json({ error: 'Full name must be at least 2 characters.' });
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!customerEmail || !emailRegex.test(customerEmail)) {
+      return res.status(400).json({ error: 'Please provide a valid email address.' });
+    }
+    const phoneClean = customerPhone ? customerPhone.replace(/\D/g, '') : '';
+    if (!phoneClean || phoneClean.length < 10) {
+      return res.status(400).json({ error: 'Please provide a valid 10-digit phone number.' });
+    }
 
     let fileResult = { fileUrl: '', fileName: '' };
     if (req.file) {
@@ -411,6 +674,22 @@ app.post('/api/quotes/designer', upload.single('referenceFile'), async (req, res
       writeLocalQuotes(quotes);
     }
 
+    // Trigger Admin Email Alert
+    sendAdminEmailNotification({
+      type: '3D Designer Request',
+      ticketId,
+      clientName: customerName,
+      clientEmail: customerEmail,
+      details: {
+        'Product Type': productType === 'other' ? customProductType : productType,
+        'Custom Text': nameText,
+        Color: designerColor === 'Other' ? customColor : designerColor,
+        Size: designerSize === 'Custom' ? customSize : designerSize,
+        Notes: additionalNotes,
+        Phone: customerPhone
+      }
+    }).catch(err => console.error('Failed to trigger email notification:', err));
+
     res.status(201).json({ success: true, ticketId, quote: quoteData });
   } catch (err) {
     console.error('Designer quote error:', err);
@@ -435,6 +714,22 @@ app.post('/api/quotes/spareparts', upload.single('photo'), async (req, res) => {
       customerEmail = '',
       customerPhone = ''
     } = req.body;
+
+    // Backend Input Validation
+    if (!partName || !partName.trim()) {
+      return res.status(400).json({ error: 'Part name is required.' });
+    }
+    if (!customerName || customerName.trim().length < 2) {
+      return res.status(400).json({ error: 'Full name must be at least 2 characters.' });
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!customerEmail || !emailRegex.test(customerEmail)) {
+      return res.status(400).json({ error: 'Please provide a valid email address.' });
+    }
+    const phoneClean = customerPhone ? customerPhone.replace(/\D/g, '') : '';
+    if (!phoneClean || phoneClean.length < 10) {
+      return res.status(400).json({ error: 'Please provide a valid 10-digit phone number.' });
+    }
 
     const fileResult = await uploadFileHelper(req.file, 'spareparts');
 
@@ -473,6 +768,20 @@ app.post('/api/quotes/spareparts', upload.single('photo'), async (req, res) => {
       quotes.push(quoteData);
       writeLocalQuotes(quotes);
     }
+
+    // Trigger Admin Email Alert
+    sendAdminEmailNotification({
+      type: 'Spare Parts Re-creation Request',
+      ticketId,
+      clientName: customerName,
+      clientEmail: customerEmail,
+      details: {
+        'Part Name': partName,
+        Dimensions: `${length || '?'} x ${width || '?'} x ${height || '?'} mm`,
+        Notes: notes,
+        Phone: customerPhone
+      }
+    }).catch(err => console.error('Failed to trigger email notification:', err));
 
     res.status(201).json({ success: true, ticketId, quote: quoteData });
   } catch (err) {
@@ -533,7 +842,13 @@ app.patch('/api/quotes/:id', async (req, res) => {
       if (!data || data.length === 0) {
         return res.status(404).json({ error: 'Quote ticket not found.' });
       }
-      res.json({ success: true, quote: data[0] });
+
+      const updatedQuote = data[0];
+      if (status === 'Quoted' && updatedQuote.price_estimate > 0) {
+        sendCustomerQuoteReadyEmail(updatedQuote).catch(err => console.error('Quote customer email error:', err));
+      }
+
+      res.json({ success: true, quote: updatedQuote });
     } else {
       const quotes = readLocalQuotes();
       const index = quotes.findIndex(q => q.id === id);
@@ -546,7 +861,13 @@ app.patch('/api/quotes/:id', async (req, res) => {
         ...updatedFields
       };
       writeLocalQuotes(quotes);
-      res.json({ success: true, quote: quotes[index] });
+
+      const updatedQuote = quotes[index];
+      if (status === 'Quoted' && updatedQuote.price_estimate > 0) {
+        sendCustomerQuoteReadyEmail(updatedQuote).catch(err => console.error('Quote customer email error:', err));
+      }
+
+      res.json({ success: true, quote: updatedQuote });
     }
   } catch (err) {
     console.error('Update quote error:', err);
@@ -985,6 +1306,22 @@ app.post('/api/payment/verify', async (req, res) => {
       writeLocalQuotes(quotes);
     }
 
+    // Trigger Admin Email Alert for Purchase Order
+    sendAdminEmailNotification({
+      type: 'E-Commerce Order Purchase',
+      ticketId,
+      clientName: customerName || 'Valued Customer',
+      clientEmail: customerEmail,
+      details: {
+        'Receipt ID': receiptId,
+        'Amount Paid': `₹${totalAmount}`,
+        'Shipping Address': shippingAddress,
+        'Items count': items.reduce((sum, item) => sum + (item.quantity || 1), 0),
+        'Items Detail': items.map(item => `${item.name} (x${item.quantity})`).join(', '),
+        Phone: customerPhone || 'N/A'
+      }
+    }).catch(err => console.error('Failed to trigger email notification:', err));
+
     // Clear user's cart
     let cartClearedInSupabase = false;
     if (isSupabaseConfigured && supabase) {
@@ -1109,9 +1446,215 @@ app.post('/api/payment/verify-quote', async (req, res) => {
       updatedQuote = quotes[index];
     }
 
+    // Trigger Admin Email Alert for Paid Custom Quote
+    sendAdminEmailNotification({
+      type: 'Paid Custom Quote Order',
+      ticketId: quoteId,
+      clientName: updatedQuote.customer_name,
+      clientEmail: updatedQuote.customer_email,
+      details: {
+        'Original Type': updatedQuote.type,
+        'Amount Paid': `₹${updatedQuote.price_estimate}`,
+        'Shipping Address': shippingAddress,
+        Material: updatedQuote.material,
+        Color: updatedQuote.color,
+        Quantity: updatedQuote.quantity,
+        Phone: customerPhone || 'N/A'
+      }
+    }).catch(err => console.error('Failed to trigger email notification:', err));
+
     res.json({ success: true, quote: updatedQuote });
   } catch (err) {
     console.error('Verify quote payment error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// --- CATEGORIES ENDPOINTS ---
+
+// Fetch all categories (seeding empty Supabase table if needed)
+app.get('/api/categories', async (req, res) => {
+  try {
+    let categoriesList = [];
+    let useLocal = !isSupabaseConfigured || !supabase;
+    if (!useLocal) {
+      try {
+        let { data, error } = await supabase.from('categories').select('*').order('label', { ascending: true });
+        if (error) {
+          if (error.code === '42P01' || error.message?.includes('does not exist')) {
+            useLocal = true;
+          } else {
+            throw error;
+          }
+        } else {
+          // If Supabase table is empty, auto-seed it with the default categories
+          if (data.length === 0 && mockCategories && mockCategories.length > 0) {
+            console.log('[Database] Seeding empty Supabase categories table with default categories...');
+            const seedPayload = mockCategories.map(c => ({
+              id: c.id,
+              label: c.label,
+              icon: c.icon,
+              img: c.img
+            }));
+            const { data: seededData, error: seedError } = await supabase
+              .from('categories')
+              .insert(seedPayload)
+              .select();
+
+            if (seedError) {
+              console.error('[Database] Failed to seed Supabase categories:', seedError.message);
+            } else if (seededData) {
+              data = seededData;
+            }
+          }
+          categoriesList = data || [];
+        }
+      } catch (err) {
+        console.warn('[Supabase Fallback] Categories table select error, trying local fallback:', err.message);
+        useLocal = true;
+      }
+    }
+    if (useLocal) {
+      categoriesList = readLocalCategories();
+      // Sort local categories alphabetically by label
+      categoriesList.sort((a, b) => a.label.localeCompare(b.label));
+    }
+    
+    res.json(categoriesList);
+  } catch (err) {
+    console.error('Fetch categories error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Create a category (supports single image upload)
+app.post('/api/categories', upload.single('image'), async (req, res) => {
+  try {
+    const { name, icon = 'Package' } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Category name is required.' });
+    }
+
+    const id = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    if (!id) {
+      return res.status(400).json({ error: 'Invalid category name.' });
+    }
+
+    let imageUrl = '';
+    if (req.file) {
+      try {
+        const fileResult = await uploadFileHelper(req.file, 'categories');
+        imageUrl = fileResult.fileUrl;
+      } catch (uploadErr) {
+        console.error('[Category Image Upload Error]:', uploadErr.message);
+      }
+    }
+
+    const newCategory = {
+      id,
+      label: name.trim(),
+      icon: icon || 'Package',
+      img: imageUrl
+    };
+
+    let useLocal = !isSupabaseConfigured || !supabase;
+    let savedCategory = null;
+
+    if (!useLocal) {
+      try {
+        const { data, error } = await supabase
+          .from('categories')
+          .insert(newCategory)
+          .select();
+
+        if (error) {
+          if (error.code === '42P01' || error.message?.includes('does not exist')) {
+            useLocal = true;
+          } else {
+            throw error;
+          }
+        } else {
+          savedCategory = data[0];
+        }
+      } catch (err) {
+        console.warn('[Supabase Fallback] Category insert error, trying local fallback:', err.message);
+        useLocal = true;
+      }
+    }
+
+    if (useLocal) {
+      const categories = readLocalCategories();
+      // Check if category with id already exists
+      const exists = categories.some(c => c.id === id);
+      if (exists) {
+        return res.status(400).json({ error: 'Category already exists.' });
+      }
+      savedCategory = {
+        created_at: new Date().toISOString(),
+        ...newCategory
+      };
+      categories.push(savedCategory);
+      writeLocalCategories(categories);
+    }
+
+    res.status(201).json({ success: true, category: savedCategory });
+  } catch (err) {
+    console.error('Create category error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete a category
+app.delete('/api/categories/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    let useLocal = !isSupabaseConfigured || !supabase;
+    let deletedSuccess = false;
+
+    if (!useLocal) {
+      try {
+        const { data, error } = await supabase
+          .from('categories')
+          .delete()
+          .eq('id', id)
+          .select();
+
+        if (error) {
+          if (error.code === '42P01' || error.message?.includes('does not exist')) {
+            useLocal = true;
+          } else {
+            throw error;
+          }
+        } else {
+          if (data && data.length > 0) {
+            deletedSuccess = true;
+          }
+        }
+      } catch (err) {
+        console.warn('[Supabase Fallback] Category delete error, trying local fallback:', err.message);
+        useLocal = true;
+      }
+    }
+
+    if (useLocal) {
+      const categories = readLocalCategories();
+      const initialLength = categories.length;
+      const filteredCategories = categories.filter(c => c.id !== id);
+      if (filteredCategories.length < initialLength) {
+        writeLocalCategories(filteredCategories);
+        deletedSuccess = true;
+      }
+    }
+
+    if (deletedSuccess) {
+      res.json({ success: true, message: `Category ${id} deleted successfully.` });
+    } else {
+      res.status(404).json({ error: 'Category not found.' });
+    }
+  } catch (err) {
+    console.error('Delete category error:', err);
     res.status(500).json({ error: err.message });
   }
 });

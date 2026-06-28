@@ -41,8 +41,7 @@ export default function Header({
     { label: 'Refund & Returns', tab: 'refund' },
     { label: 'Shipping Policy', tab: 'shipping' },
     { label: 'Privacy Policy', tab: 'privacy' },
-    { label: 'Terms & Conditions', tab: 'terms' },
-    { label: '⚙️ Admin Portal', tab: 'admin' },
+    { label: 'Terms & Conditions', tab: 'terms' }
   ];
 
   const navigateTo = (tab, category) => {
@@ -52,7 +51,7 @@ export default function Header({
     setMobileMenuOpen(false);
   };
 
-  const shopCategories = [
+  const [shopCategories, setShopCategories] = React.useState([
     { id: 'all', label: 'All Products' },
     { id: 'keychains', label: 'Custom Keychains' },
     { id: 'miniatures', label: 'Custom Miniature' },
@@ -62,7 +61,29 @@ export default function Header({
     { id: 'stencils', label: 'Stencil' },
     { id: 'gifts', label: 'Gifts' },
     { id: 'wallart', label: 'Wall Art' }
-  ];
+  ]);
+
+  React.useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
+        const res = await fetch(`${API_BASE}/api/categories`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.length > 0) {
+            const mapped = [
+              { id: 'all', label: 'All Products' },
+              ...data.map(c => ({ id: c.id, label: c.label }))
+            ];
+            setShopCategories(mapped);
+          }
+        }
+      } catch (err) {
+        console.error('Header categories fetch failed:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   // Sub-navigation bar categories compressed into a dropdown
   const subNavItems = [
@@ -96,7 +117,7 @@ export default function Header({
             borderBottom: '1px solid #1a1a1a',
             padding: '0 1.5rem',
             height: '68px',
-            maxWidth: '1440px',
+            maxWidth: '95%',
             margin: '0 auto',
             display: 'grid',
             gridTemplateColumns: '1fr minmax(auto, 550px) 1fr',
@@ -174,7 +195,7 @@ export default function Header({
 
           {/* Sub-Navigation Bar */}
           <div style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e5e5e5' }}>
-            <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0.5rem 1.5rem', display: 'flex', gap: '1.5rem', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ maxWidth: '95%', margin: '0 auto', padding: '0.5rem 1.5rem', display: 'flex', gap: '1.5rem', alignItems: 'center', justifyContent: 'center' }}>
               {subNavItems.map((item) => {
                 const isSelected = item.id === 'home'
                   ? (activeTab === 'shop' && activeCategory === 'home')
@@ -336,7 +357,6 @@ export default function Header({
                 { label: '🔧 Spare Parts', tab: 'spareparts' },
                 { label: '🔬 Prototype Lab', tab: 'student' },
                 { label: '📋 My Orders', tab: 'orders' },
-                { label: '⚙️ Admin Portal', tab: 'admin' },
               ].map(item => (
                 <button key={item.tab} onClick={() => navigateTo(item.tab)} style={{ width: '100%', background: 'transparent', border: 'none', borderBottom: '1px solid #f0f0f0', padding: '0.9rem 1.25rem', textAlign: 'left', fontSize: '0.88rem', fontWeight: activeTab === item.tab ? '700' : '500', color: activeTab === item.tab ? 'var(--accent-color)' : '#000', cursor: 'pointer' }}>
                   {item.label}

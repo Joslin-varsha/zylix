@@ -14,8 +14,7 @@ export default function Footer({ setActiveTab }) {
     { label: 'Return & Refund', tab: 'refund' },
     { label: 'Shipping Policy', tab: 'shipping' },
     { label: 'Bulk / B2B Orders', tab: 'contact' },
-    { label: 'About Us', tab: 'about' },
-    { label: '⚙️ Admin Portal', tab: 'admin' },
+    { label: 'About Us', tab: 'about' }
   ];
 
   const linkStyle = {
@@ -40,7 +39,7 @@ export default function Footer({ setActiveTab }) {
 
       {/* Main Footer Links */}
       <div className="footer-links-grid" style={{
-        maxWidth: '1440px', margin: '0 auto',
+        maxWidth: '95%', margin: '0 auto',
         padding: '3.5rem 1.5rem 2.5rem',
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
@@ -156,7 +155,7 @@ export default function Footer({ setActiveTab }) {
       {/* Bottom Bar */}
       <div className="footer-bottom-bar" style={{ borderTop: '1px solid #111', padding: '1rem 1.5rem' }}>
         <div className="footer-bottom-container" style={{
-          maxWidth: '1440px', margin: '0 auto',
+          maxWidth: '95%', margin: '0 auto',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           flexWrap: 'wrap', gap: '0.5rem'
         }}>

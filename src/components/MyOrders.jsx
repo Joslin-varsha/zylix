@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Loader2, Download, Package, Clock, CheckCircle2, XCircle, AlertCircle, ShoppingCart } from 'lucide-react';
 
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
+
 export default function MyOrders({ user, setActiveTab }) {
   const [email, setEmail] = useState('');
   const [quotes, setQuotes] = useState([]);
@@ -28,7 +30,7 @@ export default function MyOrders({ user, setActiveTab }) {
     if (zip.length === 6 && /^\d+$/.test(zip)) {
       const fetchPincodeData = async () => {
         try {
-          const res = await fetch(`http://localhost:5000/api/pincode/${zip}`);
+          const res = await fetch(`${API_BASE}/api/pincode/${zip}`);
           if (res.ok) {
             const data = await res.json();
             if (data.success) {
@@ -93,7 +95,7 @@ export default function MyOrders({ user, setActiveTab }) {
 
     try {
       // 1. Create order on backend
-      const createRes = await fetch('http://localhost:5000/api/payment/create-order', {
+      const createRes = await fetch(`${API_BASE}/api/payment/create-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -108,7 +110,7 @@ export default function MyOrders({ user, setActiveTab }) {
 
       // 2. Check Sandbox mode
       if (createData.sandbox) {
-        const verifyRes = await fetch('http://localhost:5000/api/payment/verify-quote', {
+        const verifyRes = await fetch(`${API_BASE}/api/payment/verify-quote`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -151,7 +153,7 @@ export default function MyOrders({ user, setActiveTab }) {
         },
         handler: async function (response) {
           try {
-            const verifyRes = await fetch('http://localhost:5000/api/payment/verify-quote', {
+            const verifyRes = await fetch(`${API_BASE}/api/payment/verify-quote`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -216,7 +218,7 @@ export default function MyOrders({ user, setActiveTab }) {
     setError('');
     setSearched(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/quotes?email=${encodeURIComponent(targetEmail.trim())}`);
+      const response = await fetch(`${API_BASE}/api/quotes?email=${encodeURIComponent(targetEmail.trim())}`);
       if (!response.ok) {
         throw new Error('Failed to retrieve orders from the server.');
       }

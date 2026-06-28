@@ -1,5 +1,7 @@
 import React from 'react';
-import { Upload, HardDrive, Layers, Box, Award, Key, Gift, CheckCircle2, FileText } from 'lucide-react';
+import { Upload, HardDrive, Layers, Box, Award, Key, Gift, CheckCircle2, FileText, XCircle } from 'lucide-react';
+
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
 
 export default function AIPrintLab({ 
   onAddToCart,
@@ -19,6 +21,17 @@ export default function AIPrintLab({
   const [customerName, setCustomerName] = React.useState('');
   const [customerEmail, setCustomerEmail] = React.useState('');
   const [customerPhone, setCustomerPhone] = React.useState('');
+  const [validationError, setValidationError] = React.useState('');
+  const errorRef = React.useRef(null);
+
+  const triggerError = (msg) => {
+    setValidationError(msg);
+    setTimeout(() => {
+      if (errorRef.current) {
+        errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 50);
+  };
 
   React.useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -66,7 +79,27 @@ export default function AIPrintLab({
 
   const handleSubmitQuote = async (e) => {
     e.preventDefault();
-    if (!file) return;
+    setValidationError('');
+    if (!file) {
+      triggerError("Please upload a 3D model file (STL, OBJ, or 3MF) first.");
+      return;
+    }
+    
+    if (!customerName || customerName.trim().length < 2) {
+      triggerError("Please enter a valid full name (at least 2 characters).");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(customerEmail)) {
+      triggerError("Please enter a valid email address.");
+      return;
+    }
+    const phoneClean = customerPhone.replace(/\D/g, '');
+    if (phoneClean.length < 10) {
+      triggerError("Please enter a valid 10-digit contact phone number.");
+      return;
+    }
+
     setSubmittingQuote(true);
     try {
       const formData = new FormData();
@@ -75,11 +108,11 @@ export default function AIPrintLab({
       formData.append('color', color);
       formData.append('quantity', quantity);
       formData.append('notes', notes);
-      formData.append('customerName', customerName);
-      formData.append('customerEmail', customerEmail);
-      formData.append('customerPhone', customerPhone);
+      formData.append('customerName', customerName.trim());
+      formData.append('customerEmail', customerEmail.trim());
+      formData.append('customerPhone', phoneClean);
 
-      const response = await fetch('http://localhost:5000/api/quotes/slicer', {
+      const response = await fetch(`${API_BASE}/api/quotes/slicer`, {
         method: 'POST',
         body: formData
       });
@@ -93,7 +126,7 @@ export default function AIPrintLab({
       setQuoteSubmitted(true);
     } catch (err) {
       console.error(err);
-      alert(err.message);
+      triggerError(err.message);
     } finally {
       setSubmittingQuote(false);
     }
@@ -136,6 +169,32 @@ export default function AIPrintLab({
 
   const handleSubmitDesignerQuote = async (e) => {
     e.preventDefault();
+    setValidationError('');
+    
+    if (productType === 'keychain' && !nameText.trim()) {
+      triggerError("Please specify the text/name details for your custom design.");
+      return;
+    }
+    if (productType === 'other' && !customProductType.trim()) {
+      triggerError("Please specify the custom product type details.");
+      return;
+    }
+    
+    if (!customerName || customerName.trim().length < 2) {
+      triggerError("Please enter a valid full name (at least 2 characters).");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(customerEmail)) {
+      triggerError("Please enter a valid email address.");
+      return;
+    }
+    const phoneClean = customerPhone.replace(/\D/g, '');
+    if (phoneClean.length < 10) {
+      triggerError("Please enter a valid 10-digit contact phone number.");
+      return;
+    }
+
     setDesignerSubmitting(true);
     try {
       const formData = new FormData();
@@ -143,18 +202,18 @@ export default function AIPrintLab({
         formData.append('referenceFile', referenceFile);
       }
       formData.append('productType', productType);
-      formData.append('customProductType', customProductType);
-      formData.append('nameText', nameText);
+      formData.append('customProductType', customProductType.trim());
+      formData.append('nameText', nameText.trim());
       formData.append('designerColor', designerColor);
-      formData.append('customColor', customColor);
+      formData.append('customColor', customColor.trim());
       formData.append('designerSize', designerSize);
-      formData.append('customSize', customSize);
-      formData.append('additionalNotes', additionalNotes);
-      formData.append('customerName', customerName);
-      formData.append('customerEmail', customerEmail);
-      formData.append('customerPhone', customerPhone);
+      formData.append('customSize', customSize.trim());
+      formData.append('additionalNotes', additionalNotes.trim());
+      formData.append('customerName', customerName.trim());
+      formData.append('customerEmail', customerEmail.trim());
+      formData.append('customerPhone', phoneClean);
 
-      const response = await fetch('http://localhost:5000/api/quotes/designer', {
+      const response = await fetch(`${API_BASE}/api/quotes/designer`, {
         method: 'POST',
         body: formData
       });
@@ -168,14 +227,14 @@ export default function AIPrintLab({
       setDesignerSubmitted(true);
     } catch (err) {
       console.error(err);
-      alert(err.message);
+      triggerError(err.message);
     } finally {
       setDesignerSubmitting(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+    <div style={{ maxWidth: '95%', margin: '0 auto', padding: '2rem 1.5rem' }}>
       
       {/* Page Header */}
       <div style={{ marginBottom: '2.5rem', textAlign: 'center' }}>
@@ -532,6 +591,30 @@ export default function AIPrintLab({
                   </div>
                 </div>
 
+                {validationError && (
+                  <div 
+                    ref={errorRef}
+                    style={{
+                      padding: '0.8rem 1rem',
+                      background: 'rgba(239, 68, 68, 0.08)',
+                      border: '1px solid rgba(239, 68, 68, 0.2)',
+                      borderRadius: '6px',
+                      color: '#b91c1c',
+                      fontSize: '0.78rem',
+                      fontWeight: '600',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      animation: 'fadeInUp 0.25s ease-out',
+                      marginTop: '0.5rem',
+                      marginBottom: '0.5rem'
+                    }}
+                  >
+                    <XCircle size={14} style={{ flexShrink: 0 }} />
+                    <span>{validationError}</span>
+                  </div>
+                )}
+
                 {user ? (
                   <button
                     type="submit"
@@ -884,6 +967,30 @@ export default function AIPrintLab({
                     />
                   </div>
                 </div>
+
+                {validationError && (
+                  <div 
+                    ref={errorRef}
+                    style={{
+                      padding: '0.8rem 1rem',
+                      background: 'rgba(239, 68, 68, 0.08)',
+                      border: '1px solid rgba(239, 68, 68, 0.2)',
+                      borderRadius: '6px',
+                      color: '#b91c1c',
+                      fontSize: '0.78rem',
+                      fontWeight: '600',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      animation: 'fadeInUp 0.25s ease-out',
+                      marginTop: '0.5rem',
+                      marginBottom: '0.5rem'
+                    }}
+                  >
+                    <XCircle size={14} style={{ flexShrink: 0 }} />
+                    <span>{validationError}</span>
+                  </div>
+                )}
 
                 {user ? (
                   <button

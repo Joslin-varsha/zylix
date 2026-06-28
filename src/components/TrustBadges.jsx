@@ -14,7 +14,7 @@ export default function TrustBadges() {
   return (
     <div style={{ backgroundColor: 'var(--bg-primary)', padding: '3.5rem 1.5rem', borderTop: '1px solid var(--border-color)' }}>
       <div style={{
-        maxWidth: '1440px', margin: '0 auto',
+        maxWidth: '95%', margin: '0 auto',
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
         gap: '1.5rem'

@@ -36,6 +36,8 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
+
 function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -64,7 +66,7 @@ function AppContent() {
     const fetchCart = async () => {
       if (user && user.email) {
         try {
-          const res = await fetch(`http://localhost:5000/api/cart?email=${encodeURIComponent(user.email)}`);
+          const res = await fetch(`${API_BASE}/api/cart?email=${encodeURIComponent(user.email)}`);
           if (res.ok) {
             const items = await res.json();
             setCartItems(items || []);
@@ -88,7 +90,7 @@ function AppContent() {
     const syncCart = async () => {
       if (user && user.email && cartLoaded) {
         try {
-          await fetch('http://localhost:5000/api/cart', {
+          await fetch(`${API_BASE}/api/cart`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'

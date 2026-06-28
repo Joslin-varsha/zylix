@@ -1,5 +1,7 @@
 import React from 'react';
-import { Upload, CheckCircle2, Calendar } from 'lucide-react';
+import { Upload, CheckCircle2, Calendar, XCircle } from 'lucide-react';
+
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
 
 export default function StudentHub({ user, setActiveTab }) {
   const [projectType, setProjectType] = React.useState('College Project');
@@ -15,6 +17,17 @@ export default function StudentHub({ user, setActiveTab }) {
   const [customerName, setCustomerName] = React.useState('');
   const [customerEmail, setCustomerEmail] = React.useState('');
   const [customerPhone, setCustomerPhone] = React.useState('');
+  const [validationError, setValidationError] = React.useState('');
+  const errorRef = React.useRef(null);
+
+  const triggerError = (msg) => {
+    setValidationError(msg);
+    setTimeout(() => {
+      if (errorRef.current) {
+        errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 50);
+  };
 
   // Submission states
   const [submitting, setSubmitting] = React.useState(false);
@@ -48,26 +61,52 @@ export default function StudentHub({ user, setActiveTab }) {
 
   const handleSubmitPrototypeQuote = async (e) => {
     e.preventDefault();
+    setValidationError('');
+    
+    if (!projectName.trim()) {
+      triggerError("Please enter the project name.");
+      return;
+    }
+    if (projectType === 'Other' && !customProjectType.trim()) {
+      triggerError("Please specify the custom project type.");
+      return;
+    }
+
+    if (!customerName || customerName.trim().length < 2) {
+      triggerError("Please enter a valid full name (at least 2 characters).");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(customerEmail)) {
+      triggerError("Please enter a valid email address.");
+      return;
+    }
+    const phoneClean = customerPhone.replace(/\D/g, '');
+    if (phoneClean.length < 10) {
+      triggerError("Please enter a valid 10-digit contact phone number.");
+      return;
+    }
+
     setSubmitting(true);
     try {
       const formData = new FormData();
       formData.append('projectType', projectType);
-      formData.append('customProjectType', customProjectType);
-      formData.append('projectName', projectName);
-      formData.append('description', description);
+      formData.append('customProjectType', customProjectType.trim());
+      formData.append('projectName', projectName.trim());
+      formData.append('description', description.trim());
       formData.append('quantity', quantity);
       formData.append('customQuantity', customQuantity);
       formData.append('requiredDate', requiredDate);
-      formData.append('customerName', customerName);
-      formData.append('customerEmail', customerEmail);
-      formData.append('customerPhone', customerPhone);
+      formData.append('customerName', customerName.trim());
+      formData.append('customerEmail', customerEmail.trim());
+      formData.append('customerPhone', phoneClean);
 
       // Append multiple files
       uploadedFiles.forEach((file) => {
         formData.append('files', file);
       });
 
-      const response = await fetch('http://localhost:5000/api/quotes/prototype', {
+      const response = await fetch(`${API_BASE}/api/quotes/prototype`, {
         method: 'POST',
         body: formData
       });
@@ -90,7 +129,7 @@ export default function StudentHub({ user, setActiveTab }) {
 
 
   return (
-    <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+    <div style={{ maxWidth: '95%', margin: '0 auto', padding: '2rem 1.5rem' }}>
       
       {/* Page Header */}
       <div style={{ marginBottom: '2.5rem', textAlign: 'center' }}>
@@ -445,6 +484,30 @@ export default function StudentHub({ user, setActiveTab }) {
                     />
                   </div>
                 </div>
+
+                {validationError && (
+                  <div 
+                    ref={errorRef}
+                    style={{
+                      padding: '0.8rem 1rem',
+                      background: 'rgba(239, 68, 68, 0.08)',
+                      border: '1px solid rgba(239, 68, 68, 0.2)',
+                      borderRadius: '6px',
+                      color: '#b91c1c',
+                      fontSize: '0.78rem',
+                      fontWeight: '600',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      animation: 'fadeInUp 0.25s ease-out',
+                      marginTop: '0.5rem',
+                      marginBottom: '0.5rem'
+                    }}
+                  >
+                    <XCircle size={14} style={{ flexShrink: 0 }} />
+                    <span>{validationError}</span>
+                  </div>
+                )}
 
                 {user ? (
                   <button

@@ -769,6 +769,33 @@ h1, h2, h3, h4, h5, h6 {
     gap: 1.25rem !important;
   }
 
+  /* Mobile Products Grid (2 columns like Flipkart) */
+  .products-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.6rem !important;
+  }
+
+  .products-grid .product-card {
+    border-radius: 8px !important;
+  }
+
+  .products-grid .product-card > div:last-child {
+    padding: 0.6rem !important; /* reduce inner card padding for mobile screens */
+  }
+
+  .products-grid .product-card h3 {
+    font-size: 0.75rem !important;
+    min-height: 2rem !important;
+    line-height: 1.25 !important;
+    margin-bottom: 2px !important;
+  }
+
+  .products-grid .product-card .btn-primary,
+  .products-grid .product-card .btn-secondary {
+    height: 30px !important;
+    font-size: 0.68rem !important;
+  }
+
   /* Hide scroll carousel side arrows on touch screens */
   .carousel-nav-btn {
     display: none !important;
@@ -799,6 +826,109 @@ h1, h2, h3, h4, h5, h6 {
   .footer-bottom-container div {
     justify-content: center !important;
     flex-wrap: wrap !important;
-    gap: 1rem !important;
   }
 }
+
+/* Mobile Filter Bar & Slide-Up Drawer Overlay (Hidden on Desktop) */
+.mobile-filter-bar,
+.mobile-filter-drawer-overlay {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .catalog-sidebar {
+    display: none !important; /* Hide standard desktop sidebar on mobile viewports */
+  }
+
+  .mobile-filter-bar {
+    display: flex !important;
+    width: 100%;
+    background-color: #ffffff;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 70px; /* Floats right under the mobile header */
+    z-index: 50;
+    margin-bottom: 1.25rem;
+  }
+
+  .mobile-filter-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.85rem;
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #000000;
+  }
+
+  .mobile-filter-btn:not(:last-child) {
+    border-right: 1px solid var(--border-color);
+  }
+
+  .mobile-filter-drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    display: flex !important;
+    justify-content: flex-end;
+    align-items: flex-end;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .mobile-filter-drawer-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .mobile-filter-drawer {
+    width: 100%;
+    max-height: 85vh;
+    background-color: #ffffff;
+    border-radius: 20px 20px 0 0;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12);
+  }
+
+  .mobile-filter-drawer-overlay.active .mobile-filter-drawer {
+    transform: translateY(0);
+  }
+
+  .mobile-filter-drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .mobile-filter-drawer-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  .mobile-filter-drawer-footer {
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    background-color: #ffffff;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.02);
+  }
+}
+
