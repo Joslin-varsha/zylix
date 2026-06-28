@@ -875,6 +875,311 @@ app.patch('/api/quotes/:id', async (req, res) => {
   }
 });
 
+// --- OTP Temporary Stores ---
+const registerOtpStore = new Map(); // email -> { name, password, otp, expires }
+const resetOtpStore = new Map();    // email -> { otp, expires }
+
+// OTP Email Helper
+const sendOtpEmail = async (email, otp, subject, heading, text) => {
+  if (!smtpHost || !smtpUser || !smtpPass) {
+    console.warn('[SMTP] Mail settings missing, logged OTP:', otp);
+    return;
+  }
+  const transporter = nodemailer.createTransport({
+    host: smtpHost,
+    port: Number(smtpPort),
+    secure: Number(smtpPort) === 465,
+    auth: {
+      user: smtpUser,
+      pass: smtpPass
+    }
+  });
+
+  const mailOptions = {
+    from: `"Zylix 3D Verification" <${smtpUser}>`,
+    to: email,
+    subject: subject,
+    html: `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 500px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); background-color: #ffffff;">
+        <div style="background: #000000; padding: 2rem; color: #ffffff; text-align: center;">
+          <h1 style="margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;">ZYLIX 3D</h1>
+          <p style="margin: 0.5rem 0 0; font-size: 0.85rem; color: #a0aec0; letter-spacing: 0.05em;">SECURE VERIFICATION</p>
+        </div>
+        <div style="padding: 2rem; color: #2d3748; line-height: 1.6;">
+          <h2 style="margin-top: 0; font-size: 1.25rem; font-weight: 700; color: #1a202c;">${heading}</h2>
+          <p style="font-size: 0.9rem; color: #4a5568;">${text}</p>
+          <div style="background-color: #f7fafc; border: 1px dashed #cbd5e0; border-radius: 8px; padding: 1.25rem; text-align: center; margin: 1.5rem 0;">
+            <span style="font-family: monospace; font-size: 2.2rem; font-weight: 800; letter-spacing: 0.2em; color: #000000; margin-left: 0.2em;">${otp}</span>
+          </div>
+          <p style="font-size: 0.78rem; color: #718096; margin-bottom: 0;">This OTP code is valid for 10 minutes. If you did not request this, you can safely ignore this email.</p>
+        </div>
+        <div style="background: #f7fafc; padding: 1rem; border-top: 1px solid #edf2f7; text-align: center; font-size: 0.72rem; color: #a0aec0;">
+          © ${new Date().getFullYear()} Zylix 3D. Precision Printed.
+        </div>
+      </div>
+    `
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+// Send OTP for Register
+app.post('/api/auth/register-send-otp', async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: 'Name, email, and password are required.' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    // Check if user already exists
+    let useLocal = !isSupabaseConfigured || !supabase;
+    if (!useLocal) {
+      try {
+        const { data: existingUser, error: selectError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', cleanEmail)
+          .maybeSingle();
+
+        if (selectError) {
+          if (selectError.code === '42P01' || selectError.message?.includes('does not exist') || selectError.message?.includes('schema cache')) {
+            useLocal = true;
+          } else {
+            throw selectError;
+          }
+        } else if (existingUser) {
+          return res.status(400).json({ error: 'Email address already registered.' });
+        }
+      } catch (err) {
+        useLocal = true;
+      }
+    }
+
+    if (useLocal) {
+      const users = readLocalUsers();
+      if (users.some(u => u.email.toLowerCase() === cleanEmail)) {
+        return res.status(400).json({ error: 'Email address already registered.' });
+      }
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expires = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+    // Store in registerOtpStore
+    registerOtpStore.set(cleanEmail, { name, password, otp, expires });
+
+    // Send email
+    await sendOtpEmail(
+      cleanEmail,
+      otp,
+      '🔑 Confirm Your Zylix 3D Registration',
+      'Verify Your Email Address',
+      `Hello ${name}, thank you for registering with Zylix 3D. Please use the following One-Time Password (OTP) to complete your account registration:`
+    );
+
+    res.json({ success: true, message: 'OTP sent to your email address.' });
+  } catch (err) {
+    console.error('Send register OTP error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Verify OTP and Complete Register
+app.post('/api/auth/register-verify-otp', async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ error: 'Email and OTP are required.' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const record = registerOtpStore.get(cleanEmail);
+
+    if (!record) {
+      return res.status(400).json({ error: 'No active registration request found. Please request a new code.' });
+    }
+
+    if (Date.now() > record.expires) {
+      registerOtpStore.delete(cleanEmail);
+      return res.status(400).json({ error: 'OTP has expired. Please request a new code.' });
+    }
+
+    if (record.otp !== otp.trim()) {
+      return res.status(400).json({ error: 'Incorrect OTP code. Please try again.' });
+    }
+
+    // OTP matches! Register the user
+    const { name, password } = record;
+    const hashedPassword = hashPassword(password);
+
+    let useLocal = !isSupabaseConfigured || !supabase;
+    if (!useLocal) {
+      try {
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert({ name, email: cleanEmail, password: hashedPassword });
+        if (insertError) throw insertError;
+      } catch (err) {
+        console.warn('[Supabase Fallback] Error registering user, trying local fallback:', err.message);
+        useLocal = true;
+      }
+    }
+
+    if (useLocal) {
+      const users = readLocalUsers();
+      const newUser = {
+        id: crypto.randomUUID(),
+        created_at: new Date().toISOString(),
+        name,
+        email: cleanEmail,
+        password: hashedPassword
+      };
+      users.push(newUser);
+      writeLocalUsers(users);
+    }
+
+    // Delete record from store
+    registerOtpStore.delete(cleanEmail);
+
+    res.status(201).json({ success: true, user: { name, email: cleanEmail } });
+  } catch (err) {
+    console.error('Verify register OTP error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Forgot Password - Send OTP
+app.post('/api/auth/forgot-password-send-otp', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email address is required.' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    let userRecord = null;
+
+    // Check if user exists
+    let useLocal = !isSupabaseConfigured || !supabase;
+    if (!useLocal) {
+      try {
+        const { data: user, error: selectError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', cleanEmail)
+          .maybeSingle();
+
+        if (selectError) {
+          if (selectError.code === '42P01' || selectError.message?.includes('does not exist') || selectError.message?.includes('schema cache')) {
+            useLocal = true;
+          } else {
+            throw selectError;
+          }
+        } else {
+          userRecord = user;
+        }
+      } catch (err) {
+        useLocal = true;
+      }
+    }
+
+    if (useLocal) {
+      const users = readLocalUsers();
+      userRecord = users.find(u => u.email.toLowerCase() === cleanEmail);
+    }
+
+    if (!userRecord) {
+      return res.status(404).json({ error: 'No account found with this email address.' });
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expires = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+    // Store in resetOtpStore
+    resetOtpStore.set(cleanEmail, { otp, expires });
+
+    // Send email
+    await sendOtpEmail(
+      cleanEmail,
+      otp,
+      '🔒 Reset Your Zylix 3D Password',
+      'Password Reset Request',
+      `We received a request to reset your password. Please use the following One-Time Password (OTP) code to complete your password reset:`
+    );
+
+    res.json({ success: true, message: 'Password reset OTP sent to your email.' });
+  } catch (err) {
+    console.error('Send forgot password OTP error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Reset Password - Verify OTP and Save
+app.post('/api/auth/reset-password-verify', async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({ error: 'Email, OTP, and new password are required.' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const record = resetOtpStore.get(cleanEmail);
+
+    if (!record) {
+      return res.status(400).json({ error: 'No active password reset request found. Please request a new code.' });
+    }
+
+    if (Date.now() > record.expires) {
+      resetOtpStore.delete(cleanEmail);
+      return res.status(400).json({ error: 'OTP has expired. Please request a new code.' });
+    }
+
+    if (record.otp !== otp.trim()) {
+      return res.status(400).json({ error: 'Incorrect OTP code. Please try again.' });
+    }
+
+    // OTP matches! Update the user's password
+    const hashedPassword = hashPassword(newPassword);
+
+    let useLocal = !isSupabaseConfigured || !supabase;
+    if (!useLocal) {
+      try {
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ password: hashedPassword })
+          .eq('email', cleanEmail);
+        if (updateError) throw updateError;
+      } catch (err) {
+        console.warn('[Supabase Fallback] Error resetting password, trying local fallback:', err.message);
+        useLocal = true;
+      }
+    }
+
+    if (useLocal) {
+      const users = readLocalUsers();
+      const userIndex = users.findIndex(u => u.email.toLowerCase() === cleanEmail);
+      if (userIndex > -1) {
+        users[userIndex].password = hashedPassword;
+        writeLocalUsers(users);
+      } else {
+        return res.status(404).json({ error: 'User account not found.' });
+      }
+    }
+
+    // Delete record from store
+    resetOtpStore.delete(cleanEmail);
+
+    res.json({ success: true, message: 'Password has been reset successfully.' });
+  } catch (err) {
+    console.error('Reset password verify error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // --- AUTHENTICATION ENDPOINTS ---
 
 // Register
