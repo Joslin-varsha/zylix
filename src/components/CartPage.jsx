@@ -5,7 +5,7 @@ const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
 
 const calculateShipping = (zip, subtotal) => {
   if (subtotal > 5000) return 0;
-  if (!zip || zip.trim().length < 6) return 50; // default local shipping estimate
+  if (!zip || zip.trim().length < 6) return null; // Not calculated yet
 
   const cleanZip = zip.trim();
   const firstDigit = cleanZip.charAt(0);
@@ -79,7 +79,7 @@ export default function CartPage({
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shipping = calculateShipping(shippingDetails.zip, subtotal);
-  const finalTotal = subtotal + shipping;
+  const finalTotal = subtotal + (shipping ?? 0);
 
   const handlePay = async () => {
     if (!user) {
@@ -681,14 +681,18 @@ export default function CartPage({
           {/* Price breakdown */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
             <PriceRow label="Subtotal" value={`₹${subtotal.toLocaleString('en-IN')}`} />
-            <PriceRow label="Shipping" value={shipping === 0 ? 'FREE' : `₹${shipping}`} accent={shipping === 0} />
-            {shipping > 0 && (
-              <p style={{ fontSize: '0.72rem', color: '#aaa', fontStyle: 'italic', marginTop: '-2px' }}>
-                {shippingDetails.zip && shippingDetails.zip.trim().length >= 6 
-                  ? `Calculated zone rate for pincode ${shippingDetails.zip.trim()}`
-                  : 'Enter a 6-digit delivery pincode for zone-based shipping.'}
-              </p>
-            )}
+            <PriceRow 
+              label="Shipping" 
+              value={shipping === 0 ? 'FREE' : (shipping !== null ? `₹${shipping}` : 'Calculated at Pincode')} 
+              accent={shipping === 0} 
+            />
+            <p style={{ fontSize: '0.72rem', color: shipping !== null ? '#22c55e' : '#888', fontStyle: 'italic', marginTop: '-2px' }}>
+              {shipping === 0 
+                ? '🎉 Free Shipping applied on orders over ₹5,000'
+                : (shipping !== null 
+                    ? `✓ Zone rate calculated for pincode ${shippingDetails.zip.trim()}`
+                    : '📍 Enter 6-digit delivery pincode below to calculate shipping')}
+            </p>
             <div style={{ borderTop: '1px dashed #e5e5e5', marginTop: '0.3rem', paddingTop: '0.75rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '1rem', fontWeight: '800', color: '#000', fontFamily: 'var(--font-display)' }}>Total</span>

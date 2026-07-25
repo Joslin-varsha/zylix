@@ -11,8 +11,8 @@ export default function CartDrawer({
   if (!isOpen) return null;
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = subtotal > 5000 ? 0 : 50; // default local shipping estimate
-  const finalTotal = subtotal + shipping;
+  const shipping = subtotal > 5000 ? 0 : null; // null = calculated at checkout
+  const finalTotal = subtotal + (shipping ?? 0);
 
   const handleGoToCart = () => {
     onClose();
@@ -143,7 +143,7 @@ export default function CartDrawer({
             {/* Price breakdown */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
               <Row label="Subtotal" value={`₹${subtotal.toLocaleString('en-IN')}`} />
-              <Row label="Shipping" value={shipping === 0 ? 'FREE' : `₹${shipping}`} />
+              <Row label="Shipping" value={shipping === 0 ? 'FREE' : 'Calculated at Checkout'} />
               <div style={{ borderTop: '1px dashed #e5e5e5', marginTop: '0.2rem', paddingTop: '0.65rem' }}>
                 <Row label="Total" value={`₹${Math.round(finalTotal).toLocaleString('en-IN')}`} bold />
               </div>

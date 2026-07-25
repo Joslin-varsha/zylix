@@ -13,7 +13,7 @@ import MyOrders from './components/MyOrders';
 import LoginView from './components/LoginView';
 import TrustBadges from './components/TrustBadges';
 import InfoPage from './components/InfoPage';
-import { X, Trash2, ShoppingCart, Heart } from 'lucide-react';
+import { X, Trash2, ShoppingCart, Heart, CheckCircle2 } from 'lucide-react';
 import { BrowserRouter, useNavigate, useLocation } from 'react-router-dom';
 
 // Error Boundary — shows error message instead of blank page
@@ -111,6 +111,7 @@ function AppContent() {
   const [wishlistOpen, setWishlistOpen] = React.useState(false);
   const [loginMessage, setLoginMessage] = React.useState('');
   const [welcomeToast, setWelcomeToast] = React.useState('');
+  const [cartAlert, setCartAlert] = React.useState(null);
 
   // Customizer & AI Lab state extensions
   const [labTab, setLabTab] = React.useState('slicer'); // 'slicer', 'designer', 'generator'
@@ -728,6 +729,58 @@ function AppContent() {
         }}>
           <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#22c55e' }} />
           {welcomeToast}
+        </div>
+      )}
+
+      {cartAlert && (
+        <div style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          backgroundColor: '#0f172a',
+          color: '#ffffff',
+          padding: '0.85rem 1.25rem',
+          borderRadius: '14px',
+          boxShadow: '0 12px 35px rgba(0,0,0,0.25)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.85rem',
+          border: '1px solid rgba(255,255,255,0.12)',
+          animation: 'fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}>
+          <div style={{
+            width: '36px', height: '36px', borderRadius: '8px', overflow: 'hidden',
+            backgroundColor: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0
+          }}>
+            {cartAlert.image ? (
+              <img src={cartAlert.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <CheckCircle2 size={20} color="#22c55e" />
+            )}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <div style={{ fontSize: '0.82rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px', color: '#fff' }}>
+              <CheckCircle2 size={14} color="#22c55e" /> Added to Cart
+            </div>
+            <div style={{ fontSize: '0.75rem', color: '#94a3b8', maxWidth: '180px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+              {cartAlert.name}
+            </div>
+          </div>
+          <button 
+            onClick={() => { setCartAlert(null); setActiveTab('cart'); }} 
+            style={{
+              backgroundColor: '#ffffff', color: '#0f172a', border: 'none',
+              padding: '7px 14px', borderRadius: '8px', fontSize: '0.75rem',
+              fontWeight: '800', cursor: 'pointer', marginLeft: '0.5rem',
+              fontFamily: 'var(--font-display)', transition: 'transform 0.15s'
+            }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            View Cart
+          </button>
         </div>
       )}
 
