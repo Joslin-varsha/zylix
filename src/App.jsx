@@ -263,6 +263,13 @@ function AppContent() {
       
       return [...prevItems, { ...item, quantity }];
     });
+
+    // 1. Trigger floating Toast notification
+    setCartAlert({ name: item.name, image: item.image });
+    setTimeout(() => setCartAlert(null), 3500);
+
+    // 2. Open side Cart Drawer for instant feedback
+    setCartOpen(true);
   };
 
   const handleRemoveItem = (index) => {
@@ -762,7 +769,7 @@ function AppContent() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
             <div style={{ fontSize: '0.82rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px', color: '#fff' }}>
-              <CheckCircle2 size={14} color="#22c55e" /> Added to Cart
+              <CheckCircle2 size={14} color="#22c55e" /> Successfully Added to Cart!
             </div>
             <div style={{ fontSize: '0.75rem', color: '#94a3b8', maxWidth: '180px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
               {cartAlert.name}
