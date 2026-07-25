@@ -5,7 +5,7 @@ const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
 
 const calculateShipping = (zip, subtotal) => {
   if (subtotal > 5000) return 0;
-  if (!zip || zip.trim().length < 6) return 150; // default shipping estimate
+  if (!zip || zip.trim().length < 6) return 50; // default local shipping estimate
 
   const cleanZip = zip.trim();
   const firstDigit = cleanZip.charAt(0);

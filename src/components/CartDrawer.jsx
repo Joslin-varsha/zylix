@@ -11,7 +11,7 @@ export default function CartDrawer({
   if (!isOpen) return null;
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = subtotal > 5000 ? 0 : 150; // default shipping estimate
+  const shipping = subtotal > 5000 ? 0 : 50; // default local shipping estimate
   const finalTotal = subtotal + shipping;
 
   const handleGoToCart = () => {
