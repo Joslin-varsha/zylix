@@ -143,7 +143,7 @@ export default function CartDrawer({
             {/* Price breakdown */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
               <Row label="Subtotal" value={`₹${subtotal.toLocaleString('en-IN')}`} />
-              <Row label="Shipping" value={shipping === 0 ? 'FREE' : 'Calculated at Checkout'} />
+              <Row label="Shipping" value={shipping === 0 ? 'FREE' : 'Proceed your pincode'} />
               <div style={{ borderTop: '1px dashed #e5e5e5', marginTop: '0.2rem', paddingTop: '0.65rem' }}>
                 <Row label="Total" value={`₹${Math.round(finalTotal).toLocaleString('en-IN')}`} bold />
               </div>

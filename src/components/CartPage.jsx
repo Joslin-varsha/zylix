@@ -683,7 +683,7 @@ export default function CartPage({
             <PriceRow label="Subtotal" value={`₹${subtotal.toLocaleString('en-IN')}`} />
             <PriceRow 
               label="Shipping" 
-              value={shipping === 0 ? 'FREE' : (shipping !== null ? `₹${shipping}` : 'Calculated at Pincode')} 
+              value={shipping === 0 ? 'FREE' : (shipping !== null ? `₹${shipping}` : 'Proceed your Pincode')} 
               accent={shipping === 0} 
             />
             <p style={{ fontSize: '0.72rem', color: shipping !== null ? '#22c55e' : '#888', fontStyle: 'italic', marginTop: '-2px' }}>
