@@ -175,7 +175,7 @@ const sendMailHelper = async ({ to, subject, html }) => {
 
 // Admin Alert Notification
 async function sendAdminEmailNotification({ type, ticketId, clientName, clientEmail, details }) {
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@zylix.in';
+  const adminEmail = process.env.ADMIN_EMAIL || 'joslinvarsha55@gmail.com';
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
       <div style="background: #0f172a; padding: 1.5rem; color: #ffffff; text-align: center;">
