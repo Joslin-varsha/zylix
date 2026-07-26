@@ -310,12 +310,12 @@ export default function MyOrders({ user, setActiveTab }) {
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2.5rem 1.5rem', minHeight: '70vh' }}>
+    <div className="orders-page-container">
       
       {/* Header Banner */}
       <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
         <span className="badge-outline" style={{ marginBottom: '0.5rem' }}>ORDER TRACKING</span>
-        <h1 style={{ fontSize: '2.2rem', fontWeight: '800', textTransform: 'uppercase', color: '#000' }}>My Custom Quotes & Orders</h1>
+        <h1 className="orders-title" style={{ fontSize: '2.2rem', fontWeight: '800', textTransform: 'uppercase', color: '#000' }}>My Custom Quotes & Orders</h1>
         <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0.5rem auto 0', fontSize: '0.9rem' }}>
           {user && !overrideUserSession
             ? `Viewing custom 3D printing and prototyping quote requests submitted by you.`
@@ -352,7 +352,7 @@ export default function MyOrders({ user, setActiveTab }) {
                 </button>
               )}
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <div className="orders-search-box" style={{ display: 'flex', gap: '0.5rem' }}>
               <input
                 type="email"
                 placeholder="name@email.com"

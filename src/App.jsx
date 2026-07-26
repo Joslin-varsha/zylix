@@ -6,6 +6,8 @@ import ProductDetailModal from './components/ProductDetailModal';
 import CartDrawer from './components/CartDrawer';
 import CartPage from './components/CartPage';
 import AIPrintLab from './components/AIPrintLab';
+import ProductDetailPage from './components/ProductDetailPage';
+import MobileBottomNav from './components/MobileBottomNav';
 
 import SpareParts from './components/SpareParts';
 import StudentHub from './components/StudentHub';
@@ -190,7 +192,7 @@ function AppContent() {
       // React state changed (user clicked a tab or category in the UI)
       let targetPath = '/';
       if (activeTab === 'shop') {
-        targetPath = activeCategory === 'home' ? '/' : '/products';
+        targetPath = (activeCategory === 'home' || activeCategory === 'all') ? '/' : '/products';
       } else {
         targetPath = '/' + activeTab;
       }
@@ -386,12 +388,38 @@ function AppContent() {
                 searchQuery={searchQuery}
                 activeCategory={activeCategory}
                 activeTab={activeTab}
-                onProductClick={setSelectedProduct}
+                onProductClick={(prod) => {
+                  setSelectedProduct(prod);
+                  setActiveTab('product-detail');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
                 onAddToCart={handleAddToCart}
                 wishlist={wishlist}
                 onToggleWishlist={handleToggleWishlist}
                 setActiveTab={setActiveTab}
                 setActiveCategory={setActiveCategory}
+              />
+            </ErrorBoundary>
+          )}
+
+          {activeTab === 'product-detail' && selectedProduct && (
+            <ErrorBoundary>
+              <ProductDetailPage
+                product={selectedProduct}
+                onBack={() => {
+                  setActiveTab('shop');
+                  setSelectedProduct(null);
+                }}
+                onAddToCart={handleAddToCart}
+                onToggleWishlist={handleToggleWishlist}
+                isWishlisted={wishlist.some(w => w.id === selectedProduct.id)}
+                onCustomize={handleCustomizeProduct}
+                allProducts={[]}
+                onProductClick={(relProd) => {
+                  setSelectedProduct(relProd);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                setActiveTab={setActiveTab}
               />
             </ErrorBoundary>
           )}
@@ -463,7 +491,7 @@ function AppContent() {
       )}
 
       {/* Product Detail Modal Overlay */}
-      {selectedProduct && (
+      {selectedProduct && activeTab !== 'product-detail' && (
         <ProductDetailModal
           product={selectedProduct}
           onClose={() => setSelectedProduct(null)}
@@ -713,6 +741,18 @@ function AppContent() {
           </button>
         )}
       </div>
+
+      {/* App-like Mobile Bottom Dock */}
+      <MobileBottomNav 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        setActiveCategory={setActiveCategory}
+        cartCount={cartCount} 
+        wishlistCount={wishlist.length} 
+        onOpenWishlist={() => setWishlistOpen(true)} 
+        onCloseWishlist={() => setWishlistOpen(false)} 
+        onCloseCart={() => setCartOpen(false)}
+      />
 
       {welcomeToast && (
         <div style={{

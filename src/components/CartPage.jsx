@@ -369,7 +369,7 @@ export default function CartPage({
   // CART PAGE WITH ITEMS
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   return (
-    <div style={{ padding: '1.5rem', maxWidth: '1100px', margin: '0 auto', animation: 'fadeIn 0.3s ease' }}>
+    <div className="cart-page-container">
 
       {/* Header */}
       <div style={{
@@ -400,30 +400,14 @@ export default function CartPage({
       </div>
 
       {/* Main Grid: Items + Summary */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: '1fr 380px', gap: '1.5rem',
-        alignItems: 'start'
-      }}>
+      <div className="cart-main-grid">
 
         {/* ─── LEFT: Cart Items ─── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {cartItems.map((item, index) => (
-            <div key={index} style={{
-              backgroundColor: '#fff', borderRadius: '14px',
-              border: '1px solid #ebebeb', padding: '1rem',
-              display: 'flex', gap: '1rem', alignItems: 'center',
-              boxShadow: '0 1px 6px rgba(0,0,0,0.04)',
-              transition: 'box-shadow 0.2s, border-color 0.2s'
-            }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)'; e.currentTarget.style.borderColor = '#ddd'; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 1px 6px rgba(0,0,0,0.04)'; e.currentTarget.style.borderColor = '#ebebeb'; }}
-            >
+            <div key={index} className="cart-item-card">
               {/* Thumbnail */}
-              <div style={{
-                width: '80px', height: '80px', borderRadius: '10px',
-                backgroundColor: '#f5f5f5', overflow: 'hidden', flexShrink: 0,
-                border: '1px solid #eee'
-              }}>
+              <div className="cart-item-thumb">
                 {item.isCustom ? (
                   <div style={{
                     width: '100%', height: '100%', display: 'flex',
@@ -439,7 +423,7 @@ export default function CartPage({
               </div>
 
               {/* Info */}
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <div className="cart-item-info" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                 <h3 style={{ fontSize: '0.92rem', fontWeight: '700', color: '#111', lineHeight: '1.3' }}>
                   {item.name}
                 </h3>
@@ -454,7 +438,7 @@ export default function CartPage({
               </div>
 
               {/* Quantity controls */}
-              <div style={{
+              <div className="cart-item-qty" style={{
                 display: 'flex', alignItems: 'center', gap: '0',
                 border: '1px solid #e0e0e0', borderRadius: '10px', overflow: 'hidden'
               }}>
@@ -494,7 +478,7 @@ export default function CartPage({
               </div>
 
               {/* Line total */}
-              <div style={{
+              <div className="cart-item-price" style={{
                 minWidth: '90px', textAlign: 'right', fontSize: '1rem',
                 fontWeight: '800', color: '#000', fontFamily: 'var(--font-display)'
               }}>
@@ -503,6 +487,7 @@ export default function CartPage({
 
               {/* Remove */}
               <button
+                className="cart-item-remove"
                 onClick={() => onRemoveItem(index)}
                 style={{
                   width: '36px', height: '36px', borderRadius: '8px',
@@ -575,11 +560,7 @@ export default function CartPage({
               </div>
             )}
 
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '1rem'
-            }}>
+            <div className="cart-form-row-2">
               {/* Full Name */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                 <label style={{ fontSize: '0.72rem', fontWeight: '800', color: '#666', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Full Name *</label>
@@ -617,11 +598,7 @@ export default function CartPage({
               />
             </div>
 
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr 1fr',
-              gap: '1rem'
-            }}>
+            <div className="cart-form-row-3">
               {/* City */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                 <label style={{ fontSize: '0.72rem', fontWeight: '800', color: '#666', textTransform: 'uppercase', letterSpacing: '0.03em' }}>City *</label>

@@ -138,6 +138,27 @@ export default function ECommerceCatalog({
   const [inStockOnly, setInStockOnly] = React.useState(false);
   const [hoveredCategory, setHoveredCategory] = React.useState(null);
   const [sortBy, setSortBy] = React.useState('best');
+
+  const handleDragScroll = (e, ref) => {
+    const container = ref.current;
+    if (!container) return;
+    let startX = e.pageX - container.offsetLeft;
+    let scrollLeft = container.scrollLeft;
+
+    const onMouseMove = (me) => {
+      const x = me.pageX - container.offsetLeft;
+      const walk = (x - startX) * 1.6;
+      container.scrollLeft = scrollLeft - walk;
+    };
+
+    const onMouseUp = () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  };
   const [currentPage, setCurrentPage] = React.useState(1);
   const itemsPerPage = 8;
   const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
@@ -348,7 +369,7 @@ export default function ECommerceCatalog({
               {String(carouselIndex + 1).padStart(2, '0')} / {String(carouselSlides.length).padStart(2, '0')}
             </div>
             {/* Bottom Curve Wave */}
-            <div style={{
+            <div className="hero-wave-divider" style={{
               position: 'absolute',
               bottom: -1,
               left: 0,
@@ -364,7 +385,7 @@ export default function ECommerceCatalog({
           </div>
 
           {/* ===== CATEGORY CARDS ===== */}
-          <div style={{ marginBottom: '3.5rem', backgroundColor: '#f8fafc', padding: '2rem 0 0', marginTop: '-2px' }}>
+          <div className="desktop-category-cards" style={{ marginBottom: '3.5rem', backgroundColor: '#f8fafc', padding: '2rem 0 0', marginTop: '-2px' }}>
             <div className="shelf-header" style={{ marginBottom: '1.5rem' }}>
               <div>
                 <h2 className="shelf-title">Shop by Category</h2>
@@ -376,7 +397,7 @@ export default function ECommerceCatalog({
             <div className="carousel-wrapper" style={{ position: 'relative' }}>
               <button onClick={() => scroll(categoriesRef, 'left')} className="carousel-nav-btn" style={{ left: '-20px' }} aria-label="Scroll left"><ChevronLeft size={20} /></button>
               <button onClick={() => scroll(categoriesRef, 'right')} className="carousel-nav-btn" style={{ right: '-20px' }} aria-label="Scroll right"><ChevronRight size={20} /></button>
-              <div ref={categoriesRef} className="products-scroll-container" style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', scrollBehavior: 'smooth', padding: '4px 0 12px' }}>
+              <div ref={categoriesRef} onMouseDown={(e) => handleDragScroll(e, categoriesRef)} className="products-scroll-container category-scroll-grid" style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', scrollBehavior: 'smooth', padding: '4px 0 12px' }}>
                 {categories.map((cat, i) => (
                   <button
                     key={cat.id}
