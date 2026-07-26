@@ -48,7 +48,7 @@ export default function Footer({ setActiveTab }) {
 
         {/* Brand */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', gridColumn: 'span 1' }}>
-          <img src="/logo2.jpeg" alt="Zylix 3D" style={{ height: '40px', width: 'auto', objectFit: 'contain', marginLeft: '-150px' }} />
+          <img src="/logo2.jpeg" alt="Zylix 3D" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
           <p style={{ fontSize: '0.78rem', color: '#666', lineHeight: '1.75', maxWidth: '220px' }}>
             Premium custom 3D printing — keychains, wall art, masks, miniatures & more. Made with precision, delivered with care.
           </p>
@@ -123,7 +123,7 @@ export default function Footer({ setActiveTab }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {[
               { icon: <MapPin size={13} />, text: 'Mulagumoodu, Tamil Nadu – 629167' },
-              { icon: <Mail size={13} />, text: 'support@zen3d.in' },
+              { icon: <Mail size={13} />, text: 'support@zylix3d.in' },
               { icon: <Phone size={13} />, text: '+91 96299 35467' },
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', color: '#666' }}>
