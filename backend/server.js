@@ -211,7 +211,7 @@ async function sendAdminEmailNotification({ type, ticketId, clientName, clientEm
         </table>
 
         <div style="margin-top: 2rem; text-align: center;">
-          <a href="http://localhost:3001" style="background: #000000; color: #ffffff; padding: 10px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 0.88rem; display: inline-block;">
+          <a href="https://admin.zylix3d.in" style="background: #000000; color: #ffffff; padding: 10px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 0.88rem; display: inline-block;">
             Open Admin Dashboard
           </a>
         </div>
