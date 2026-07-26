@@ -88,12 +88,13 @@ export default function ProductDetailPage({
                 position: 'absolute',
                 top: '1rem',
                 left: '1rem',
-                backgroundColor: '#ef4444',
-                color: '#fff',
+                backgroundColor: '#000000',
+                color: '#ffffff',
                 fontSize: '0.75rem',
                 fontWeight: '800',
                 padding: '4px 10px',
-                borderRadius: '20px'
+                borderRadius: '20px',
+                zIndex: 5
               }}>
                 {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
               </span>
@@ -117,11 +118,11 @@ export default function ProductDetailPage({
           </div>
 
           {/* Price Header */}
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.8rem', backgroundColor: '#f8fafc', padding: '1rem 1.25rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', backgroundColor: '#f8fafc', padding: '1rem 1.25rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
             <span className="product-detail-price" style={{ fontSize: '1.8rem', fontWeight: '900', color: '#0f172a' }}>
               ₹{(product.price || 0).toLocaleString('en-IN')}
             </span>
-            {product.originalPrice && (
+            {product.originalPrice && product.originalPrice > product.price && (
               <span style={{ fontSize: '1rem', textDecoration: 'line-through', color: '#94a3b8' }}>
                 ₹{(product.originalPrice || 0).toLocaleString('en-IN')}
               </span>
@@ -189,16 +190,18 @@ export default function ProductDetailPage({
                   borderRadius: '10px',
                   backgroundColor: isWishlisted ? '#fef2f2' : '#ffffff',
                   border: isWishlisted ? '1px solid #fecaca' : '1px solid #cbd5e1',
-                  display: 'flex',
+                  display: 'inline-flex',
                   alignItems: 'center',
-                  justify: 'center',
+                  justifyContent: 'center',
+                  padding: 0,
+                  margin: 0,
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   flexShrink: 0
                 }}
                 title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
               >
-                <Heart size={20} fill={isWishlisted ? '#ef4444' : 'none'} color={isWishlisted ? '#ef4444' : '#475569'} />
+                <Heart size={20} fill={isWishlisted ? '#ef4444' : 'none'} color={isWishlisted ? '#ef4444' : '#475569'} style={{ display: 'block', margin: '0 auto' }} />
               </button>
             </div>
 

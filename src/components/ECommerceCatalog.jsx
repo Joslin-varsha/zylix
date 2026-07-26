@@ -395,9 +395,7 @@ export default function ECommerceCatalog({
               </button>
             </div>
             <div className="carousel-wrapper" style={{ position: 'relative' }}>
-              <button onClick={() => scroll(categoriesRef, 'left')} className="carousel-nav-btn" style={{ left: '-20px' }} aria-label="Scroll left"><ChevronLeft size={20} /></button>
-              <button onClick={() => scroll(categoriesRef, 'right')} className="carousel-nav-btn" style={{ right: '-20px' }} aria-label="Scroll right"><ChevronRight size={20} /></button>
-              <div ref={categoriesRef} onMouseDown={(e) => handleDragScroll(e, categoriesRef)} className="products-scroll-container category-scroll-grid" style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', scrollBehavior: 'smooth', padding: '4px 0 12px' }}>
+              <div ref={categoriesRef} onWheel={(e) => { if (categoriesRef.current && e.deltaY) { categoriesRef.current.scrollLeft += e.deltaY; } }} className="category-scroll-grid">
                 {categories.map((cat, i) => (
                   <button
                     key={cat.id}
@@ -888,7 +886,25 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, onProductClick, 
             transform: hovered ? 'scale(1.08)' : 'scale(1)'
           }}
         />
-        {product.badge && (
+        {product.originalPrice && product.price && product.originalPrice > product.price ? (
+          <span style={{ 
+            position: 'absolute', 
+            top: '10px', 
+            left: '10px', 
+            backgroundColor: '#000000', 
+            color: '#ffffff', 
+            fontSize: '0.6rem', 
+            fontWeight: '800', 
+            padding: '3px 8px', 
+            borderRadius: '4px',
+            textTransform: 'uppercase', 
+            letterSpacing: '0.04em', 
+            zIndex: 5,
+            boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+          }}>
+            {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
+          </span>
+        ) : product.badge ? (
           <span style={{ 
             position: 'absolute', 
             top: '10px', 
@@ -906,7 +922,7 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, onProductClick, 
           }}>
             {product.badge}
           </span>
-        )}
+        ) : null}
       </div>
 
       {/* Details */}
@@ -920,12 +936,9 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, onProductClick, 
           <span style={{ fontSize: '1rem', fontWeight: '800', color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
             ₹{product.price.toLocaleString('en-IN')}
           </span>
-          {product.originalPrice && (
-            <span style={{ fontSize: '0.7rem', textDecoration: 'line-through', color: 'var(--text-muted)' }}>₹{product.originalPrice.toLocaleString('en-IN')}</span>
-          )}
-          {product.discount && (
-            <span style={{ fontSize: '0.62rem', backgroundColor: 'var(--accent-grey)', color: 'var(--text-primary)', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>
-              -{product.discount}% OFF
+          {product.originalPrice && product.originalPrice > product.price && (
+            <span style={{ fontSize: '0.7rem', textDecoration: 'line-through', color: 'var(--text-muted)' }}>
+              ₹{product.originalPrice.toLocaleString('en-IN')}
             </span>
           )}
         </div>

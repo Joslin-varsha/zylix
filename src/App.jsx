@@ -2,7 +2,6 @@ import React from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import ECommerceCatalog from './components/ECommerceCatalog';
-import ProductDetailModal from './components/ProductDetailModal';
 import CartDrawer from './components/CartDrawer';
 import CartPage from './components/CartPage';
 import AIPrintLab from './components/AIPrintLab';
@@ -298,6 +297,7 @@ function AppContent() {
   const handleToggleWishlist = (product) => {
     if (!user) {
       setLoginMessage("Please sign in to add items to your wishlist.");
+      setSelectedProduct(null);
       setActiveTab("login");
       return;
     }
@@ -490,15 +490,7 @@ function AppContent() {
         <Footer setActiveTab={setActiveTab} setActiveCategory={setActiveCategory} />
       )}
 
-      {/* Product Detail Modal Overlay */}
-      {selectedProduct && activeTab !== 'product-detail' && (
-        <ProductDetailModal
-          product={selectedProduct}
-          onClose={() => setSelectedProduct(null)}
-          onAddToCart={handleAddToCart}
-          onCustomize={handleCustomizeProduct}
-        />
-      )}
+
 
       {/* Shopping Cart Drawer Panel */}
       <CartDrawer
