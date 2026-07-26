@@ -466,6 +466,14 @@ h1, h2, h3, h4, h5, h6 {
   scroll-behavior: smooth;
   padding: 4px 4px 16px 4px;
   width: 100%;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.category-scroll-grid::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 
