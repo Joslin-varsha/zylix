@@ -136,7 +136,7 @@ export default function AIPrintLab({
   // 2. --- PRODUCT DESIGNER (DESIGN YOUR OWN) STATES & HANDLERS ---
   const [productType, setProductType] = React.useState('keychain'); // 'keychain', 'nameboard', 'trophy', 'phonestand', 'other'
   const [customProductType, setCustomProductType] = React.useState('');
-  const [nameText, setNameText] = React.useState(customizerText || 'JOSLIN VARSHA');
+  const [nameText, setNameText] = React.useState(customizerText || 'ZYLIX 3D');
   const [designerColor, setDesignerColor] = React.useState('Gold'); // 'Black', 'White', 'Gold', 'Red', 'Blue', 'Other'
   const [customColor, setCustomColor] = React.useState('');
   const [designerSize, setDesignerSize] = React.useState('Medium'); // 'Small', 'Medium', 'Large', 'Custom'
@@ -712,7 +712,7 @@ export default function AIPrintLab({
                   setDesignerSubmitted(false);
                   setProductType('keychain');
                   setCustomProductType('');
-                  setNameText('JOSLIN VARSHA');
+                  setNameText('ZYLIX 3D');
                   setDesignerColor('Gold');
                   setCustomColor('');
                   setDesignerSize('Medium');
@@ -793,7 +793,7 @@ export default function AIPrintLab({
                     className="input-field"
                     value={nameText}
                     onChange={(e) => setNameText(e.target.value)}
-                    placeholder='e.g. "JOSLIN VARSHA"'
+                    placeholder='e.g. "ZYLIX 3D"'
                     style={{ fontSize: '0.82rem', height: '36px', borderRadius: '6px' }}
                     required
                   />

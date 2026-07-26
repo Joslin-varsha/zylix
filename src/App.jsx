@@ -127,7 +127,7 @@ function AppContent() {
       setCustomizerText('MY KEYCHAIN');
     } else if (nameLower.includes('plaque') || nameLower.includes('board') || nameLower.includes('plate') || nameLower.includes('stencil')) {
       setDesignerPreset('nameboard');
-      setCustomizerText('JOSLIN VARSHA');
+      setCustomizerText('ZYLIX 3D');
     } else if (nameLower.includes('stand') || nameLower.includes('holder') || nameLower.includes('dock')) {
       setDesignerPreset('phonestand');
       setCustomizerText('STAND');
