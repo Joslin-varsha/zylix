@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mail, Phone, MapPin, Share2, Play, Send, MessageCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Share2, Play, Send, MessageCircle, Instagram } from 'lucide-react';
 
 export default function Footer({ setActiveTab }) {
 
@@ -55,22 +55,28 @@ export default function Footer({ setActiveTab }) {
           {/* Social Icons */}
           <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.25rem' }}>
             {[
-              { Icon: Share2, label: 'Instagram' },
-              { Icon: Play, label: 'YouTube' },
-              { Icon: Send, label: 'Twitter / X' },
-              { Icon: MessageCircle, label: 'WhatsApp' },
-            ].map(({ Icon, label }) => (
-              <button key={label} title={label} style={{
-                background: '#111', border: '1px solid #222', color: '#666',
-                width: '34px', height: '34px', display: 'flex', alignItems: 'center',
-                justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s',
-                borderRadius: '4px'
-              }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#000'; e.currentTarget.style.borderColor = '#fff'; }}
+              { Icon: Instagram, label: 'Instagram', url: 'https://www.instagram.com/zylix_3d_official/' },
+              { Icon: MessageCircle, label: 'WhatsApp', url: 'https://wa.me/919629935467' },
+              { Icon: Play, label: 'YouTube', url: '#' },
+              { Icon: Send, label: 'Twitter / X', url: '#' },
+            ].map(({ Icon, label, url }) => (
+              <a 
+                key={label} 
+                href={url} 
+                target={url !== '#' ? '_blank' : '_self'} 
+                rel="noopener noreferrer" 
+                title={label} 
+                style={{
+                  background: '#111', border: '1px solid #222', color: '#666',
+                  width: '34px', height: '34px', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s',
+                  borderRadius: '4px', textDecoration: 'none'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#E1306C'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#E1306C'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = '#111'; e.currentTarget.style.color = '#666'; e.currentTarget.style.borderColor = '#222'; }}
               >
                 <Icon size={14} />
-              </button>
+              </a>
             ))}
           </div>
         </div>
