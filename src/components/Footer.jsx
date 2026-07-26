@@ -1,5 +1,22 @@
 import React from 'react';
-import { Mail, Phone, MapPin, Share2, Play, Send, MessageCircle, Instagram } from 'lucide-react';
+import { Mail, Phone, MapPin, Share2, Play, Send, MessageCircle } from 'lucide-react';
+
+const InstagramIcon = ({ size = 14 }) => (
+  <svg 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round"
+  >
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+  </svg>
+);
 
 export default function Footer({ setActiveTab }) {
 
@@ -55,7 +72,7 @@ export default function Footer({ setActiveTab }) {
           {/* Social Icons */}
           <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.25rem' }}>
             {[
-              { Icon: Instagram, label: 'Instagram', url: 'https://www.instagram.com/zylix_3d_official/' },
+              { Icon: InstagramIcon, label: 'Instagram', url: 'https://www.instagram.com/zylix_3d_official/' },
               { Icon: MessageCircle, label: 'WhatsApp', url: 'https://wa.me/919629935467' },
               { Icon: Play, label: 'YouTube', url: '#' },
               { Icon: Send, label: 'Twitter / X', url: '#' },
