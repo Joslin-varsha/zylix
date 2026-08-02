@@ -114,6 +114,18 @@ export default function AIPrintLab({
 }) {
   // Sync wrapper states for internal tab rendering
   const [activeLabTab, setActiveLabTab] = React.useState(labTab);
+  const [labSettings, setLabSettings] = React.useState(null);
+
+  React.useEffect(() => {
+    fetch(`${API_BASE}/api/lab-settings`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data && typeof data === 'object') {
+          setLabSettings(data);
+        }
+      })
+      .catch(err => console.error('Failed to fetch lab settings on storefront:', err));
+  }, []);
 
   const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
   const [customerName, setCustomerName] = React.useState('');
@@ -744,12 +756,12 @@ export default function AIPrintLab({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                   <label style={{ fontSize: '0.82rem', fontWeight: '600', color: '#000' }}>1. Print Material</label>
                   <select value={material} onChange={(e) => setMaterial(e.target.value)} className="select-field" style={{ borderRadius: '6px', height: '36px', padding: '0.35rem 0.75rem', fontSize: '0.78rem' }}>
-                    <option value="PLA">PLA</option>
-                    <option value="ABS">ABS</option>
-                    <option value="PETG">PETG</option>
-                    <option value="Resin">Resin</option>
-                    <option value="Carbon Fiber">Carbon Fiber</option>
-                    <option value="Nylon">Nylon</option>
+                    {((labSettings?.slicerMaterials && labSettings.slicerMaterials.length > 0)
+                      ? labSettings.slicerMaterials
+                      : ['PLA', 'ABS', 'PETG', 'Resin', 'Carbon Fiber', 'Nylon']
+                    ).map(mat => (
+                      <option key={mat} value={mat}>{mat}</option>
+                    ))}
                   </select>
                 </div>
 
@@ -757,12 +769,12 @@ export default function AIPrintLab({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                   <label style={{ fontSize: '0.82rem', fontWeight: '600', color: '#000' }}>2. Material Color</label>
                   <select value={color} onChange={(e) => setColor(e.target.value)} className="select-field" style={{ borderRadius: '6px', height: '36px', padding: '0.35rem 0.75rem', fontSize: '0.78rem' }}>
-                    <option value="Matte Black">Matte Black</option>
-                    <option value="Arctic White">Arctic White</option>
-                    <option value="Industrial Silver">Industrial Silver</option>
-                    <option value="Crimson Red">Crimson Red</option>
-                    <option value="Royal Blue">Royal Blue</option>
-                    <option value="Silk Gold">Silk Gold</option>
+                    {((labSettings?.slicerColors && labSettings.slicerColors.length > 0)
+                      ? labSettings.slicerColors
+                      : ['Matte Black', 'Arctic White', 'Industrial Silver', 'Crimson Red', 'Royal Blue', 'Silk Gold']
+                    ).map(col => (
+                      <option key={col} value={col}>{col}</option>
+                    ))}
                   </select>
                 </div>
 
@@ -988,13 +1000,20 @@ export default function AIPrintLab({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>What would you like to create?</label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '0.5rem' }}>
-                    {[
-                      { id: 'keychain', label: 'Keychain', icon: <Key size={14} /> },
-                      { id: 'nameboard', label: 'Name Board', icon: <Gift size={14} /> },
-                      { id: 'trophy', label: 'Trophy', icon: <Award size={14} /> },
-                      { id: 'phonestand', label: 'Phone Stand', icon: <Box size={14} /> },
-                      { id: 'other', label: 'Other', icon: <FileText size={14} /> }
-                    ].map(p => (
+                    {((labSettings?.productTypes && labSettings.productTypes.length > 0)
+                      ? labSettings.productTypes.filter(p => p.enabled !== false).map(p => ({
+                          id: p.id,
+                          label: p.label.replace(/^[\p{Emoji}\s]+/gu, '') || p.label,
+                          icon: p.id === 'keychain' ? <Key size={14} /> : p.id === 'nameboard' ? <Gift size={14} /> : p.id === 'trophy' ? <Award size={14} /> : p.id === 'phonestand' ? <Box size={14} /> : <FileText size={14} />
+                        }))
+                      : [
+                          { id: 'keychain', label: 'Keychain', icon: <Key size={14} /> },
+                          { id: 'nameboard', label: 'Name Board', icon: <Gift size={14} /> },
+                          { id: 'trophy', label: 'Trophy', icon: <Award size={14} /> },
+                          { id: 'phonestand', label: 'Phone Stand', icon: <Box size={14} /> },
+                          { id: 'other', label: 'Other', icon: <FileText size={14} /> }
+                        ]
+                    ).map(p => (
                       <button
                         key={p.id} 
                         type="button" 
@@ -1129,18 +1148,21 @@ export default function AIPrintLab({
                       <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '600' }}>Selected: <strong>{designerColor}</strong></span>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.35rem' }}>
-                      {[
-                        { name: 'Gold', hex: '#facc15' },
-                        { name: 'White', hex: '#ffffff' },
-                        { name: 'Red', hex: '#ef4444' },
-                        { name: 'Blue', hex: '#3b82f6' },
-                        { name: 'Pink', hex: '#ec4899' },
-                        { name: 'Green', hex: '#22c55e' },
-                        { name: 'Orange', hex: '#f97316' },
-                        { name: 'Purple', hex: '#a855f7' },
-                        { name: 'Black', hex: '#18181b' },
-                        { name: 'Other', hex: 'linear-gradient(45deg, #ef4444, #3b82f6)' }
-                      ].map(c => (
+                      {((labSettings?.textColors && labSettings.textColors.length > 0)
+                        ? [...labSettings.textColors, { name: 'Other', hex: 'linear-gradient(45deg, #ef4444, #3b82f6)' }]
+                        : [
+                            { name: 'Gold', hex: '#facc15' },
+                            { name: 'White', hex: '#ffffff' },
+                            { name: 'Red', hex: '#ef4444' },
+                            { name: 'Blue', hex: '#3b82f6' },
+                            { name: 'Pink', hex: '#ec4899' },
+                            { name: 'Green', hex: '#22c55e' },
+                            { name: 'Orange', hex: '#f97316' },
+                            { name: 'Purple', hex: '#a855f7' },
+                            { name: 'Black', hex: '#18181b' },
+                            { name: 'Other', hex: 'linear-gradient(45deg, #ef4444, #3b82f6)' }
+                          ]
+                      ).map(c => (
                         <button
                           key={c.name}
                           type="button"
@@ -1195,13 +1217,16 @@ export default function AIPrintLab({
                       <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '600' }}>Selected: <strong>{baseColor}</strong></span>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.35rem' }}>
-                      {[
-                        { name: 'Black', hex: '#1c130d' },
-                        { name: 'White', hex: '#f8fafc' },
-                        { name: 'Red', hex: '#7f1d1d' },
-                        { name: 'Navy', hex: '#0f172a' },
-                        { name: 'Gold', hex: '#78350f' }
-                      ].map(bc => (
+                      {((labSettings?.baseColors && labSettings.baseColors.length > 0)
+                        ? labSettings.baseColors
+                        : [
+                            { name: 'Black', hex: '#1c130d' },
+                            { name: 'White', hex: '#f8fafc' },
+                            { name: 'Red', hex: '#7f1d1d' },
+                            { name: 'Navy', hex: '#0f172a' },
+                            { name: 'Gold', hex: '#78350f' }
+                          ]
+                      ).map(bc => (
                         <button
                           key={bc.name}
                           type="button"

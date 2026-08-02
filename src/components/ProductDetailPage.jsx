@@ -14,6 +14,7 @@ export default function ProductDetailPage({
 }) {
   const [quantity, setQuantity] = useState(1);
   const [addedToast, setAddedToast] = useState(false);
+  const [customizeWarning, setCustomizeWarning] = useState(false);
 
   if (!product) return null;
 
@@ -152,100 +153,156 @@ export default function ProductDetailPage({
             </div>
           </div>
 
-          {/* Quantity Controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
-            <span style={{ fontSize: '0.82rem', fontWeight: '800', color: '#334155', textTransform: 'uppercase' }}>Quantity:</span>
-            <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #cbd5e1', borderRadius: '8px', overflow: 'hidden' }}>
-              <button 
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                style={{ width: '36px', height: '36px', border: 'none', background: '#f8fafc', fontWeight: '800', cursor: 'pointer' }}
-              >
-                -
-              </button>
-              <span style={{ width: '40px', textAlign: 'center', fontWeight: '800', fontSize: '0.9rem' }}>{quantity}</span>
-              <button 
-                onClick={() => setQuantity(quantity + 1)}
-                style={{ width: '36px', height: '36px', border: 'none', background: '#f8fafc', fontWeight: '800', cursor: 'pointer' }}
-              >
-                +
-              </button>
-            </div>
-          </div>
+          {/* Determine if this product requires 3D Lab customization */}
+          {(() => {
+            const fieldSet = product.allow_customize !== undefined && product.allow_customize !== null;
+            const adminAllowed = product.allow_customize === true || product.allow_customize === 'true';
+            const nameLower = product.name.toLowerCase();
+            const isCustomizable = fieldSet
+              ? adminAllowed
+              : (nameLower.includes('keychain') || nameLower.includes('key chain') || nameLower.includes('key tag'));
 
-          {/* Action Buttons: Add to Cart + Wishlist Heart Button */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
-            <div style={{ display: 'flex', gap: '0.75rem', width: '100%' }}>
-              <button
-                onClick={handleAddToCartClick}
-                className="btn-primary"
-                style={{ flex: 1, height: '48px', fontSize: '0.9rem', fontWeight: '800', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-              >
-                <ShoppingCart size={18} /> Add to Cart
-              </button>
-              <button
-                onClick={() => onToggleWishlist && onToggleWishlist(product)}
-                style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '10px',
-                  backgroundColor: isWishlisted ? '#fef2f2' : '#ffffff',
-                  border: isWishlisted ? '1px solid #fecaca' : '1px solid #cbd5e1',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: 0,
-                  margin: 0,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  flexShrink: 0
-                }}
-                title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
-              >
-                <Heart size={20} fill={isWishlisted ? '#ef4444' : 'none'} color={isWishlisted ? '#ef4444' : '#475569'} style={{ display: 'block', margin: '0 auto' }} />
-              </button>
-            </div>
-
-            {onCustomize && (() => {
-              // If admin has explicitly set allow_customize → strictly respect it (true OR false)
-              // Only fall back to keyword detection for old products where the field was never set
-              const fieldSet = product.allow_customize !== undefined && product.allow_customize !== null;
-              const adminAllowed = product.allow_customize === true || product.allow_customize === 'true';
-
-              let isCustomizable;
-              if (fieldSet) {
-                // Admin explicitly decided — obey it completely, ignore keywords
-                isCustomizable = adminAllowed;
-              } else {
-                // Old product with no admin decision yet — fall back to keyword detection
-                const nameLower = product.name.toLowerCase();
-                isCustomizable = nameLower.includes('keychain') || nameLower.includes('key chain') || nameLower.includes('key tag');
-              }
-
-              if (!isCustomizable) return null;
+            if (isCustomizable && onCustomize) {
+              // ━━━ CUSTOMIZE-ONLY MODE ━━━
+              // Add to Cart shown but blocked — shows warning. Big Customize CTA is primary.
               return (
-                <button
-                  onClick={() => onCustomize(product)}
-                  style={{
-                    width: '100%',
-                    height: '42px',
-                    borderRadius: '10px',
-                    backgroundColor: '#eff6ff',
-                    color: '#2563eb',
-                    border: '1px solid #bfdbfe',
-                    fontWeight: '800',
-                    fontSize: '0.82rem',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  🎨 Customize in 3D Print Lab
-                </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+
+                  {/* Big highlighted Customize button — PRIMARY CTA */}
+                  <button
+                    onClick={() => onCustomize(product)}
+                    style={{
+                      width: '100%',
+                      height: '56px',
+                      borderRadius: '14px',
+                      background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                      color: '#ffffff',
+                      border: 'none',
+                      fontWeight: '900',
+                      fontSize: '1rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '10px',
+                      boxShadow: '0 4px 24px rgba(37,99,235,0.35)',
+                      letterSpacing: '0.02em',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(37,99,235,0.45)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 24px rgba(37,99,235,0.35)'; }}
+                    id="btn-customize-3d-lab"
+                  >
+                    🎨 Customize in 3D Print Lab
+                  </button>
+
+                  {/* Add to Cart — visible but shows warning when clicked */}
+                  <div style={{ display: 'flex', gap: '0.75rem', width: '100%' }}>
+                    <button
+                      onClick={() => {
+                        setCustomizeWarning(true);
+                        setTimeout(() => setCustomizeWarning(false), 3500);
+                      }}
+                      style={{
+                        flex: 1, height: '46px', fontSize: '0.88rem', fontWeight: '800',
+                        borderRadius: '10px', display: 'flex', alignItems: 'center',
+                        justifyContent: 'center', gap: '8px',
+                        background: '#f1f5f9', color: '#64748b',
+                        border: '1.5px solid #cbd5e1', cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = '#e2e8f0'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = '#f1f5f9'; }}
+                    >
+                      <ShoppingCart size={17} /> Add to Cart
+                    </button>
+                    <button
+                      onClick={() => onToggleWishlist && onToggleWishlist(product)}
+                      style={{
+                        width: '46px', height: '46px', borderRadius: '10px',
+                        backgroundColor: isWishlisted ? '#fef2f2' : '#ffffff',
+                        border: isWishlisted ? '1px solid #fecaca' : '1px solid #cbd5e1',
+                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                        padding: 0, cursor: 'pointer', transition: 'all 0.2s ease', flexShrink: 0
+                      }}
+                      title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                    >
+                      <Heart size={18} fill={isWishlisted ? '#ef4444' : 'none'} color={isWishlisted ? '#ef4444' : '#475569'} style={{ display: 'block', margin: '0 auto' }} />
+                    </button>
+                  </div>
+
+                  {/* Warning toast when Add to Cart is clicked without customizing */}
+                  {customizeWarning && (
+                    <div style={{
+                      backgroundColor: '#fef3c7',
+                      border: '1.5px solid #fcd34d',
+                      borderRadius: '10px',
+                      padding: '0.75rem 1rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      animation: 'fadeIn 0.3s ease'
+                    }}>
+                      <span style={{ fontSize: '1rem', flexShrink: 0 }}>⚠️</span>
+                      <div>
+                        <div style={{ fontWeight: '800', fontSize: '0.8rem', color: '#92400e' }}>Customization Required!</div>
+                        <div style={{ fontSize: '0.74rem', color: '#b45309', marginTop: '2px' }}>
+                          Please customize your design in the 3D Print Lab before adding to cart.
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               );
-            })()}
-          </div>
+            }
+
+            // ━━━ NORMAL MODE ━━━ Add to Cart + Wishlist
+            return (
+              <>
+                {/* Quantity Controls */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
+                  <span style={{ fontSize: '0.82rem', fontWeight: '800', color: '#334155', textTransform: 'uppercase' }}>Quantity:</span>
+                  <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #cbd5e1', borderRadius: '8px', overflow: 'hidden' }}>
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      style={{ width: '36px', height: '36px', border: 'none', background: '#f8fafc', fontWeight: '800', cursor: 'pointer' }}
+                    >-</button>
+                    <span style={{ width: '40px', textAlign: 'center', fontWeight: '800', fontSize: '0.9rem' }}>{quantity}</span>
+                    <button
+                      onClick={() => setQuantity(quantity + 1)}
+                      style={{ width: '36px', height: '36px', border: 'none', background: '#f8fafc', fontWeight: '800', cursor: 'pointer' }}
+                    >+</button>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
+                  <div style={{ display: 'flex', gap: '0.75rem', width: '100%' }}>
+                    <button
+                      onClick={handleAddToCartClick}
+                      className="btn-primary"
+                      style={{ flex: 1, height: '48px', fontSize: '0.9rem', fontWeight: '800', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                    >
+                      <ShoppingCart size={18} /> Add to Cart
+                    </button>
+                    <button
+                      onClick={() => onToggleWishlist && onToggleWishlist(product)}
+                      style={{
+                        width: '48px', height: '48px', borderRadius: '10px',
+                        backgroundColor: isWishlisted ? '#fef2f2' : '#ffffff',
+                        border: isWishlisted ? '1px solid #fecaca' : '1px solid #cbd5e1',
+                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                        padding: 0, margin: 0, cursor: 'pointer', transition: 'all 0.2s ease', flexShrink: 0
+                      }}
+                      title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                    >
+                      <Heart size={20} fill={isWishlisted ? '#ef4444' : 'none'} color={isWishlisted ? '#ef4444' : '#475569'} style={{ display: 'block', margin: '0 auto' }} />
+                    </button>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
 
           {addedToast && (
             <div style={{ backgroundColor: '#10b981', color: '#fff', padding: '0.75rem', borderRadius: '8px', textAlign: 'center', fontWeight: '700', fontSize: '0.85rem' }}>

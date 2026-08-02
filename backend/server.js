@@ -43,6 +43,41 @@ const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const CARTS_FILE = path.join(DATA_DIR, 'carts.json');
 const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
 const CATEGORIES_FILE = path.join(DATA_DIR, 'categories.json');
+const LAB_SETTINGS_FILE = path.join(DATA_DIR, 'lab_settings.json');
+
+const DEFAULT_LAB_SETTINGS = {
+  productTypes: [
+    { id: 'keychain', label: '🔑 3D Custom Keychain', description: 'Custom text keychain with metallic split ring and contoured base', enabled: true },
+    { id: 'nameboard', label: '🪧 3D Name Board / Plaque', description: 'Standing or wall-mountable 3D nameplate with custom font', enabled: true },
+    { id: 'phonestand', label: '📱 Phone Stand / Holder', description: 'Ergonomic 3D printed desk phone stand', enabled: true },
+    { id: 'trophy', label: '🏆 Custom Trophy / Award', description: 'Customized recognition award & trophy', enabled: true },
+    { id: 'other', label: '⚙️ Other Custom Design', description: 'Upload a sketch or describe your custom 3D idea', enabled: true }
+  ],
+  textColors: [
+    { name: 'Gold', hex: '#f59e0b' },
+    { name: 'White', hex: '#ffffff' },
+    { name: 'Red', hex: '#ef4444' },
+    { name: 'Blue', hex: '#3b82f6' },
+    { name: 'Pink', hex: '#ec4899' },
+    { name: 'Green', hex: '#10b981' },
+    { name: 'Orange', hex: '#f97316' },
+    { name: 'Black', hex: '#1e293b' }
+  ],
+  baseColors: [
+    { name: 'Black', hex: '#0f172a' },
+    { name: 'White', hex: '#f8fafc' },
+    { name: 'Red', hex: '#991b1b' },
+    { name: 'Navy', hex: '#1e3a8a' },
+    { name: 'Gold', hex: '#d97706' }
+  ],
+  slicerMaterials: ['PLA', 'PETG', 'ABS', 'Resin', 'Wood', 'PP', 'PET'],
+  slicerColors: ['Matte Black', 'Pure White', 'Signal Red', 'Navy Blue', 'Metallic Silver', 'Golden Yellow', 'Forest Green'],
+  enabledLabTabs: {
+    slicer: true,
+    designer: true,
+    prototype: true
+  }
+};
 
 // Ensure local folders exist
 if (!fs.existsSync(UPLOADS_DIR)) {
@@ -65,6 +100,9 @@ if (!fs.existsSync(PRODUCTS_FILE)) {
 }
 if (!fs.existsSync(CATEGORIES_FILE)) {
   fs.writeFileSync(CATEGORIES_FILE, JSON.stringify(mockCategories, null, 2));
+}
+if (!fs.existsSync(LAB_SETTINGS_FILE)) {
+  fs.writeFileSync(LAB_SETTINGS_FILE, JSON.stringify(DEFAULT_LAB_SETTINGS, null, 2));
 }
 
 // Serve local uploads statically (fallback mode)
@@ -363,6 +401,24 @@ const writeLocalCategories = (categories) => {
     fs.writeFileSync(CATEGORIES_FILE, JSON.stringify(categories, null, 2));
   } catch (err) {
     console.error('Error writing local categories:', err);
+  }
+};
+
+const readLocalLabSettings = () => {
+  try {
+    const data = fs.readFileSync(LAB_SETTINGS_FILE, 'utf8');
+    return JSON.parse(data);
+  } catch (err) {
+    console.error('Error reading local lab settings:', err);
+    return DEFAULT_LAB_SETTINGS;
+  }
+};
+
+const writeLocalLabSettings = (settings) => {
+  try {
+    fs.writeFileSync(LAB_SETTINGS_FILE, JSON.stringify(settings, null, 2));
+  } catch (err) {
+    console.error('Error writing local lab settings:', err);
   }
 };
 
@@ -1957,6 +2013,35 @@ app.delete('/api/categories/:id', async (req, res) => {
     }
   } catch (err) {
     console.error('Delete category error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// --- 3D LAB SETTINGS ENDPOINTS ---
+
+// Fetch 3D Lab configuration settings
+app.get('/api/lab-settings', (req, res) => {
+  try {
+    const settings = readLocalLabSettings();
+    res.json(settings);
+  } catch (err) {
+    console.error('Fetch lab settings error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update 3D Lab configuration settings
+app.put('/api/lab-settings', (req, res) => {
+  try {
+    const newSettings = req.body;
+    if (!newSettings || typeof newSettings !== 'object') {
+      return res.status(400).json({ error: 'Invalid lab settings payload.' });
+    }
+    writeLocalLabSettings(newSettings);
+    res.json({ success: true, settings: newSettings });
+  } catch (err) {
+    console.error('Update lab settings error:', err);
     res.status(500).json({ error: err.message });
   }
 });
