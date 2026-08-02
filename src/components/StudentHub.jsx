@@ -34,6 +34,18 @@ export default function StudentHub({ user, setActiveTab }) {
   const [submitted, setSubmitted] = React.useState(false);
   const [ticketId, setTicketId] = React.useState('');
   const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+  const [labSettings, setLabSettings] = React.useState(null);
+
+  React.useEffect(() => {
+    fetch(`${API_BASE}/api/lab-settings`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data && typeof data === 'object') {
+          setLabSettings(data);
+        }
+      })
+      .catch(err => console.error('Failed to fetch lab settings on student hub:', err));
+  }, []);
 
   React.useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -281,7 +293,10 @@ export default function StudentHub({ user, setActiveTab }) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>What are you building?</label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '0.4rem' }}>
-                    {['School Project', 'College Project', 'Startup Prototype', 'Research Model', 'Architecture Model', 'Robotics Project', 'Science Model', 'Other'].map(type => (
+                    {((labSettings?.prototypeTypes && labSettings.prototypeTypes.length > 0)
+                      ? labSettings.prototypeTypes
+                      : ['School Project', 'College Project', 'Startup Prototype', 'Research Model', 'Architecture Model', 'Robotics Project', 'Science Model', 'Other']
+                    ).map(type => (
                       <button
                         key={type}
                         type="button"
