@@ -3,6 +3,104 @@ import { Upload, HardDrive, Layers, Box, Award, Key, Gift, CheckCircle2, FileTex
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
 
+const FONT_CATEGORIES = [
+  {
+    category: '✨ Modern & Clean (Sans-Serif)',
+    fonts: [
+      { id: 'Inter', name: 'Inter (Modern Standard)', family: "'Inter', system-ui, sans-serif" },
+      { id: 'Montserrat', name: 'Montserrat (Geometric)', family: "'Montserrat', Arial, sans-serif" },
+      { id: 'Poppins', name: 'Poppins (Rounded Clean)', family: "'Poppins', Verdana, sans-serif" },
+      { id: 'Oswald', name: 'Oswald (Condensed Heavy)', family: "'Oswald', 'Arial Narrow', sans-serif" },
+      { id: 'Raleway', name: 'Raleway (Elegant Thin/Bold)', family: "'Raleway', Helvetica, sans-serif" },
+      { id: 'Roboto', name: 'Roboto (Universal Modern)', family: "'Roboto', sans-serif" },
+      { id: 'Work Sans', name: 'Work Sans (Grotesque Sans)', family: "'Work Sans', sans-serif" },
+      { id: 'Outfit', name: 'Outfit (Sleek Geometric)', family: "'Outfit', sans-serif" },
+      { id: 'Rubik', name: 'Rubik (Soft Curved)', family: "'Rubik', sans-serif" },
+      { id: 'Lexend', name: 'Lexend (Clean Minimalist)', family: "'Lexend', sans-serif" }
+    ]
+  },
+  {
+    category: '🏛️ Classic & Royal (Serif)',
+    fonts: [
+      { id: 'Playfair Display', name: 'Playfair Display (Luxury Serif)', family: "'Playfair Display', Georgia, serif" },
+      { id: 'Cinzel', name: 'Cinzel (Roman Imperial)', family: "'Cinzel', 'Times New Roman', serif" },
+      { id: 'Merriweather', name: 'Merriweather (Classic Editorial)', family: "'Merriweather', Georgia, serif" },
+      { id: 'Bodoni Moda', name: 'Bodoni Moda (High Fashion)', family: "'Bodoni Moda', 'Didot', serif" },
+      { id: 'Cormorant Garamond', name: 'Cormorant Garamond (Royal Calligraphic)', family: "'Cormorant Garamond', serif" },
+      { id: 'Lora', name: 'Lora (Contemporary Serif)', family: "'Lora', Georgia, serif" },
+      { id: 'Prata', name: 'Prata (Didone High Contrast)', family: "'Prata', serif" },
+      { id: 'Marcellus', name: 'Marcellus (Flared Trajan Serif)', family: "'Marcellus', serif" }
+    ]
+  },
+  {
+    category: '📦 Bold 3D & Heavy Stencil',
+    fonts: [
+      { id: 'Anton', name: 'Anton (Ultra Heavy Block)', family: "'Anton', Impact, 'Arial Black', sans-serif" },
+      { id: 'Bebas Neue', name: 'Bebas Neue (Tall Stencil)', family: "'Bebas Neue', Impact, sans-serif" },
+      { id: 'Bungee', name: 'Bungee (3D Box Sign)', family: "'Bungee', 'Arial Black', cursive" },
+      { id: 'Bungee Shade', name: 'Bungee Shade (3D Shadowed Block)', family: "'Bungee Shade', cursive" },
+      { id: 'Black Ops One', name: 'Black Ops One (Military Stencil)', family: "'Black Ops One', Impact, cursive" },
+      { id: 'Rubik Mono One', name: 'Rubik Mono One (Chunky 3D Block)', family: "'Rubik Mono One', monospace" },
+      { id: 'Bangers', name: 'Bangers (Comic Superhero)', family: "'Bangers', Impact, cursive" },
+      { id: 'Luckiest Guy', name: 'Luckiest Guy (Chunky Cartoon)', family: "'Luckiest Guy', cursive" },
+      { id: 'Titan One', name: 'Titan One (Heavy Soft Block)', family: "'Titan One', sans-serif" },
+      { id: 'Alfa Slab One', name: 'Alfa Slab One (Heavy Slab Serif)', family: "'Alfa Slab One', serif" }
+    ]
+  },
+  {
+    category: '✍️ Calligraphy & Cursive Script',
+    fonts: [
+      { id: 'Pacifico', name: 'Pacifico (Retro Surf Script)', family: "'Pacifico', 'Brush Script MT', cursive" },
+      { id: 'Dancing Script', name: 'Dancing Script (Playful Flow)', family: "'Dancing Script', cursive" },
+      { id: 'Great Vibes', name: 'Great Vibes (Formal Calligraphy)', family: "'Great Vibes', cursive" },
+      { id: 'Lobster', name: 'Lobster (Bold Vintage Script)', family: "'Lobster', cursive" },
+      { id: 'Satisfy', name: 'Satisfy (Handwritten Sign)', family: "'Satisfy', cursive" },
+      { id: 'Caveat', name: 'Caveat (Casual Handwriting)', family: "'Caveat', cursive" },
+      { id: 'Alex Brush', name: 'Alex Brush (Classic Calligraphy)', family: "'Alex Brush', cursive" },
+      { id: 'Sacramento', name: 'Sacramento (Monoline Script)', family: "'Sacramento', cursive" },
+      { id: 'Allura', name: 'Allura (Soft Elegant Script)', family: "'Allura', cursive" },
+      { id: 'Parisienne', name: 'Parisienne (French Calligraphy)', family: "'Parisienne', cursive" },
+      { id: 'Tangerine', name: 'Tangerine (Slanted Script)', family: "'Tangerine', cursive" },
+      { id: 'Grand Hotel', name: 'Grand Hotel (Retro Script)', family: "'Grand Hotel', cursive" },
+      { id: 'Cookie', name: 'Cookie (Sweet Handwritten)', family: "'Cookie', cursive" },
+      { id: 'Yellowtail', name: 'Yellowtail (Flat Brush Script)', family: "'Yellowtail', cursive" },
+      { id: 'Kaushan Script', name: 'Kaushan Script (Rustic Brush)', family: "'Kaushan Script', cursive" }
+    ]
+  },
+  {
+    category: '⚡ Tech, Cyberpunk & Gaming',
+    fonts: [
+      { id: 'Orbitron', name: 'Orbitron (Futuristic Sci-Fi)', family: "'Orbitron', sans-serif" },
+      { id: 'Audiowide', name: 'Audiowide (Cyberpunk Synthwave)', family: "'Audiowide', sans-serif" },
+      { id: 'Michroma', name: 'Michroma (Industrial Tech)', family: "'Michroma', sans-serif" },
+      { id: 'Fira Code', name: 'Fira Code (Developer Code)', family: "'Fira Code', monospace" },
+      { id: 'Press Start 2P', name: 'Press Start 2P (Retro 8-Bit Pixel)', family: "'Press Start 2P', monospace" },
+      { id: 'Silkscreen', name: 'Silkscreen (Pixel Arcade)', family: "'Silkscreen', monospace" },
+      { id: 'Share Tech Mono', name: 'Share Tech Mono (Console Terminal)', family: "'Share Tech Mono', monospace" }
+    ]
+  },
+  {
+    category: '🎨 Funky, Retro & Handdrawn',
+    fonts: [
+      { id: 'Permanent Marker', name: 'Permanent Marker (Sharpie Pen)', family: "'Permanent Marker', cursive" },
+      { id: 'Righteous', name: 'Righteous (Smooth Retro)', family: "'Righteous', cursive" },
+      { id: 'Monoton', name: 'Monoton (Multi-line Neon)', family: "'Monoton', cursive" },
+      { id: 'Creepster', name: 'Creepster (Spooky Horror Stencil)', family: "'Creepster', cursive" },
+      { id: 'Special Elite', name: 'Special Elite (Vintage Typewriter)', family: "'Special Elite', monospace" },
+      { id: 'Rock Salt', name: 'Rock Salt (Felt Tip Marker)', family: "'Rock Salt', cursive" },
+      { id: 'Shadows Into Light', name: 'Shadows Into Light (Neat Handwriting)', family: "'Shadows Into Light', cursive" },
+      { id: 'Indie Flower', name: 'Indie Flower (Bubble Handwriting)', family: "'Indie Flower', cursive" },
+      { id: 'Amatic SC', name: 'Amatic SC (Tall Condensed Sketch)', family: "'Amatic SC', cursive" }
+    ]
+  }
+];
+
+const ALL_FONTS = FONT_CATEGORIES.flatMap(cat => cat.fonts);
+const getFontFamily = (fontId) => {
+  const found = ALL_FONTS.find(f => f.id === fontId || f.name === fontId);
+  return found ? found.family : "'Inter', system-ui, sans-serif";
+};
+
 export default function AIPrintLab({ 
   onAddToCart,
   labTab = 'slicer',
@@ -137,7 +235,9 @@ export default function AIPrintLab({
   const [productType, setProductType] = React.useState('keychain'); // 'keychain', 'nameboard', 'trophy', 'phonestand', 'other'
   const [customProductType, setCustomProductType] = React.useState('');
   const [nameText, setNameText] = React.useState(customizerText || 'ZYLIX 3D');
-  const [designerColor, setDesignerColor] = React.useState('Gold'); // 'Black', 'White', 'Gold', 'Red', 'Blue', 'Other'
+  const [selectedFont, setSelectedFont] = React.useState('Pacifico');
+  const [designerColor, setDesignerColor] = React.useState('Gold'); // Text Color: 'Gold', 'White', 'Red', 'Blue', 'Pink', 'Green', 'Orange', 'Black', 'Other'
+  const [baseColor, setBaseColor] = React.useState('Black'); // Base Contour Color: 'Black', 'White', 'Red', 'Navy', 'Gold'
   const [customColor, setCustomColor] = React.useState('');
   const [designerSize, setDesignerSize] = React.useState('Medium'); // 'Small', 'Medium', 'Large', 'Custom'
   const [customSize, setCustomSize] = React.useState('');
@@ -152,6 +252,21 @@ export default function AIPrintLab({
       setNameText(customizerText);
     }
   }, [customizerText]);
+
+  // Dynamically load selected Google Font into document head on demand
+  React.useEffect(() => {
+    if (selectedFont) {
+      const fontNameFormatted = selectedFont.replace(/ /g, '+');
+      const fontLinkId = `gfont-${selectedFont.replace(/\s+/g, '-').toLowerCase()}`;
+      if (!document.getElementById(fontLinkId)) {
+        const link = document.createElement('link');
+        link.id = fontLinkId;
+        link.rel = 'stylesheet';
+        link.href = `https://fonts.googleapis.com/css2?family=${fontNameFormatted}&display=swap`;
+        document.head.appendChild(link);
+      }
+    }
+  }, [selectedFont]);
 
   // Sync state with incoming preset from catalog customization redirect
   React.useEffect(() => {
@@ -204,10 +319,10 @@ export default function AIPrintLab({
       formData.append('productType', productType);
       formData.append('customProductType', customProductType.trim());
       formData.append('nameText', nameText.trim());
+      formData.append('selectedFont', selectedFont);
       formData.append('designerColor', designerColor);
+      formData.append('baseColor', baseColor);
       formData.append('customColor', customColor.trim());
-      formData.append('designerSize', designerSize);
-      formData.append('customSize', customSize.trim());
       formData.append('additionalNotes', additionalNotes.trim());
       formData.append('customerName', customerName.trim());
       formData.append('customerEmail', customerEmail.trim());
@@ -375,47 +490,164 @@ export default function AIPrintLab({
             </div>
           )}
 
-          {/* TAB 2: Design Workflow Guide (Flat) */}
+          {/* TAB 2: Design Live Preview Card (Shown ONLY for Keychain) */}
           {activeLabTab === 'designer' && (
-            <div className="glass-panel" style={{ padding: '2rem', backgroundColor: '#ffffff', borderRadius: '12px' }}>
-              <span className="badge-outline" style={{ marginBottom: '0.75rem', display: 'inline-block' }}>Design Workflow</span>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#000', marginBottom: '1rem' }}>How Design Requests Work</h3>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '1.5rem' }}>
-                Have a specific design idea in mind? Our expert team can turn your concepts, text, and sketches into high-quality physical 3D prints.
-              </p>
+            <div className="glass-panel" style={{ padding: '1rem', backgroundColor: '#ffffff', borderRadius: '12px' }}>
+              {productType === 'keychain' ? (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                    <span className="badge-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem' }}>
+                      <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#22c55e', display: 'inline-block' }}></span>
+                      LIVE KEYCHAIN PREVIEW
+                    </span>
+                  </div>
 
-              {/* Guide Steps */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#000000', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold', flexShrink: 0 }}>1</div>
-                  <div>
-                    <h4 style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000', margin: '0 0 0.15rem 0' }}>Submit Specifications</h4>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', margin: 0, lineHeight: '1.4' }}>
-                      Choose your product type, custom text, preferred color, and size. Add reference sketches or logos to help us visualize your needs.
-                    </p>
+                  {/* Keychain Viewport */}
+                  <div style={{
+                    width: '100%',
+                    minHeight: '190px',
+                    borderRadius: '10px',
+                    background: '#e4eee0',
+                    boxShadow: 'inset 0 1px 6px rgba(0,0,0,0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative',
+                    padding: '1.5rem 1rem',
+                    overflow: 'hidden',
+                    border: '1px solid #bbf7d0'
+                  }}>
+                    {/* Cutting Mat Grid background simulation */}
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      backgroundImage: 'linear-gradient(rgba(22, 101, 52, 0.22) 1px, transparent 1px), linear-gradient(90deg, rgba(22, 101, 52, 0.22) 1px, transparent 1px)',
+                      backgroundSize: '22px 22px',
+                      pointerEvents: 'none'
+                    }} />
+
+                    {/* KEYCHAIN ASSEMBLY VIEWPORT */}
+                    <div style={{
+                      position: 'relative',
+                      zIndex: 2,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transform: 'rotate(-4deg) scale(1.15)',
+                      padding: '1rem 0.5rem',
+                      transition: 'all 0.3s ease'
+                    }}>
+                      {/* Metallic Split Key Ring */}
+                      <div style={{
+                        width: '46px',
+                        height: '46px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #ffffff 0%, #cbd5e1 40%, #64748b 80%, #334155 100%)',
+                        padding: '4px',
+                        boxShadow: '2px 4px 10px rgba(0,0,0,0.3)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        marginRight: '-10px',
+                        zIndex: 4
+                      }}>
+                        <div style={{
+                          width: '100%',
+                          height: '100%',
+                          borderRadius: '50%',
+                          backgroundColor: '#e4eee0',
+                          boxShadow: 'inset 1px 2px 3px rgba(0,0,0,0.35)'
+                        }} />
+                      </div>
+
+                      {/* Chain Links */}
+                      <div style={{ display: 'flex', alignItems: 'center', zIndex: 3, marginRight: '-8px' }}>
+                        <div style={{ width: '11px', height: '14px', borderRadius: '40%', border: '2.5px solid #94a3b8', boxShadow: '1px 2px 3px rgba(0,0,0,0.25)' }} />
+                        <div style={{ width: '11px', height: '14px', borderRadius: '40%', border: '2.5px solid #64748b', marginLeft: '-5px', boxShadow: '1px 2px 3px rgba(0,0,0,0.25)' }} />
+                      </div>
+
+                      {/* Pure Contoured Text Silhouette Keychain */}
+                      <div style={{
+                        position: 'relative',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '0.2rem 0.6rem 0.2rem 1.4rem',
+                        filter: 'drop-shadow(3px 5px 8px rgba(0,0,0,0.45))',
+                        transition: 'all 0.25s ease'
+                      }}>
+                        {/* Left Mounting Loop Hole */}
+                        <div style={{
+                          position: 'absolute',
+                          left: '0px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          width: '16px',
+                          height: '16px',
+                          borderRadius: '50%',
+                          backgroundColor: baseColor === 'White' ? '#ffffff' : baseColor === 'Red' ? '#7f1d1d' : baseColor === 'Navy' ? '#0f172a' : baseColor === 'Gold' ? '#78350f' : '#1c130d',
+                          border: '3px solid ' + (baseColor === 'White' ? '#cbd5e1' : '#09090b'),
+                          boxShadow: 'inset 1px 1px 2px rgba(0,0,0,0.5)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          zIndex: 1
+                        }}>
+                          <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#e4eee0' }} />
+                        </div>
+
+                        {/* 3D Extruded Top Text Layer */}
+                        <div style={{
+                          fontFamily: getFontFamily(selectedFont),
+                          fontSize: nameText.length > 15 ? '1.4rem' : nameText.length > 10 ? '1.75rem' : '2.25rem',
+                          fontWeight: '800',
+                          textAlign: 'center',
+                          whiteSpace: 'nowrap',
+                          color: designerColor === 'Gold' ? '#facc15' : designerColor === 'White' ? '#ffffff' : designerColor === 'Black' ? '#38bdf8' : designerColor === 'Red' ? '#ef4444' : designerColor === 'Blue' ? '#3b82f6' : designerColor === 'Pink' ? '#ec4899' : designerColor === 'Green' ? '#22c55e' : designerColor === 'Orange' ? '#f97316' : designerColor === 'Purple' ? '#a855f7' : (customColor || '#facc15'),
+                          textShadow: (() => {
+                            const contourHex = baseColor === 'White' ? '#f8fafc' : baseColor === 'Red' ? '#7f1d1d' : baseColor === 'Navy' ? '#0f172a' : baseColor === 'Gold' ? '#78350f' : '#1c130d';
+                            const shadowHex = baseColor === 'White' ? '#cbd5e1' : '#090604';
+                            return `-3px -3px 0 ${contourHex}, 3px -3px 0 ${contourHex}, -3px 3px 0 ${contourHex}, 3px 3px 0 ${contourHex}, -4px 0px 0 ${contourHex}, 4px 0px 0 ${contourHex}, 0px -4px 0 ${contourHex}, 0px 4px 0 ${contourHex}, 2px 4px 0px ${shadowHex}, 3px 5px 8px rgba(0,0,0,0.6)`;
+                          })(),
+                          transition: 'all 0.25s ease',
+                          lineHeight: '1.1'
+                        }}>
+                          {nameText || 'Sameena'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* CLEAN DESIGN STUDIO GUIDE FOR OTHER PRODUCT TYPES */
+                <div style={{ padding: '0.5rem 0.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0f172a' }}>
+                      <Box size={20} />
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '1rem', fontWeight: '800', color: '#000', margin: 0, textTransform: 'capitalize' }}>
+                        Custom {productType === 'other' ? (customProductType || 'Product') : productType} Studio
+                      </h3>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0 }}>
+                        3D Manufacturing & Custom Specifications
+                      </p>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.78rem', color: '#334155' }}>
+                    <div style={{ padding: '0.75rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <span style={{ fontWeight: '700', color: '#0f172a', display: 'block', marginBottom: '2px' }}>🛠️ Engineering Customization</span>
+                      Submit your text, sketch, logo or dimensions. Our design team will model your 3D CAD object.
+                    </div>
+                    <div style={{ padding: '0.75rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <span style={{ fontWeight: '700', color: '#0f172a', display: 'block', marginBottom: '2px' }}>📄 PDF Engineering Quote</span>
+                      You will receive an official price quote & CAD preview dispatched directly to your contact details.
+                    </div>
                   </div>
                 </div>
-
-                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#000000', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold', flexShrink: 0 }}>2</div>
-                  <div>
-                    <h4 style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000', margin: '0 0 0.15rem 0' }}>Manual Engineering Review</h4>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', margin: 0, lineHeight: '1.4' }}>
-                      Our manufacturing engineers manually review your request. We draft the 3D model geometry blueprints based on your specifications.
-                    </p>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#000000', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold', flexShrink: 0 }}>3</div>
-                  <div>
-                    <h4 style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000', margin: '0 0 0.15rem 0' }}>Quote & Design Preview</h4>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', margin: 0, lineHeight: '1.4' }}>
-                      Within 2 hours, we will email you a digital design preview blueprint along with a customized pricing quote ticket to start production.
-                    </p>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           )}
 
@@ -785,19 +1017,59 @@ export default function AIPrintLab({
                   )}
                 </div>
 
-                {/* Custom text */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>Enter Name / Text</label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    value={nameText}
-                    onChange={(e) => setNameText(e.target.value)}
-                    placeholder='e.g. "ZYLIX 3D"'
-                    style={{ fontSize: '0.82rem', height: '36px', borderRadius: '6px' }}
-                    required
-                  />
-                </div>
+                {/* Custom text & Font Selector (Needed ONLY for Keychain) */}
+                {productType === 'keychain' && (
+                  <>
+                    {/* Custom text */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>Enter Name / Text</label>
+                      <input
+                        type="text"
+                        className="input-field"
+                        value={nameText}
+                        onChange={(e) => setNameText(e.target.value)}
+                        placeholder='e.g. "ZYLIX 3D"'
+                        style={{ fontSize: '0.82rem', height: '36px', borderRadius: '6px' }}
+                        required
+                      />
+                    </div>
+
+                    {/* Font Selector */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>Select Font Style</label>
+                        <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '600' }}>
+                          Selected: <strong style={{ color: '#0f172a', fontFamily: getFontFamily(selectedFont) }}>{selectedFont}</strong>
+                        </span>
+                      </div>
+
+                      <select
+                        value={selectedFont}
+                        onChange={(e) => setSelectedFont(e.target.value)}
+                        className="select-field"
+                        style={{
+                          borderRadius: '6px',
+                          height: '38px',
+                          padding: '0.35rem 0.75rem',
+                          fontSize: '0.82rem',
+                          fontFamily: getFontFamily(selectedFont),
+                          fontWeight: '600',
+                          border: '1px solid #cbd5e1'
+                        }}
+                      >
+                        {FONT_CATEGORIES.map((catGroup) => (
+                          <optgroup key={catGroup.category} label={catGroup.category} style={{ fontWeight: 'bold', color: '#000' }}>
+                            {catGroup.fonts.map((f) => (
+                              <option key={f.id} value={f.id} style={{ fontFamily: f.family, fontSize: '0.9rem' }}>
+                                {f.name}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
+                    </div>
+                  </>
+                )}
 
                 {/* Upload Reference Sketch / Logo */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
@@ -832,82 +1104,122 @@ export default function AIPrintLab({
                   </div>
                 </div>
 
-                {/* Color Choices */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>Color</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(75px, 1fr))', gap: '0.4rem' }}>
-                    {['Black', 'White', 'Gold', 'Red', 'Blue', 'Other'].map(col => (
-                      <button
-                        key={col} 
-                        type="button" 
-                        onClick={() => setDesignerColor(col)}
-                        style={{
-                          padding: '0.5rem', 
-                          fontSize: '0.75rem',
-                          background: designerColor === col ? '#000' : 'transparent',
-                          color: designerColor === col ? '#fff' : '#000',
-                          border: '1px solid ' + (designerColor === col ? '#000' : 'var(--border-color)'),
-                          cursor: 'pointer', 
-                          borderRadius: '6px',
-                          fontWeight: '600',
-                          transition: 'all 0.15s ease'
-                        }}
-                      >
-                        {col}
-                      </button>
-                    ))}
+                {/* Dual Color Choices (Top Text & Baseplate Outline) */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {/* 1. Top Text Color */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>1. Text Color</label>
+                      <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '600' }}>Selected: <strong>{designerColor}</strong></span>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.35rem' }}>
+                      {[
+                        { name: 'Gold', hex: '#facc15' },
+                        { name: 'White', hex: '#ffffff' },
+                        { name: 'Red', hex: '#ef4444' },
+                        { name: 'Blue', hex: '#3b82f6' },
+                        { name: 'Pink', hex: '#ec4899' },
+                        { name: 'Green', hex: '#22c55e' },
+                        { name: 'Orange', hex: '#f97316' },
+                        { name: 'Purple', hex: '#a855f7' },
+                        { name: 'Black', hex: '#18181b' },
+                        { name: 'Other', hex: 'linear-gradient(45deg, #ef4444, #3b82f6)' }
+                      ].map(c => (
+                        <button
+                          key={c.name}
+                          type="button"
+                          onClick={() => setDesignerColor(c.name)}
+                          style={{
+                            padding: '0.35rem 0.2rem',
+                            fontSize: '0.7rem',
+                            background: designerColor === c.name ? '#0f172a' : '#f8fafc',
+                            color: designerColor === c.name ? '#ffffff' : '#334155',
+                            border: '1.5px solid ' + (designerColor === c.name ? '#0f172a' : '#cbd5e1'),
+                            borderRadius: '6px',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '4px',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          <span style={{
+                            width: '9px',
+                            height: '9px',
+                            borderRadius: '50%',
+                            background: c.hex,
+                            border: '1px solid rgba(0,0,0,0.2)',
+                            display: 'inline-block',
+                            flexShrink: 0
+                          }} />
+                          {c.name}
+                        </button>
+                      ))}
+                    </div>
+
+                    {designerColor === 'Other' && (
+                      <input
+                        type="text"
+                        className="input-field animate-fadeIn"
+                        value={customColor}
+                        onChange={(e) => setCustomColor(e.target.value)}
+                        placeholder='e.g. "Silky Bronze", "Neon Yellow"'
+                        style={{ fontSize: '0.82rem', height: '34px', borderRadius: '6px', marginTop: '0.2rem' }}
+                        required={designerColor === 'Other'}
+                      />
+                    )}
                   </div>
 
-                  {designerColor === 'Other' && (
-                    <input
-                      type="text"
-                      className="input-field animate-fadeIn"
-                      value={customColor}
-                      onChange={(e) => setCustomColor(e.target.value)}
-                      placeholder='e.g. "Silky Bronze", "Clear Transparent"'
-                      style={{ fontSize: '0.82rem', height: '36px', borderRadius: '6px', marginTop: '0.5rem' }}
-                      required={designerColor === 'Other'}
-                    />
-                  )}
-                </div>
-
-                {/* Size Choices */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>Size</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.4rem' }}>
-                    {['Small', 'Medium', 'Large', 'Custom'].map(sz => (
-                      <button
-                        key={sz} 
-                        type="button" 
-                        onClick={() => setDesignerSize(sz)}
-                        style={{
-                          padding: '0.5rem', 
-                          fontSize: '0.75rem',
-                          background: designerSize === sz ? '#000' : 'transparent',
-                          color: designerSize === sz ? '#fff' : '#000',
-                          border: '1px solid ' + (designerSize === sz ? '#000' : 'var(--border-color)'),
-                          cursor: 'pointer', 
-                          borderRadius: '6px',
-                          fontWeight: '600',
-                          transition: 'all 0.15s ease'
-                        }}
-                      >
-                        {sz}
-                      </button>
-                    ))}
+                  {/* 2. Baseplate Contour Backing Color */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>2. Base Contour Color</label>
+                      <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '600' }}>Selected: <strong>{baseColor}</strong></span>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.35rem' }}>
+                      {[
+                        { name: 'Black', hex: '#1c130d' },
+                        { name: 'White', hex: '#f8fafc' },
+                        { name: 'Red', hex: '#7f1d1d' },
+                        { name: 'Navy', hex: '#0f172a' },
+                        { name: 'Gold', hex: '#78350f' }
+                      ].map(bc => (
+                        <button
+                          key={bc.name}
+                          type="button"
+                          onClick={() => setBaseColor(bc.name)}
+                          style={{
+                            padding: '0.35rem 0.2rem',
+                            fontSize: '0.7rem',
+                            background: baseColor === bc.name ? '#0f172a' : '#f8fafc',
+                            color: baseColor === bc.name ? '#ffffff' : '#334155',
+                            border: '1.5px solid ' + (baseColor === bc.name ? '#0f172a' : '#cbd5e1'),
+                            borderRadius: '6px',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '4px',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          <span style={{
+                            width: '9px',
+                            height: '9px',
+                            borderRadius: '50%',
+                            background: bc.hex,
+                            border: '1px solid rgba(0,0,0,0.2)',
+                            display: 'inline-block',
+                            flexShrink: 0
+                          }} />
+                          {bc.name}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-
-                  {designerSize === 'Custom' && (
-                    <input
-                      type="text"
-                      className="input-field animate-fadeIn"
-                      value={customSize}
-                      onChange={(e) => setCustomSize(e.target.value)}
-                      placeholder='e.g. "12cm x 5cm x 2cm"'
-                      style={{ fontSize: '0.82rem', height: '36px', borderRadius: '6px', marginTop: '0.5rem' }}
-                      required={designerSize === 'Custom'}
-                    />
-                  )}
                 </div>
 
                 {/* Additional Notes */}
