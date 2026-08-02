@@ -205,28 +205,46 @@ export default function ProductDetailPage({
               </button>
             </div>
 
-            {onCustomize && (
-              <button
-                onClick={() => onCustomize(product)}
-                style={{
-                  width: '100%',
-                  height: '42px',
-                  borderRadius: '10px',
-                  backgroundColor: '#eff6ff',
-                  color: '#2563eb',
-                  border: '1px solid #bfdbfe',
-                  fontWeight: '800',
-                  fontSize: '0.82rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justify: 'center',
-                  gap: '6px'
-                }}
-              >
-                🎨 Customize in 3D Print Lab
-              </button>
-            )}
+            {onCustomize && (() => {
+              // If admin has explicitly set allow_customize → strictly respect it (true OR false)
+              // Only fall back to keyword detection for old products where the field was never set
+              const fieldSet = product.allow_customize !== undefined && product.allow_customize !== null;
+              const adminAllowed = product.allow_customize === true || product.allow_customize === 'true';
+
+              let isCustomizable;
+              if (fieldSet) {
+                // Admin explicitly decided — obey it completely, ignore keywords
+                isCustomizable = adminAllowed;
+              } else {
+                // Old product with no admin decision yet — fall back to keyword detection
+                const nameLower = product.name.toLowerCase();
+                isCustomizable = nameLower.includes('keychain') || nameLower.includes('key chain') || nameLower.includes('key tag');
+              }
+
+              if (!isCustomizable) return null;
+              return (
+                <button
+                  onClick={() => onCustomize(product)}
+                  style={{
+                    width: '100%',
+                    height: '42px',
+                    borderRadius: '10px',
+                    backgroundColor: '#eff6ff',
+                    color: '#2563eb',
+                    border: '1px solid #bfdbfe',
+                    fontWeight: '800',
+                    fontSize: '0.82rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  🎨 Customize in 3D Print Lab
+                </button>
+              );
+            })()}
           </div>
 
           {addedToast && (

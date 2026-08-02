@@ -121,26 +121,27 @@ function AppContent() {
 
   const handleCustomizeProduct = (product) => {
     setActiveTab('designer');
-    
+
+    // Use lab_preset set by admin in the admin panel; fall back to keyword detection
+    const preset = product.lab_preset;
     const nameLower = product.name.toLowerCase();
-    if (nameLower.includes('keychain') || nameLower.includes('tag')) {
+
+    if (preset === 'keychain' || (!preset && (nameLower.includes('keychain') || nameLower.includes('key chain') || nameLower.includes('key tag')))) {
       setDesignerPreset('keychain');
       setCustomizerText('MY KEYCHAIN');
-    } else if (nameLower.includes('plaque') || nameLower.includes('board') || nameLower.includes('plate') || nameLower.includes('stencil')) {
+    } else if (preset === 'nameboard' || (!preset && (nameLower.includes('plaque') || nameLower.includes('board') || nameLower.includes('plate') || nameLower.includes('stencil') || nameLower.includes('sign')))) {
       setDesignerPreset('nameboard');
       setCustomizerText('ZYLIX 3D');
-    } else if (nameLower.includes('stand') || nameLower.includes('holder') || nameLower.includes('dock')) {
+    } else if (preset === 'phonestand' || (!preset && (nameLower.includes('stand') || nameLower.includes('holder') || nameLower.includes('dock')))) {
       setDesignerPreset('phonestand');
       setCustomizerText('STAND');
-    } else if (nameLower.includes('trophy') || nameLower.includes('award')) {
+    } else if (preset === 'trophy' || (!preset && (nameLower.includes('trophy') || nameLower.includes('award')))) {
       setDesignerPreset('trophy');
       setCustomizerText('CHAMPION');
-    } else if (nameLower.includes('box') || nameLower.includes('light')) {
-      setDesignerPreset('nameboard');
-      setCustomizerText('GLOW LIGHT');
     } else {
-      setDesignerPreset('keychain');
-      setCustomizerText('CUSTOM');
+      // Custom Face, Custom Box, admin-set "other", and all unrecognised products → Other
+      setDesignerPreset('other');
+      setCustomizerText('');
     }
   };
 

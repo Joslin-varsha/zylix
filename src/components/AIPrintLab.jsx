@@ -537,57 +537,72 @@ export default function AIPrintLab({
                       padding: '1rem 0.5rem',
                       transition: 'all 0.3s ease'
                     }}>
-                      {/* Metallic Split Key Ring */}
-                      <div style={{
-                        width: '46px',
-                        height: '46px',
-                        borderRadius: '50%',
-                        background: 'linear-gradient(135deg, #ffffff 0%, #cbd5e1 40%, #64748b 80%, #334155 100%)',
-                        padding: '4px',
-                        boxShadow: '2px 4px 10px rgba(0,0,0,0.3)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        marginRight: '-10px',
-                        zIndex: 4
-                      }}>
-                        <div style={{
-                          width: '100%',
-                          height: '100%',
-                          borderRadius: '50%',
-                          backgroundColor: '#e4eee0',
-                          boxShadow: 'inset 1px 2px 3px rgba(0,0,0,0.35)'
-                        }} />
-                      </div>
+                      {/* SOLID 3D CHROME SILVER METALLIC SHORT KEYRING & CABLE CHAIN SVG */}
+                      <svg width="95" height="46" viewBox="0 0 95 46" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0, marginRight: '-22px', zIndex: 4, filter: 'drop-shadow(2px 4px 6px rgba(0,0,0,0.35))' }}>
+                        <defs>
+                          {/* 100% Solid Polished Silver Chrome Gradients */}
+                          <linearGradient id="richSilverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#ffffff" />
+                            <stop offset="25%" stopColor="#e2e8f0" />
+                            <stop offset="55%" stopColor="#94a3b8" />
+                            <stop offset="85%" stopColor="#64748b" />
+                            <stop offset="100%" stopColor="#334155" />
+                          </linearGradient>
+                          <linearGradient id="richWireGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#ffffff" />
+                            <stop offset="40%" stopColor="#cbd5e1" />
+                            <stop offset="75%" stopColor="#64748b" />
+                            <stop offset="100%" stopColor="#334155" />
+                          </linearGradient>
+                        </defs>
 
-                      {/* Chain Links */}
-                      <div style={{ display: 'flex', alignItems: 'center', zIndex: 3, marginRight: '-8px' }}>
-                        <div style={{ width: '11px', height: '14px', borderRadius: '40%', border: '2.5px solid #94a3b8', boxShadow: '1px 2px 3px rgba(0,0,0,0.25)' }} />
-                        <div style={{ width: '11px', height: '14px', borderRadius: '40%', border: '2.5px solid #64748b', marginLeft: '-5px', boxShadow: '1px 2px 3px rgba(0,0,0,0.25)' }} />
-                      </div>
+                        {/* Smooth Polished Solid Silver Key Ring */}
+                        <circle cx="22" cy="23" r="18" stroke="url(#richSilverGrad)" strokeWidth="4.5" fill="none" />
+                        <circle cx="22" cy="23" r="15.8" stroke="#ffffff" strokeWidth="1" fill="none" opacity="0.9" />
+                        <circle cx="22" cy="23" r="20.2" stroke="#1e293b" strokeWidth="0.8" fill="none" opacity="0.6" />
 
-                      {/* Pure Contoured Text Silhouette Keychain */}
+                        {/* Jump Ring 1 */}
+                        <ellipse cx="41" cy="23" rx="4.5" ry="6.5" stroke="url(#richWireGrad)" strokeWidth="3" fill="none" />
+                        <ellipse cx="41" cy="23" rx="4.5" ry="6.5" stroke="#1e293b" strokeWidth="0.8" fill="none" opacity="0.7" />
+
+                        {/* Cable Chain Link 2 */}
+                        <ellipse cx="51" cy="23" rx="6.5" ry="4.5" stroke="url(#richWireGrad)" strokeWidth="3" fill="none" />
+                        <ellipse cx="51" cy="23" rx="6.5" ry="4.5" stroke="#1e293b" strokeWidth="0.8" fill="none" opacity="0.7" />
+
+                        {/* Cable Chain Link 3 */}
+                        <ellipse cx="61" cy="23" rx="4.5" ry="6.5" stroke="url(#richWireGrad)" strokeWidth="3" fill="none" />
+                        <ellipse cx="61" cy="23" rx="4.5" ry="6.5" stroke="#1e293b" strokeWidth="0.8" fill="none" opacity="0.7" />
+
+                        {/* Cable Chain Link 4 */}
+                        <ellipse cx="71" cy="23" rx="6.5" ry="4.5" stroke="url(#richWireGrad)" strokeWidth="3" fill="none" />
+                        <ellipse cx="71" cy="23" rx="6.5" ry="4.5" stroke="#1e293b" strokeWidth="0.8" fill="none" opacity="0.7" />
+
+                        {/* End Jump Ring 5 */}
+                        <circle cx="81" cy="23" r="5.5" stroke="url(#richWireGrad)" strokeWidth="3.2" fill="none" />
+                        <circle cx="81" cy="23" r="5.5" stroke="#1e293b" strokeWidth="0.8" fill="none" opacity="0.7" />
+                      </svg>
+
+                      {/* Pure Contoured Text Silhouette Keychain (Touching Keyring Loop) */}
                       <div style={{
                         position: 'relative',
                         display: 'inline-flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        padding: '0.2rem 0.6rem 0.2rem 1.4rem',
+                        padding: '0.2rem 0.6rem 0.2rem 0.85rem',
                         filter: 'drop-shadow(3px 5px 8px rgba(0,0,0,0.45))',
                         transition: 'all 0.25s ease'
                       }}>
-                        {/* Left Mounting Loop Hole */}
+                        {/* Integrated Mounting Hole Loop (Physically Touching First Letter) */}
                         <div style={{
                           position: 'absolute',
-                          left: '0px',
+                          left: '2px',
                           top: '50%',
                           transform: 'translateY(-50%)',
-                          width: '16px',
-                          height: '16px',
+                          width: '18px',
+                          height: '18px',
                           borderRadius: '50%',
                           backgroundColor: baseColor === 'White' ? '#ffffff' : baseColor === 'Red' ? '#7f1d1d' : baseColor === 'Navy' ? '#0f172a' : baseColor === 'Gold' ? '#78350f' : '#1c130d',
-                          border: '3px solid ' + (baseColor === 'White' ? '#cbd5e1' : '#09090b'),
+                          border: '3.5px solid ' + (baseColor === 'White' ? '#cbd5e1' : '#09090b'),
                           boxShadow: 'inset 1px 1px 2px rgba(0,0,0,0.5)',
                           display: 'flex',
                           alignItems: 'center',
@@ -611,7 +626,8 @@ export default function AIPrintLab({
                             return `-3px -3px 0 ${contourHex}, 3px -3px 0 ${contourHex}, -3px 3px 0 ${contourHex}, 3px 3px 0 ${contourHex}, -4px 0px 0 ${contourHex}, 4px 0px 0 ${contourHex}, 0px -4px 0 ${contourHex}, 0px 4px 0 ${contourHex}, 2px 4px 0px ${shadowHex}, 3px 5px 8px rgba(0,0,0,0.6)`;
                           })(),
                           transition: 'all 0.25s ease',
-                          lineHeight: '1.1'
+                          lineHeight: '1.1',
+                          paddingLeft: '0.4rem'
                         }}>
                           {nameText || 'Sameena'}
                         </div>

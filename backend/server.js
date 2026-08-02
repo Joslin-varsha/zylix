@@ -373,7 +373,9 @@ const mapProductDbToFrontend = (p) => {
     categoryLabel: p.category_label !== undefined ? p.category_label : p.categoryLabel,
     originalPrice: p.original_price !== undefined ? p.original_price : p.originalPrice,
     reviewsCount: p.reviews_count !== undefined ? p.reviews_count : p.reviewsCount,
-    inStock: p.in_stock !== undefined ? p.in_stock : p.inStock
+    inStock: p.in_stock !== undefined ? p.in_stock : p.inStock,
+    allow_customize: p.allow_customize !== undefined ? (p.allow_customize === true || p.allow_customize === 'true') : undefined,
+    lab_preset: p.lab_preset || undefined
   };
 };
 
@@ -2041,7 +2043,9 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
       description = '',
       specs = '{}',
       materials = '[]',
-      inStock = 'true'
+      inStock = 'true',
+      allow_customize = 'false',
+      lab_preset = ''
     } = req.body;
 
     if (!name || !category || !price) {
@@ -2087,7 +2091,9 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
       specs: parsedSpecs,
       materials: parsedMaterials,
       badge: badge || null,
-      in_stock: inStock === 'true' || inStock === true
+      in_stock: inStock === 'true' || inStock === true,
+      allow_customize: allow_customize === 'true' || allow_customize === true,
+      lab_preset: lab_preset || null
     };
 
     let useLocal = !isSupabaseConfigured || !supabase;
@@ -2207,7 +2213,9 @@ app.put('/api/products/:id', upload.single('image'), async (req, res) => {
       description,
       specs,
       materials,
-      inStock
+      inStock,
+      allow_customize,
+      lab_preset
     } = req.body;
 
     if (!name || !category || !price) {
@@ -2288,7 +2296,9 @@ app.put('/api/products/:id', upload.single('image'), async (req, res) => {
       specs: parsedSpecs,
       materials: parsedMaterials,
       badge: badge || null,
-      in_stock: inStock === 'true' || inStock === true
+      in_stock: inStock === 'true' || inStock === true,
+      allow_customize: allow_customize === 'true' || allow_customize === true,
+      lab_preset: lab_preset || null
     };
 
     let updatedProduct = null;
