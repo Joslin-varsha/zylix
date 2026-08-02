@@ -1105,6 +1105,74 @@ app.post('/api/auth/register-verify-otp', async (req, res) => {
   }
 });
 
+// Google OAuth Sign-In / Sign-Up route
+app.post('/api/auth/google', async (req, res) => {
+  try {
+    const { name, email, googleId, picture } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required for Google login.' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanName = (name || cleanEmail.split('@')[0]).trim();
+
+    let useLocal = !isSupabaseConfigured || !supabase;
+    let user = null;
+
+    if (!useLocal) {
+      try {
+        const { data: existingUser, error: selectError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', cleanEmail)
+          .maybeSingle();
+
+        if (existingUser) {
+          user = { id: existingUser.id, name: existingUser.name, email: existingUser.email, picture: picture || null };
+        } else {
+          // Register new user automatically
+          const dummyPassword = hashPassword(`google_${Date.now()}_${Math.random()}`);
+          const { data: newUser, error: insertError } = await supabase
+            .from('users')
+            .insert({ name: cleanName, email: cleanEmail, password: dummyPassword })
+            .select();
+
+          if (insertError) throw insertError;
+          const created = (newUser && newUser[0]) ? newUser[0] : { name: cleanName, email: cleanEmail };
+          user = { id: created.id, name: created.name, email: created.email, picture: picture || null };
+        }
+      } catch (err) {
+        console.warn('[Supabase Fallback] Error in Google auth, trying local fallback:', err.message);
+        useLocal = true;
+      }
+    }
+
+    if (useLocal) {
+      const users = readLocalUsers();
+      const existingUser = users.find(u => u.email === cleanEmail);
+      if (existingUser) {
+        user = { id: existingUser.id, name: existingUser.name, email: existingUser.email, picture: picture || null };
+      } else {
+        const newUser = {
+          id: crypto.randomUUID(),
+          created_at: new Date().toISOString(),
+          name: cleanName,
+          email: cleanEmail,
+          password: hashPassword(`google_${Date.now()}_${Math.random()}`)
+        };
+        users.push(newUser);
+        writeLocalUsers(users);
+        user = { id: newUser.id, name: newUser.name, email: newUser.email, picture: picture || null };
+      }
+    }
+
+    res.json({ success: true, user });
+  } catch (err) {
+    console.error('Google auth error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Forgot Password - Send OTP
 app.post('/api/auth/forgot-password-send-otp', async (req, res) => {
   try {

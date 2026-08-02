@@ -325,6 +325,48 @@ function AppContent() {
     setCartLoaded(false); // Trigger refetch of cart items for the logged-in user
   };
 
+  // Handle Supabase Google OAuth redirect — runs on any page when returning from Google
+  React.useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && hash.includes('access_token=')) {
+      try {
+        const params = new URLSearchParams(hash.substring(1));
+        const accessToken = params.get('access_token');
+        if (accessToken) {
+          const base64Url = accessToken.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const jsonPayload = decodeURIComponent(
+            atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
+          );
+          const jwtData = JSON.parse(jsonPayload);
+          if (jwtData && jwtData.email) {
+            fetch(`${API_BASE}/api/auth/google`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                name: jwtData.user_metadata?.full_name || jwtData.name || jwtData.email.split('@')[0],
+                email: jwtData.email,
+                picture: jwtData.user_metadata?.avatar_url || null
+              })
+            })
+              .then(res => res.json())
+              .then(data => {
+                if (data.success && data.user) {
+                  window.history.replaceState(null, '', window.location.pathname);
+                  handleLogin(data.user);
+                  setActiveTab('shop');
+                }
+              })
+              .catch(err => console.error('Google OAuth auto-login error:', err));
+          }
+        }
+      } catch (e) {
+        console.error('Failed to parse Supabase OAuth hash:', e);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem('zylix_user');

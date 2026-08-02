@@ -24,6 +24,49 @@ export default function LoginView({ onLogin, setActiveTab, loginMessage, setLogi
   React.useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
+
+    // Check if returning from Supabase Google OAuth redirect
+    const hash = window.location.hash;
+    if (hash && (hash.includes('access_token=') || hash.includes('type=recovery'))) {
+      try {
+        const params = new URLSearchParams(hash.substring(1));
+        const accessToken = params.get('access_token');
+        if (accessToken) {
+          // Decode JWT payload without external library
+          const base64Url = accessToken.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+          const jwtData = JSON.parse(jsonPayload);
+          
+          if (jwtData && jwtData.email) {
+            setLoading(true);
+            fetch(`${API_BASE}/api/auth/google`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                name: jwtData.user_metadata?.full_name || jwtData.name || jwtData.email.split('@')[0],
+                email: jwtData.email,
+                picture: jwtData.user_metadata?.avatar_url || null
+              })
+            })
+              .then(res => res.json())
+              .then(data => {
+                if (data.success && data.user) {
+                  // Clean up hash from URL
+                  window.history.replaceState(null, '', window.location.pathname);
+                  onLogin(data.user);
+                  setActiveTab('shop');
+                }
+              })
+              .catch(err => console.error('OAuth sync error:', err))
+              .finally(() => setLoading(false));
+          }
+        }
+      } catch (e) {
+        console.error('Failed to parse OAuth hash token:', e);
+      }
+    }
+
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
@@ -662,6 +705,50 @@ export default function LoginView({ onLogin, setActiveTab, loginMessage, setLogi
             {loading ? "Processing..." : (isRegister ? "Send Verification OTP" : "Sign In")}
           </button>
         </form>
+
+        {/* Divider */}
+        <div style={{ display: 'flex', alignItems: 'center', margin: '1rem 0 0.85rem', color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: '700' }}>
+          <div style={{ flex: 1, borderBottom: '1px solid #e2e8f0' }} />
+          <span style={{ padding: '0 8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>OR</span>
+          <div style={{ flex: 1, borderBottom: '1px solid #e2e8f0' }} />
+        </div>
+
+        {/* Google Login Button */}
+        <button
+          type="button"
+          onClick={() => {
+            const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname);
+            const supabaseOAuthUrl = `https://aghpqypwkqdpchdzcjtw.supabase.co/auth/v1/authorize?provider=google&redirect_to=${redirectUri}`;
+            window.location.href = supabaseOAuthUrl;
+          }}
+          style={{
+            width: '100%',
+            height: '40px',
+            borderRadius: '8px',
+            backgroundColor: '#ffffff',
+            color: '#3c4043',
+            border: '1px solid #cbd5e1',
+            fontWeight: '700',
+            fontSize: '0.82rem',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.borderColor = '#94a3b8'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#ffffff'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18">
+            <path fill="#4285F4" d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.1.83-.64 2.08-1.84 2.92l2.84 2.2c1.7-1.57 2.68-3.88 2.68-6.62z"/>
+            <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.84-2.2c-.76.53-1.78.9-3.12.9-2.38 0-4.41-1.57-5.13-3.74L.97 13.04C2.45 15.98 5.48 18 9 18z"/>
+            <path fill="#FBBC05" d="M3.87 10.78c-.18-.53-.28-1.09-.28-1.78s.1-1.25.28-1.78L.97 4.96C.35 6.18 0 7.55 0 9s.35 2.82.97 4.04l2.9-2.26z"/>
+            <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.45 2.02.97 4.96l2.9 2.26C4.59 5.15 6.62 3.58 9 3.58z"/>
+          </svg>
+          <span>Continue with Google</span>
+        </button>
 
         <div style={{ textAlign: 'center', marginTop: '1.25rem', fontSize: '0.78rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
           <div>
