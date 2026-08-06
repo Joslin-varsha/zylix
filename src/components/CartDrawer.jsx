@@ -95,13 +95,7 @@ export default function CartDrawer({
                   backgroundColor: '#f3f3f3', overflow: 'hidden', flexShrink: 0,
                   border: '1px solid #eee'
                 }}>
-                  {item.isCustom ? (
-                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem', fontWeight: '800', color: '#555', textAlign: 'center', padding: '4px', backgroundColor: '#f0f0f0' }}>
-                      STL<br />PRINT
-                    </div>
-                  ) : (
-                    <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  )}
+                  <img src={item.image || '/product-1.webp'} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
 
                 {/* Info */}

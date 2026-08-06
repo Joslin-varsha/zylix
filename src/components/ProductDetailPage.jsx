@@ -5,6 +5,7 @@ export default function ProductDetailPage({
   product, 
   onBack, 
   onAddToCart, 
+  onBuyNow,
   onToggleWishlist, 
   isWishlisted, 
   onCustomize,
@@ -155,12 +156,17 @@ export default function ProductDetailPage({
 
           {/* Determine if this product requires 3D Lab customization */}
           {(() => {
-            const fieldSet = product.allow_customize !== undefined && product.allow_customize !== null;
-            const adminAllowed = product.allow_customize === true || product.allow_customize === 'true';
-            const nameLower = product.name.toLowerCase();
+            const fieldSet = (product.allow_customize !== undefined && product.allow_customize !== null) ||
+                             (product.allowCustomize !== undefined && product.allowCustomize !== null) ||
+                             (product.allow_customization !== undefined && product.allow_customization !== null);
+            const adminAllowed = product.allow_customize === true || product.allow_customize === 'true' ||
+                                 product.allowCustomize === true || product.allowCustomize === 'true' ||
+                                 product.allow_customization === true || product.allow_customization === 'true';
+            const nameLower = (product.name || '').toLowerCase();
+            const catLower = (product.category || '').toLowerCase();
             const isCustomizable = fieldSet
               ? adminAllowed
-              : (nameLower.includes('keychain') || nameLower.includes('key chain') || nameLower.includes('key tag'));
+              : (catLower.includes('keychain') || nameLower.includes('keychain') || nameLower.includes('key chain') || nameLower.includes('key tag'));
 
             if (isCustomizable && onCustomize) {
               // ━━━ CUSTOMIZE-ONLY MODE ━━━
@@ -168,58 +174,37 @@ export default function ProductDetailPage({
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
 
-                  {/* Big highlighted Customize button — PRIMARY CTA */}
-                  <button
-                    onClick={() => onCustomize(product)}
-                    style={{
-                      width: '100%',
-                      height: '56px',
-                      borderRadius: '14px',
-                      background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                      color: '#ffffff',
-                      border: 'none',
-                      fontWeight: '900',
-                      fontSize: '1rem',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '10px',
-                      boxShadow: '0 4px 24px rgba(37,99,235,0.35)',
-                      letterSpacing: '0.02em',
-                      transition: 'all 0.2s ease'
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(37,99,235,0.45)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 24px rgba(37,99,235,0.35)'; }}
-                    id="btn-customize-3d-lab"
-                  >
-                    🎨 Customize in 3D Print Lab
-                  </button>
-
-                  {/* Add to Cart — visible but shows warning when clicked */}
                   <div style={{ display: 'flex', gap: '0.75rem', width: '100%' }}>
                     <button
-                      onClick={() => {
-                        setCustomizeWarning(true);
-                        setTimeout(() => setCustomizeWarning(false), 3500);
-                      }}
+                      onClick={() => onCustomize(product)}
                       style={{
-                        flex: 1, height: '46px', fontSize: '0.88rem', fontWeight: '800',
-                        borderRadius: '10px', display: 'flex', alignItems: 'center',
-                        justifyContent: 'center', gap: '8px',
-                        background: '#f1f5f9', color: '#64748b',
-                        border: '1.5px solid #cbd5e1', cursor: 'pointer',
+                        flex: 1,
+                        height: '56px',
+                        borderRadius: '14px',
+                        background: '#000000',
+                        color: '#ffffff',
+                        border: 'none',
+                        fontWeight: '900',
+                        fontSize: '1rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '10px',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                        letterSpacing: '0.02em',
                         transition: 'all 0.2s ease'
                       }}
-                      onMouseEnter={e => { e.currentTarget.style.background = '#e2e8f0'; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = '#f1f5f9'; }}
+                      onMouseEnter={e => { e.currentTarget.style.background = '#1a1a1a'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = '#000000'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                      id="btn-customize-3d-lab"
                     >
-                      <ShoppingCart size={17} /> Add to Cart
+                      🎨 Customize in 3D Print Lab
                     </button>
                     <button
                       onClick={() => onToggleWishlist && onToggleWishlist(product)}
                       style={{
-                        width: '46px', height: '46px', borderRadius: '10px',
+                        width: '56px', height: '56px', borderRadius: '14px',
                         backgroundColor: isWishlisted ? '#fef2f2' : '#ffffff',
                         border: isWishlisted ? '1px solid #fecaca' : '1px solid #cbd5e1',
                         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -227,7 +212,7 @@ export default function ProductDetailPage({
                       }}
                       title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
                     >
-                      <Heart size={18} fill={isWishlisted ? '#ef4444' : 'none'} color={isWishlisted ? '#ef4444' : '#475569'} style={{ display: 'block', margin: '0 auto' }} />
+                      <Heart size={20} fill={isWishlisted ? '#ef4444' : 'none'} color={isWishlisted ? '#ef4444' : '#475569'} style={{ display: 'block', margin: '0 auto' }} />
                     </button>
                   </div>
 
@@ -280,10 +265,58 @@ export default function ProductDetailPage({
                   <div style={{ display: 'flex', gap: '0.75rem', width: '100%' }}>
                     <button
                       onClick={handleAddToCartClick}
-                      className="btn-primary"
-                      style={{ flex: 1, height: '48px', fontSize: '0.9rem', fontWeight: '800', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                      style={{
+                        flex: 1,
+                        height: '48px',
+                        fontSize: '0.88rem',
+                        fontWeight: '800',
+                        borderRadius: '10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        background: '#f1f5f9',
+                        color: '#0f172a',
+                        border: '1.5px solid #cbd5e1',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = '#e2e8f0'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = '#f1f5f9'; }}
                     >
-                      <ShoppingCart size={18} /> Add to Cart
+                      <ShoppingCart size={17} /> Add to Cart
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (onBuyNow) {
+                          onBuyNow(product, quantity);
+                        } else {
+                          onAddToCart(product, quantity);
+                          if (setActiveTab) setActiveTab('checkout');
+                        }
+                      }}
+                      style={{
+                        flex: 1.2,
+                        height: '48px',
+                        fontSize: '0.92rem',
+                        fontWeight: '900',
+                        borderRadius: '10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        background: '#000000',
+                        color: '#ffffff',
+                        border: 'none',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
+                        letterSpacing: '0.03em',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = '#1a1a1a'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = '#000000'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                    >
+                      ⚡ BUY NOW
                     </button>
                     <button
                       onClick={() => onToggleWishlist && onToggleWishlist(product)}

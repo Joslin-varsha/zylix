@@ -408,18 +408,7 @@ export default function CartPage({
             <div key={index} className="cart-item-card">
               {/* Thumbnail */}
               <div className="cart-item-thumb">
-                {item.isCustom ? (
-                  <div style={{
-                    width: '100%', height: '100%', display: 'flex',
-                    alignItems: 'center', justifyContent: 'center',
-                    fontSize: '0.65rem', fontWeight: '800', color: '#555',
-                    textAlign: 'center', backgroundColor: '#f0f0f0'
-                  }}>
-                    STL<br />PRINT
-                  </div>
-                ) : (
-                  <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                )}
+                <img src={item.image || '/product-1.webp'} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
 
               {/* Info */}
@@ -428,9 +417,10 @@ export default function CartPage({
                   {item.name}
                 </h3>
                 {item.isCustom && (
-                  <p style={{ fontSize: '0.72rem', color: '#999' }}>
-                    {item.material} · {item.infill}% infill · {item.resolution}
-                  </p>
+                  <div style={{ fontSize: '0.74rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '2px' }}>
+                    {item.customText && <div>Text: <strong>"{item.customText}"</strong> ({item.customFont})</div>}
+                    <div>Colors: <strong>{item.textColor}</strong> text on <strong>{item.baseColor}</strong> base ({item.size || 'Medium'})</div>
+                  </div>
                 )}
                 <p style={{ fontSize: '0.95rem', fontWeight: '800', color: '#000', fontFamily: 'var(--font-display)', marginTop: '0.2rem' }}>
                   ₹{item.price.toLocaleString('en-IN')}

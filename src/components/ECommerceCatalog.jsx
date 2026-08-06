@@ -80,6 +80,7 @@ export default function ECommerceCatalog({
   activeCategory,
   onProductClick, 
   onAddToCart, 
+  onBuyNow,
   wishlist,
   onToggleWishlist,
   setActiveTab,
@@ -476,7 +477,7 @@ export default function ECommerceCatalog({
               <div ref={newRef} className="products-scroll-container">
                 {products.filter(p => ['keychains', 'miniatures', 'holders', 'lightbox'].includes(p.category)).map((product, i) => {
                   const isWishlisted = wishlist.some(item => item.id === product.id);
-                  return <ProductCard key={product.id} product={product} isWishlisted={isWishlisted} onToggleWishlist={onToggleWishlist} onProductClick={onProductClick} onAddToCart={onAddToCart} animDelay={i * 0.1} />;
+                  return <ProductCard key={product.id} product={product} isWishlisted={isWishlisted} onToggleWishlist={onToggleWishlist} onProductClick={onProductClick} onAddToCart={onAddToCart} onBuyNow={onBuyNow} setActiveTab={setActiveTab} animDelay={i * 0.1} />;
                 })}
               </div>
             </div>
@@ -499,7 +500,7 @@ export default function ECommerceCatalog({
               <div ref={featuredRef} className="products-scroll-container">
                 {products.filter(p => ['masks', 'stencils', 'gifts', 'wallart'].includes(p.category)).map((product, i) => {
                   const isWishlisted = wishlist.some(item => item.id === product.id);
-                  return <ProductCard key={product.id} product={product} isWishlisted={isWishlisted} onToggleWishlist={onToggleWishlist} onProductClick={onProductClick} onAddToCart={onAddToCart} animDelay={i * 0.1} />;
+                  return <ProductCard key={product.id} product={product} isWishlisted={isWishlisted} onToggleWishlist={onToggleWishlist} onProductClick={onProductClick} onAddToCart={onAddToCart} onBuyNow={onBuyNow} setActiveTab={setActiveTab} animDelay={i * 0.1} />;
                 })}
               </div>
             </div>
@@ -518,7 +519,7 @@ export default function ECommerceCatalog({
               <div ref={moreRef} className="products-scroll-container">
                 {products.slice(1).filter((_, i) => i % 2 === 0).slice(0, 8).map((product, i) => {
                   const isWishlisted = wishlist.some(item => item.id === product.id);
-                  return <ProductCard key={product.id} product={product} isWishlisted={isWishlisted} onToggleWishlist={onToggleWishlist} onProductClick={onProductClick} onAddToCart={onAddToCart} animDelay={i * 0.1} />;
+                  return <ProductCard key={product.id} product={product} isWishlisted={isWishlisted} onToggleWishlist={onToggleWishlist} onProductClick={onProductClick} onAddToCart={onAddToCart} onBuyNow={onBuyNow} setActiveTab={setActiveTab} animDelay={i * 0.1} />;
                 })}
               </div>
             </div>
@@ -753,7 +754,7 @@ export default function ECommerceCatalog({
                   <div className="products-grid">
                     {paginatedProducts.map((product, i) => {
                       const isWishlisted = wishlist.some(item => item.id === product.id);
-                      return <ProductCard key={product.id} product={product} isWishlisted={isWishlisted} onToggleWishlist={onToggleWishlist} onProductClick={onProductClick} onAddToCart={onAddToCart} animDelay={i * 0.04} />;
+                      return <ProductCard key={product.id} product={product} isWishlisted={isWishlisted} onToggleWishlist={onToggleWishlist} onProductClick={onProductClick} onAddToCart={onAddToCart} onBuyNow={onBuyNow} setActiveTab={setActiveTab} animDelay={i * 0.04} />;
                     })}
                   </div>
 
@@ -853,9 +854,21 @@ export default function ECommerceCatalog({
   );
 }
 
-function ProductCard({ product, isWishlisted, onToggleWishlist, onProductClick, onAddToCart, animDelay = 0 }) {
+function ProductCard({ product, isWishlisted, onToggleWishlist, onProductClick, onAddToCart, onBuyNow, setActiveTab, animDelay = 0 }) {
   const isSoldOut = !product.inStock || product.badge === "Sold Out";
   const [hovered, setHovered] = React.useState(false);
+
+  const fieldSet = (product.allow_customize !== undefined && product.allow_customize !== null) ||
+                   (product.allowCustomize !== undefined && product.allowCustomize !== null) ||
+                   (product.allow_customization !== undefined && product.allow_customization !== null);
+  const adminAllowed = product.allow_customize === true || product.allow_customize === 'true' ||
+                       product.allowCustomize === true || product.allowCustomize === 'true' ||
+                       product.allow_customization === true || product.allow_customization === 'true';
+  const nameLower = (product.name || '').toLowerCase();
+  const catLower = (product.category || '').toLowerCase();
+  const isCustomizable = fieldSet
+    ? adminAllowed
+    : (catLower.includes('keychain') || nameLower.includes('keychain') || nameLower.includes('key chain') || nameLower.includes('key tag'));
 
   return (
     <div
@@ -955,10 +968,90 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, onProductClick, 
           <button onClick={(e) => { e.stopPropagation(); onProductClick(product); }} className="btn-secondary" style={{ width: '100%', height: '34px', fontSize: '0.72rem', marginTop: 'auto', padding: 0 }}>
             Read More
           </button>
-        ) : (
-          <button onClick={(e) => { e.stopPropagation(); onAddToCart(product); }} className="btn-primary" style={{ width: '100%', height: '34px', fontSize: '0.72rem', marginTop: 'auto', padding: 0 }}>
-            <ShoppingCart size={11} /> Add to Cart
+        ) : isCustomizable ? (
+          <button
+            onClick={(e) => { e.stopPropagation(); onProductClick(product); }}
+            style={{
+              width: '100%',
+              height: '34px',
+              fontSize: '0.74rem',
+              fontWeight: '900',
+              borderRadius: '6px',
+              background: '#000000',
+              color: '#ffffff',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              marginTop: 'auto',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)',
+              transition: 'all 0.15s ease'
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#222222'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#000000'; }}
+          >
+            🎨 Customize in 3D Lab
           </button>
+        ) : (
+          <div style={{ display: 'flex', gap: '6px', marginTop: 'auto', width: '100%' }}>
+            <button
+              onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
+              style={{
+                flex: 1,
+                height: '34px',
+                fontSize: '0.7rem',
+                fontWeight: '700',
+                borderRadius: '6px',
+                background: '#f1f5f9',
+                color: '#0f172a',
+                border: '1px solid #cbd5e1',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '4px',
+                transition: 'all 0.15s ease'
+              }}
+              title="Add item to cart"
+            >
+              <ShoppingCart size={11} /> Add
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onBuyNow) {
+                  onBuyNow(product);
+                } else {
+                  onAddToCart(product);
+                  if (setActiveTab) setActiveTab('checkout');
+                }
+              }}
+              style={{
+                flex: 1.2,
+                height: '34px',
+                fontSize: '0.72rem',
+                fontWeight: '900',
+                borderRadius: '6px',
+                background: '#000000',
+                color: '#ffffff',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '4px',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#222222'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#000000'; }}
+              title="Buy now and proceed to checkout"
+            >
+              ⚡ BUY NOW
+            </button>
+          </div>
         )}
       </div>
     </div>

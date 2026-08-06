@@ -4,6 +4,7 @@ import Footer from './components/Footer';
 import ECommerceCatalog from './components/ECommerceCatalog';
 import CartDrawer from './components/CartDrawer';
 import CartPage from './components/CartPage';
+import CheckoutPage from './components/CheckoutPage';
 import AIPrintLab from './components/AIPrintLab';
 import ProductDetailPage from './components/ProductDetailPage';
 import MobileBottomNav from './components/MobileBottomNav';
@@ -53,6 +54,7 @@ function AppContent() {
   const [cartOpen, setCartOpen] = React.useState(false);
   const [studentApplied, setStudentApplied] = React.useState(false);
   const [selectedProduct, setSelectedProduct] = React.useState(null);
+  const [buyNowItem, setBuyNowItem] = React.useState(null);
   const [cartLoaded, setCartLoaded] = React.useState(false);
   
   // States: Login, Wishlist & Toggles
@@ -122,20 +124,21 @@ function AppContent() {
   const handleCustomizeProduct = (product) => {
     setActiveTab('designer');
 
-    // Use lab_preset set by admin in the admin panel; fall back to keyword detection
-    const preset = product.lab_preset;
-    const nameLower = product.name.toLowerCase();
+    // Read lab_preset / labPreset / lab_form_preset set by admin in the admin panel
+    const presetRaw = (product.lab_preset || product.labPreset || product.lab_form_preset || '').toLowerCase();
+    const catLower = (product.category || '').toLowerCase();
+    const nameLower = (product.name || '').toLowerCase();
 
-    if (preset === 'keychain' || (!preset && (nameLower.includes('keychain') || nameLower.includes('key chain') || nameLower.includes('key tag')))) {
+    if (presetRaw.includes('keychain') || (!presetRaw && (catLower.includes('keychain') || nameLower.includes('keychain') || nameLower.includes('key chain') || nameLower.includes('key tag')))) {
       setDesignerPreset('keychain');
       setCustomizerText('MY KEYCHAIN');
-    } else if (preset === 'nameboard' || (!preset && (nameLower.includes('plaque') || nameLower.includes('board') || nameLower.includes('plate') || nameLower.includes('stencil') || nameLower.includes('sign')))) {
+    } else if (presetRaw.includes('name') || presetRaw.includes('board') || (!presetRaw && (catLower.includes('stencil') || catLower.includes('signage') || nameLower.includes('plaque') || nameLower.includes('board') || nameLower.includes('plate') || nameLower.includes('stencil') || nameLower.includes('sign')))) {
       setDesignerPreset('nameboard');
       setCustomizerText('ZYLIX 3D');
-    } else if (preset === 'phonestand' || (!preset && (nameLower.includes('stand') || nameLower.includes('holder') || nameLower.includes('dock')))) {
+    } else if (presetRaw.includes('phone') || presetRaw.includes('stand') || (!presetRaw && (catLower.includes('holder') || nameLower.includes('stand') || nameLower.includes('holder') || nameLower.includes('dock')))) {
       setDesignerPreset('phonestand');
       setCustomizerText('STAND');
-    } else if (preset === 'trophy' || (!preset && (nameLower.includes('trophy') || nameLower.includes('award')))) {
+    } else if (presetRaw.includes('trophy') || (!presetRaw && (catLower.includes('trophy') || catLower.includes('gift') || nameLower.includes('trophy') || nameLower.includes('award')))) {
       setDesignerPreset('trophy');
       setCustomizerText('CHAMPION');
     } else {
@@ -272,6 +275,13 @@ function AppContent() {
 
     // 2. Open side Cart Drawer for instant feedback
     setCartOpen(true);
+  };
+
+  // Direct Buy Now Handler — Jump straight to Checkout page
+  const handleBuyNow = (product, quantity = 1) => {
+    setBuyNowItem({ ...product, quantity });
+    setActiveTab('checkout');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleRemoveItem = (index) => {
@@ -437,6 +447,7 @@ function AppContent() {
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 onAddToCart={handleAddToCart}
+                onBuyNow={handleBuyNow}
                 wishlist={wishlist}
                 onToggleWishlist={handleToggleWishlist}
                 setActiveTab={setActiveTab}
@@ -454,6 +465,7 @@ function AppContent() {
                   setSelectedProduct(null);
                 }}
                 onAddToCart={handleAddToCart}
+                onBuyNow={handleBuyNow}
                 onToggleWishlist={handleToggleWishlist}
                 isWishlisted={wishlist.some(w => w.id === selectedProduct.id)}
                 onCustomize={handleCustomizeProduct}
@@ -469,6 +481,7 @@ function AppContent() {
           {['ailab', 'designer'].includes(activeTab) && (
             <AIPrintLab
               onAddToCart={handleAddToCart}
+              onBuyNow={handleBuyNow}
               labTab={activeTab === 'ailab' ? 'slicer' : activeTab}
               setLabTab={(t) => {
                 setActiveTab(t === 'slicer' ? 'ailab' : t);
@@ -521,6 +534,17 @@ function AppContent() {
               user={user}
               setActiveTab={setActiveTab}
             />
+          )}
+          {activeTab === 'checkout' && (
+            <ErrorBoundary>
+              <CheckoutPage
+                buyNowItem={buyNowItem}
+                cartItems={cartItems}
+                user={user}
+                setActiveTab={setActiveTab}
+                onClearCart={handleClearCart}
+              />
+            </ErrorBoundary>
           )}
         </div>
       </main>

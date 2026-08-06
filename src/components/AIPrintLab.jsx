@@ -103,6 +103,7 @@ const getFontFamily = (fontId) => {
 
 export default function AIPrintLab({ 
   onAddToCart,
+  onBuyNow,
   labTab = 'slicer',
   setLabTab,
   designerPreset = 'keychain',
@@ -286,6 +287,85 @@ export default function AIPrintLab({
       setProductType(designerPreset);
     }
   }, [designerPreset]);
+
+  const handleAddToCartDesigner = () => {
+    if (productType === 'keychain' && !nameText.trim()) {
+      triggerError("Please specify the custom text/name for your keychain before adding to cart.");
+      return;
+    }
+    
+    const price = 50; // Custom Keychain fixed static price = ₹50
+    const imgMap = {
+      keychain: '/images/categories/keychains.webp',
+      nameboard: '/images/categories/stencils.jpg',
+      phonestand: '/images/categories/holders.jpg',
+      trophy: '/images/categories/gifts.jpg'
+    };
+
+    const finalTextColor = designerColor === 'Other' && customColor.trim() ? customColor.trim() : designerColor;
+
+    const customItem = {
+      id: `custom_${productType}_${Date.now()}`,
+      name: `Custom 3D Keychain ("${nameText.trim() || 'Design'}")`,
+      price: price,
+      image: '/product-1.webp',
+      isCustom: true,
+      material: 'PLA Premium',
+      infill: 20,
+      resolution: '0.2mm High Quality',
+      customText: nameText.trim(),
+      customFont: selectedFont,
+      textColor: finalTextColor,
+      baseColor: baseColor,
+      size: designerSize,
+      quantity: 1
+    };
+
+    if (onAddToCart) {
+      onAddToCart(customItem);
+    }
+  };
+
+  const handleBuyNowDesigner = () => {
+    if (productType === 'keychain' && !nameText.trim()) {
+      triggerError("Please specify the custom text/name for your keychain before buying.");
+      return;
+    }
+    
+    const price = 50; // Custom Keychain fixed static price = ₹50
+    const imgMap = {
+      keychain: '/images/categories/keychains.webp',
+      nameboard: '/images/categories/stencils.jpg',
+      phonestand: '/images/categories/holders.jpg',
+      trophy: '/images/categories/gifts.jpg'
+    };
+
+    const finalTextColor = designerColor === 'Other' && customColor.trim() ? customColor.trim() : designerColor;
+
+    const customItem = {
+      id: `custom_${productType}_${Date.now()}`,
+      name: `Custom 3D Keychain ("${nameText.trim() || 'Design'}")`,
+      price: price,
+      image: '/product-1.webp',
+      isCustom: true,
+      material: 'PLA Premium',
+      infill: 20,
+      resolution: '0.2mm High Quality',
+      customText: nameText.trim(),
+      customFont: selectedFont,
+      textColor: finalTextColor,
+      baseColor: baseColor,
+      size: designerSize,
+      quantity: 1
+    };
+
+    if (onBuyNow) {
+      onBuyNow(customItem);
+    } else if (onAddToCart) {
+      onAddToCart(customItem);
+      if (setActiveTab) setActiveTab('checkout');
+    }
+  };
 
   const handleReferenceFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -1276,50 +1356,52 @@ export default function AIPrintLab({
                   />
                 </div>
 
-                {/* Contact Details */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', borderTop: '1px dashed var(--border-color)', paddingTop: '1rem', marginTop: '0.25rem' }}>
-                  <label style={{ fontSize: '0.82rem', fontWeight: '700', color: '#000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Contact Details</label>
-                  
-                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.75rem' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Full Name</span>
-                      <input
-                        type="text"
-                        value={customerName}
-                        onChange={(e) => setCustomerName(e.target.value)}
-                        placeholder="Your Name"
-                        className="input-field"
-                        style={{ borderRadius: '6px', height: '34px', fontSize: '0.78rem' }}
-                        required
-                      />
+                {/* Contact Details — only required for non-keychain custom quote requests */}
+                {productType !== 'keychain' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', borderTop: '1px dashed var(--border-color)', paddingTop: '1rem', marginTop: '0.25rem' }}>
+                    <label style={{ fontSize: '0.82rem', fontWeight: '700', color: '#000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Contact Details</label>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.75rem' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Full Name</span>
+                        <input
+                          type="text"
+                          value={customerName}
+                          onChange={(e) => setCustomerName(e.target.value)}
+                          placeholder="Your Name"
+                          className="input-field"
+                          style={{ borderRadius: '6px', height: '34px', fontSize: '0.78rem' }}
+                          required
+                        />
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Email Address</span>
+                        <input
+                          type="email"
+                          value={customerEmail}
+                          onChange={(e) => setCustomerEmail(e.target.value)}
+                          placeholder="name@email.com"
+                          className="input-field"
+                          style={{ borderRadius: '6px', height: '34px', fontSize: '0.78rem' }}
+                          required
+                        />
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Email Address</span>
-                      <input
-                        type="email"
-                        value={customerEmail}
-                        onChange={(e) => setCustomerEmail(e.target.value)}
-                        placeholder="name@email.com"
-                        className="input-field"
-                        style={{ borderRadius: '6px', height: '34px', fontSize: '0.78rem' }}
-                        required
-                      />
-                    </div>
-                  </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Phone Number</span>
-                    <input
-                      type="tel"
-                      value={customerPhone}
-                      onChange={(e) => setCustomerPhone(e.target.value)}
-                      placeholder="+91 XXXXX XXXXX"
-                      className="input-field"
-                      style={{ borderRadius: '6px', height: '34px', fontSize: '0.78rem' }}
-                      required
-                    />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Phone Number</span>
+                      <input
+                        type="tel"
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        placeholder="+91 XXXXX XXXXX"
+                        className="input-field"
+                        style={{ borderRadius: '6px', height: '34px', fontSize: '0.78rem' }}
+                        required
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {validationError && (
                   <div 
@@ -1345,39 +1427,101 @@ export default function AIPrintLab({
                   </div>
                 )}
 
-                {user ? (
-                  <button
-                    type="submit"
-                    className="btn-primary"
-                    style={{ width: '100%', height: '44px', marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                    disabled={designerSubmitting || !customerName || !customerEmail || !customerPhone}
-                  >
-                    {designerSubmitting ? 'Sending Request...' : 'Request Design & Quote'}
-                  </button>
+                {/* Action Buttons: Keychain has instant Buy Now (₹50) & Add to Cart (₹50), others have Request Quote */}
+                {productType === 'keychain' ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.25rem' }}>
+                    <div style={{ display: 'flex', gap: '0.75rem', width: '100%' }}>
+                      <button
+                        type="button"
+                        onClick={handleAddToCartDesigner}
+                        style={{
+                          flex: 1,
+                          height: '48px',
+                          fontSize: '0.88rem',
+                          fontWeight: '800',
+                          borderRadius: '10px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          background: '#f1f5f9',
+                          color: '#0f172a',
+                          border: '1.5px solid #cbd5e1',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#e2e8f0'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = '#f1f5f9'; }}
+                      >
+                        🛒 Add to Cart (₹50)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleBuyNowDesigner}
+                        style={{
+                          flex: 1.2,
+                          height: '48px',
+                          fontSize: '0.92rem',
+                          fontWeight: '900',
+                          borderRadius: '10px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          background: '#000000',
+                          color: '#ffffff',
+                          border: 'none',
+                          cursor: 'pointer',
+                          boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
+                          letterSpacing: '0.02em',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#1a1a1a'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = '#000000'; }}
+                      >
+                        ⚡ BUY NOW (₹50)
+                      </button>
+                    </div>
+                  </div>
                 ) : (
-                  <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('login')}
-                      className="btn-primary"
-                      style={{
-                        width: '100%',
-                        height: '44px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        backgroundColor: '#f1f5f9',
-                        color: '#475569',
-                        border: '1px solid #cbd5e1',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      🔒 Sign In to Submit Quote Request
-                    </button>
-                    <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', marginTop: '0.4rem' }}>
-                      *Sign in is required to submit custom print quotes & track orders.
-                    </span>
+                  <div style={{ marginTop: '1.25rem' }}>
+                    {user ? (
+                      <button
+                        type="submit"
+                        className="btn-primary"
+                        style={{ width: '100%', height: '48px', fontSize: '0.92rem', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)', borderRadius: '12px' }}
+                        disabled={designerSubmitting || !customerName || !customerEmail || !customerPhone}
+                      >
+                        📋 {designerSubmitting ? 'Sending Request...' : 'Request Custom Design & Quote'}
+                      </button>
+                    ) : (
+                      <div style={{ textAlign: 'center' }}>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('login')}
+                          style={{
+                            width: '100%',
+                            height: '46px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            backgroundColor: '#f8fafc',
+                            color: '#475569',
+                            border: '1px solid #cbd5e1',
+                            borderRadius: '10px',
+                            cursor: 'pointer',
+                            fontWeight: '800',
+                            fontSize: '0.85rem'
+                          }}
+                        >
+                          🔒 Sign In to Submit Quote Request
+                        </button>
+                        <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', marginTop: '0.4rem' }}>
+                          *Sign in is required to submit custom print quotes & track order status.
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
               </form>
