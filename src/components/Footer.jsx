@@ -19,10 +19,19 @@ const InstagramIcon = ({ size = 14 }) => (
 );
 
 export default function Footer({ setActiveTab }) {
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  if (isMobile) return null;
 
   const navigate = (tab) => {
     setActiveTab(tab);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo(0, 0);
   };
 
   const policies = [
@@ -45,7 +54,7 @@ export default function Footer({ setActiveTab }) {
 
 
   return (
-    <footer style={{
+    <footer className="desktop-only-footer" style={{
       backgroundColor: '#0a0a0a',
       borderTop: '1px solid #1a1a1a',
       marginTop: '4rem',

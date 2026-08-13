@@ -139,6 +139,27 @@ export default function ECommerceCatalog({
   const [inStockOnly, setInStockOnly] = React.useState(false);
   const [hoveredCategory, setHoveredCategory] = React.useState(null);
   const [sortBy, setSortBy] = React.useState('best');
+  const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  React.useEffect(() => {
+    if (mobileFiltersOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileFiltersOpen]);
+
+
 
   const handleDragScroll = (e, ref) => {
     const container = ref.current;
@@ -162,7 +183,6 @@ export default function ECommerceCatalog({
   };
   const [currentPage, setCurrentPage] = React.useState(1);
   const itemsPerPage = 8;
-  const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
 
   const newRef = React.useRef(null);
   const featuredRef = React.useRef(null);
@@ -266,6 +286,28 @@ export default function ECommerceCatalog({
     setCurrentPage(1);
   }, [selectedCats, priceRange, inStockOnly, searchQuery]);
 
+  // IntersectionObserver effect for smooth scroll reveal animations
+  React.useEffect(() => {
+    const observerCallback = (entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, {
+      root: null,
+      rootMargin: '0px 0px -40px 0px',
+      threshold: 0.08
+    });
+
+    const elements = document.querySelectorAll('.scroll-reveal, .reveal-fade, .reveal-scale');
+    elements.forEach(el => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, [products, activeCategory, currentPage, viewMode]);
+
   const slide = carouselSlides[carouselIndex];
 
   return (
@@ -273,7 +315,7 @@ export default function ECommerceCatalog({
       {viewMode === 'home' ? (
         <div>
           {/* ===== MARQUEE TICKER ===== */}
-          <div className="marquee-wrapper">
+          <div className="marquee-wrapper reveal-fade">
             <div className="marquee-track">
               {marqueeItems.map((item, i) => (
                 <span key={i} className="marquee-item">
@@ -284,7 +326,7 @@ export default function ECommerceCatalog({
           </div>
 
           {/* ===== HERO CAROUSEL ===== */}
-          <div className="hero-carousel-container" style={{ position: 'relative', height: '420px', overflow: 'visible', marginBottom: '0', borderRadius: '16px 16px 0 0', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
+          <div className="hero-carousel-container scroll-reveal" style={{ position: 'relative', height: '420px', overflow: 'visible', marginBottom: '0', borderRadius: '16px 16px 0 0', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
             <div style={{
               position: 'absolute', inset: 0,
               backgroundImage: `url(${slide.image})`,
@@ -386,82 +428,184 @@ export default function ECommerceCatalog({
           </div>
 
           {/* ===== CATEGORY CARDS ===== */}
-          <div className="desktop-category-cards" style={{ marginBottom: '3.5rem', backgroundColor: '#f8fafc', padding: '2rem 0 0', marginTop: '-2px' }}>
-            <div className="shelf-header" style={{ marginBottom: '1.5rem' }}>
+          <div className="category-cards-section scroll-reveal" style={{ marginBottom: isMobile ? '2rem' : '3.5rem', backgroundColor: '#f8fafc', padding: isMobile ? '1.25rem 0 1rem' : '2rem 0 0', marginTop: '-2px' }}>
+            <div className="shelf-header" style={{ marginBottom: isMobile ? '1.0rem' : '1.5rem', padding: isMobile ? '0 0.25rem' : '0' }}>
               <div>
-                <h2 className="shelf-title">Shop by Category</h2>
+                <h2 className="shelf-title" style={{ fontSize: isMobile ? '1.15rem' : '1.5rem', fontWeight: '900' }}>Shop by Category</h2>
               </div>
               <button onClick={() => setActiveCategory('all')} style={{ background: 'transparent', border: 'none', color: 'var(--accent-color)', fontWeight: '800', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', letterSpacing: '0.05em', textTransform: 'uppercase', transition: 'var(--transition-fast)' }} onMouseEnter={(e) => e.target.style.opacity = 0.8} onMouseLeave={(e) => e.target.style.opacity = 1}>
                 VIEW ALL <ArrowRight size={12} />
               </button>
             </div>
-            <div className="carousel-wrapper" style={{ position: 'relative' }}>
-              <div ref={categoriesRef} onWheel={(e) => { if (categoriesRef.current && e.deltaY) { categoriesRef.current.scrollLeft += e.deltaY; } }} className="category-scroll-grid">
-                {categories.map((cat, i) => (
+
+            {isMobile ? (
+              /* 2-ROW HORIZONTAL SWIPER STRIP FOR MOBILE */
+              <div 
+                className="category-mobile-swiper" 
+                style={{
+                  display: 'grid',
+                  gridTemplateRows: 'repeat(2, 78px)',
+                  gridAutoFlow: 'column',
+                  gridAutoColumns: 'calc(48% - 0.25rem)',
+                  gap: '0.5rem',
+                  overflowX: 'auto',
+                  scrollSnapType: 'x mandatory',
+                  WebkitOverflowScrolling: 'touch',
+                  padding: '0.25rem 0.25rem 0.65rem',
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none'
+                }}
+              >
+                {categories.map((cat) => (
                   <button
                     key={cat.id}
                     onClick={() => setActiveCategory(cat.id)}
-                    onMouseEnter={() => setHoveredCategory(cat.id)}
-                    onMouseLeave={() => setHoveredCategory(null)}
                     style={{
                       position: 'relative',
-                      height: '110px',
-                      width: '140px',
-                      flexShrink: 0,
-                      border: hoveredCategory === cat.id ? '2px solid var(--accent-color)' : '2px solid transparent',
+                      height: '78px',
+                      width: '100%',
+                      scrollSnapAlign: 'start',
                       borderRadius: '12px',
                       overflow: 'hidden',
                       cursor: 'pointer',
-                      background: 'none',
+                      background: '#0f172a',
+                      border: '1px solid rgba(226, 232, 240, 0.9)',
                       padding: 0,
-                      transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                      transform: hoveredCategory === cat.id ? 'translateY(-4px)' : 'translateY(0)',
-                      boxShadow: hoveredCategory === cat.id ? '0 12px 24px var(--accent-glow)' : '0 4px 12px rgba(0, 0, 0, 0.02)',
-                      animationDelay: `${i * 0.06}s`,
-                      animation: 'fadeInUp 0.5s ease-out both'
+                      boxShadow: '0 3px 10px rgba(0,0,0,0.06)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      transition: 'transform 0.15s ease'
                     }}
+                    onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
+                    onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+                    onTouchStart={e => e.currentTarget.style.transform = 'scale(0.97)'}
+                    onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
                   >
                     {/* Background image */}
                     <div style={{
                       position: 'absolute', inset: 0,
                       backgroundImage: `url(${cat.img})`,
                       backgroundSize: 'cover', backgroundPosition: 'center',
-                      transition: 'transform 0.4s ease',
-                      transform: hoveredCategory === cat.id ? 'scale(1.08)' : 'scale(1)'
+                      filter: 'brightness(65%)'
                     }} />
-                    {/* Dark overlay */}
+                    {/* Dark Gradient Overlay */}
                     <div style={{
                       position: 'absolute', inset: 0,
-                      background: hoveredCategory === cat.id
-                        ? 'rgba(15, 23, 42, 0.65)'
-                        : 'rgba(15, 23, 42, 0.45)',
-                      transition: 'background 0.3s ease'
+                      background: 'linear-gradient(90deg, rgba(15, 23, 42, 0.88) 0%, rgba(15, 23, 42, 0.45) 100%)'
                     }} />
-                    {/* Label */}
+                    {/* Icon + Label */}
                     <div style={{
                       position: 'relative', zIndex: 2,
-                      height: '100%',
-                      display: 'flex', flexDirection: 'column',
-                      alignItems: 'center', justifyContent: 'center', gap: '6px',
-                      color: '#fff'
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '0 0.65rem',
+                      color: '#ffffff',
+                      textAlign: 'left'
                     }}>
-                      <span style={{ 
-                        opacity: 0.9,
-                        transform: hoveredCategory === cat.id ? 'translateY(-2px)' : 'translateY(0)',
-                        transition: 'transform 0.3s ease',
-                        color: hoveredCategory === cat.id ? 'var(--accent-color)' : '#fff'
-                      }}>{renderCategoryIcon(cat.icon)}</span>
-                      <span style={{ fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', lineHeight: '1.2', padding: '0 8px' }}>
+                      <div style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '8px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.18)',
+                        backdropFilter: 'blur(4px)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        color: '#ffffff',
+                        border: '1px solid rgba(255,255,255,0.25)'
+                      }}>
+                        {renderCategoryIcon(cat.icon, 16)}
+                      </div>
+                      <span style={{
+                        fontSize: '0.72rem',
+                        fontWeight: '800',
+                        textTransform: 'capitalize',
+                        lineHeight: '1.2',
+                        color: '#ffffff',
+                        letterSpacing: '0.01em',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden'
+                      }}>
                         {cat.label}
                       </span>
                     </div>
                   </button>
                 ))}
               </div>
-            </div>
+            ) : (
+              /* DESKTOP CATEGORY CARDS */
+              <div className="carousel-wrapper" style={{ position: 'relative' }}>
+                <div ref={categoriesRef} onWheel={(e) => { if (categoriesRef.current && e.deltaY) { categoriesRef.current.scrollLeft += e.deltaY; } }} className="category-scroll-grid">
+                  {categories.map((cat, i) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setActiveCategory(cat.id)}
+                      onMouseEnter={() => setHoveredCategory(cat.id)}
+                      onMouseLeave={() => setHoveredCategory(null)}
+                      style={{
+                        position: 'relative',
+                        height: '110px',
+                        width: '140px',
+                        flexShrink: 0,
+                        border: hoveredCategory === cat.id ? '2px solid var(--accent-color)' : '2px solid transparent',
+                        borderRadius: '12px',
+                        overflow: 'hidden',
+                        cursor: 'pointer',
+                        background: 'none',
+                        padding: 0,
+                        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                        transform: hoveredCategory === cat.id ? 'translateY(-4px)' : 'translateY(0)',
+                        boxShadow: hoveredCategory === cat.id ? '0 12px 24px var(--accent-glow)' : '0 4px 12px rgba(0, 0, 0, 0.02)',
+                        animationDelay: `${i * 0.06}s`,
+                        animation: 'fadeInUp 0.5s ease-out both'
+                      }}
+                    >
+                      {/* Background image */}
+                      <div style={{
+                        position: 'absolute', inset: 0,
+                        backgroundImage: `url(${cat.img})`,
+                        backgroundSize: 'cover', backgroundPosition: 'center',
+                        transition: 'transform 0.4s ease',
+                        transform: hoveredCategory === cat.id ? 'scale(1.08)' : 'scale(1)'
+                      }} />
+                      {/* Dark overlay */}
+                      <div style={{
+                        position: 'absolute', inset: 0,
+                        background: hoveredCategory === cat.id
+                          ? 'rgba(15, 23, 42, 0.65)'
+                          : 'rgba(15, 23, 42, 0.45)',
+                        transition: 'background 0.3s ease'
+                      }} />
+                      {/* Label */}
+                      <div style={{
+                        position: 'relative', zIndex: 2,
+                        height: '100%',
+                        display: 'flex', flexDirection: 'column',
+                        alignItems: 'center', justifyContent: 'center', gap: '6px',
+                        color: '#fff'
+                      }}>
+                        <span style={{ 
+                          opacity: 0.9,
+                          transform: hoveredCategory === cat.id ? 'translateY(-2px)' : 'translateY(0)',
+                          transition: 'transform 0.3s ease',
+                          color: hoveredCategory === cat.id ? 'var(--accent-color)' : '#fff'
+                        }}>{renderCategoryIcon(cat.icon)}</span>
+                        <span style={{ fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', lineHeight: '1.2', padding: '0 8px' }}>
+                          {cat.label}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
           {/* ===== NEW PRODUCTS SHELF ===== */}
-          <div style={{ marginBottom: '3.5rem' }}>
+          <div className="scroll-reveal reveal-delay-1" style={{ marginBottom: '3.5rem' }}>
             <div className="shelf-header">
               <div>
                 <h2 className="shelf-title">We Are Introducing Our New Products</h2>
@@ -484,7 +628,7 @@ export default function ECommerceCatalog({
           </div>
 
           {/* ===== FEATURED SHELF ===== */}
-          <div style={{ marginBottom: '3.5rem', marginTop: '3.5rem' }}>
+          <div className="scroll-reveal reveal-delay-1" style={{ marginBottom: '3.5rem', marginTop: '3.5rem' }}>
             <div className="shelf-header">
               <div>
                 <h2 className="shelf-title">Featured Custom Prints & Signages</h2>
@@ -507,7 +651,7 @@ export default function ECommerceCatalog({
           </div>
 
           {/* ===== MORE PRODUCTS ===== */}
-          <div>
+          <div className="scroll-reveal reveal-delay-2">
             <div className="shelf-header">
               <div>
                 <h2 className="shelf-title">More From Our Collection</h2>
@@ -547,7 +691,7 @@ export default function ECommerceCatalog({
             </div>
 
             {/* Sort By Dropdown */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <div className="desktop-sort-by-container" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <span style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Sort By:</span>
               <select
                 id="sort-by"
@@ -870,6 +1014,14 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, onProductClick, 
     ? adminAllowed
     : (catLower.includes('keychain') || nameLower.includes('keychain') || nameLower.includes('key chain') || nameLower.includes('key tag'));
 
+  const [isMobileScreen, setIsMobileScreen] = React.useState(window.innerWidth < 768);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobileScreen(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <div
       className="product-card"
@@ -955,8 +1107,6 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, onProductClick, 
             </span>
           )}
         </div>
-
-        {/* Rating/Reviews under price */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '1px' }}>
           <span style={{ backgroundColor: '#f1f5f9', color: '#0f172a', fontSize: '0.62rem', padding: '2px 6px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: '700' }}>
             {product.rating} <Star size={9} fill="#000" style={{ color: '#000' }} />
@@ -965,7 +1115,7 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, onProductClick, 
         </div>
 
         {isSoldOut ? (
-          <button onClick={(e) => { e.stopPropagation(); onProductClick(product); }} className="btn-secondary" style={{ width: '100%', height: '34px', fontSize: '0.72rem', marginTop: 'auto', padding: 0 }}>
+          <button onClick={(e) => { e.stopPropagation(); onProductClick(product); }} className="btn-secondary" style={{ width: '100%', height: '32px', fontSize: '0.68rem', marginTop: 'auto', padding: 0 }}>
             Read More
           </button>
         ) : isCustomizable ? (
@@ -973,9 +1123,9 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, onProductClick, 
             onClick={(e) => { e.stopPropagation(); onProductClick(product); }}
             style={{
               width: '100%',
-              height: '34px',
-              fontSize: '0.74rem',
-              fontWeight: '900',
+              height: '32px',
+              fontSize: isMobileScreen ? '0.68rem' : '0.72rem',
+              fontWeight: '800',
               borderRadius: '6px',
               background: '#000000',
               color: '#ffffff',
@@ -984,9 +1134,9 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, onProductClick, 
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '6px',
+              gap: '4px',
               marginTop: 'auto',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)',
+              boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)',
               transition: 'all 0.15s ease'
             }}
             onMouseEnter={e => { e.currentTarget.style.background = '#222222'; }}
@@ -994,14 +1144,74 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, onProductClick, 
           >
             🎨 Customize in 3D Lab
           </button>
+        ) : isMobileScreen ? (
+          /* Mobile View: Stacked 2-Line Small Compact Buttons */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: 'auto', width: '100%' }}>
+            <button
+              onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
+              style={{
+                width: '100%',
+                height: '26px',
+                fontSize: '0.64rem',
+                fontWeight: '700',
+                borderRadius: '5px',
+                background: '#f1f5f9',
+                color: '#0f172a',
+                border: '1px solid #cbd5e1',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '3px',
+                transition: 'all 0.15s ease'
+              }}
+              title="Add item to cart"
+            >
+              <ShoppingCart size={11} /> Add to Cart
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onBuyNow) {
+                  onBuyNow(product);
+                } else {
+                  onAddToCart(product);
+                  if (setActiveTab) setActiveTab('checkout');
+                }
+              }}
+              style={{
+                width: '100%',
+                height: '26px',
+                fontSize: '0.64rem',
+                fontWeight: '800',
+                borderRadius: '5px',
+                background: '#000000',
+                color: '#ffffff',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '3px',
+                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#222222'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#000000'; }}
+              title="Buy now and proceed to checkout"
+            >
+              ⚡ BUY NOW
+            </button>
+          </div>
         ) : (
-          <div style={{ display: 'flex', gap: '6px', marginTop: 'auto', width: '100%' }}>
+          /* Desktop Button Layout */
+          <div style={{ display: 'flex', gap: '5px', marginTop: 'auto', width: '100%' }}>
             <button
               onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
               style={{
                 flex: 1,
-                height: '34px',
-                fontSize: '0.7rem',
+                height: '32px',
+                fontSize: '0.68rem',
                 fontWeight: '700',
                 borderRadius: '6px',
                 background: '#f1f5f9',
@@ -1011,7 +1221,7 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, onProductClick, 
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '4px',
+                gap: '3px',
                 transition: 'all 0.15s ease'
               }}
               title="Add item to cart"
@@ -1030,9 +1240,9 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, onProductClick, 
               }}
               style={{
                 flex: 1.2,
-                height: '34px',
-                fontSize: '0.72rem',
-                fontWeight: '900',
+                height: '32px',
+                fontSize: '0.68rem',
+                fontWeight: '800',
                 borderRadius: '6px',
                 background: '#000000',
                 color: '#ffffff',
@@ -1041,8 +1251,8 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, onProductClick, 
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '4px',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)',
+                gap: '3px',
+                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={e => { e.currentTarget.style.background = '#222222'; }}

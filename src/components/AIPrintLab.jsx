@@ -129,6 +129,12 @@ export default function AIPrintLab({
   }, []);
 
   const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const [customerName, setCustomerName] = React.useState('');
   const [customerEmail, setCustomerEmail] = React.useState('');
   const [customerPhone, setCustomerPhone] = React.useState('');
@@ -441,15 +447,15 @@ export default function AIPrintLab({
   };
 
   return (
-    <div style={{ maxWidth: '95%', margin: '0 auto', padding: '2rem 1.5rem' }}>
+    <div className="print-lab-container" style={{ maxWidth: '1000px', margin: '0 auto', padding: isMobile ? '1rem 0.75rem 85px' : '2rem 1.5rem', boxSizing: 'border-box', width: '100%' }}>
       
       {/* Page Header */}
-      <div style={{ marginBottom: '2.5rem', textAlign: 'center' }}>
+      <div style={{ marginBottom: isMobile ? '1.5rem' : '2.5rem', textAlign: 'center' }}>
         {activeLabTab === 'slicer' && (
           <>
             <span className="badge-outline" style={{ marginBottom: '0.5rem' }}>ZYLIX PRINT SERVICES</span>
-            <h1 style={{ fontSize: '2.2rem', fontWeight: '800', textTransform: 'uppercase', color: '#000' }}>Upload File to Print</h1>
-            <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0.5rem auto 0', fontSize: '0.9rem' }}>
+            <h1 style={{ fontSize: isMobile ? '1.4rem' : '2.2rem', fontWeight: '800', textTransform: 'uppercase', color: '#000', lineHeight: '1.25' }}>Upload File to Print</h1>
+            <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0.4rem auto 0', fontSize: isMobile ? '0.8rem' : '0.9rem', lineHeight: '1.5' }}>
               Upload your custom CAD models (STL, OBJ, or 3MF) to request a custom printing quote from our manufacturing engineers.
             </p>
           </>
@@ -457,8 +463,8 @@ export default function AIPrintLab({
         {activeLabTab === 'designer' && (
           <>
             <span className="badge-outline" style={{ marginBottom: '0.5rem' }}>ZYLIX 3D DESIGNER</span>
-            <h1 style={{ fontSize: '2.2rem', fontWeight: '800', textTransform: 'uppercase', color: '#000' }}>Design Your Own Product</h1>
-            <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0.5rem auto 0', fontSize: '0.9rem' }}>
+            <h1 style={{ fontSize: isMobile ? '1.4rem' : '2.2rem', fontWeight: '800', textTransform: 'uppercase', color: '#000', lineHeight: '1.25' }}>Design Your Own Product</h1>
+            <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0.4rem auto 0', fontSize: isMobile ? '0.8rem' : '0.9rem', lineHeight: '1.5' }}>
               Submit your product specifications, sketches, custom text, and color choices to request a custom model draft and print quote.
             </p>
           </>
@@ -466,11 +472,13 @@ export default function AIPrintLab({
       </div>
 
       {/* Grid Content Panel */}
-      <div className="print-lab-grid" style={{
+      <div className="print-lab-grid print-lab-main-grid" style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-        gap: '2.5rem',
-        alignItems: 'start'
+        gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(320px, 1fr))',
+        gap: isMobile ? '1.25rem' : '2.5rem',
+        alignItems: 'start',
+        width: '100%',
+        boxSizing: 'border-box'
       }}>
         
         {/* LEFT PANEL: Guides and File Status */}
@@ -510,7 +518,7 @@ export default function AIPrintLab({
 
           {/* Tab 1: Slicer File Status Block */}
           {activeLabTab === 'slicer' && file && (
-            <div className="glass-panel" style={{ padding: '2rem', backgroundColor: '#ffffff', borderRadius: '12px' }}>
+            <div className="glass-panel" style={{ padding: isMobile ? '1.25rem 0.85rem' : '2rem', backgroundColor: '#ffffff', borderRadius: '12px', width: '100%', boxSizing: 'border-box' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
                 <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#16a34a' }}>
                   ✓ SECURE FILE UPLOADED
@@ -584,7 +592,7 @@ export default function AIPrintLab({
 
           {/* TAB 2: Design Live Preview Card (Shown ONLY for Keychain) */}
           {activeLabTab === 'designer' && (
-            <div className="glass-panel" style={{ padding: '1rem', backgroundColor: '#ffffff', borderRadius: '12px' }}>
+            <div className="glass-panel" style={{ padding: isMobile ? '0.75rem' : '1rem', backgroundColor: '#ffffff', borderRadius: '12px', boxSizing: 'border-box', overflow: 'hidden', width: '100%' }}>
               {productType === 'keychain' ? (
                 <>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
@@ -625,9 +633,13 @@ export default function AIPrintLab({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      transform: 'rotate(-4deg) scale(1.15)',
-                      padding: '1rem 0.5rem',
-                      transition: 'all 0.3s ease'
+                      transform: isMobile ? (nameText.length > 10 ? 'scale(0.68)' : 'scale(0.78)') : 'rotate(-4deg) scale(1.15)',
+                      transformOrigin: 'center center',
+                      padding: isMobile ? '0.3rem 0' : '1rem 0.5rem',
+                      margin: '0 auto',
+                      transition: 'all 0.3s ease',
+                      maxWidth: '100%',
+                      boxSizing: 'border-box'
                     }}>
                       {/* SOLID 3D CHROME SILVER METALLIC SHORT KEYRING & CABLE CHAIN SVG */}
                       <svg width="95" height="46" viewBox="0 0 95 46" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0, marginRight: '-22px', zIndex: 4, filter: 'drop-shadow(2px 4px 6px rgba(0,0,0,0.35))' }}>
@@ -707,7 +719,7 @@ export default function AIPrintLab({
                         {/* 3D Extruded Top Text Layer */}
                         <div style={{
                           fontFamily: getFontFamily(selectedFont),
-                          fontSize: nameText.length > 15 ? '1.4rem' : nameText.length > 10 ? '1.75rem' : '2.25rem',
+                          fontSize: isMobile ? (nameText.length > 15 ? '1.05rem' : nameText.length > 10 ? '1.25rem' : '1.55rem') : (nameText.length > 15 ? '1.4rem' : nameText.length > 10 ? '1.75rem' : '2.25rem'),
                           fontWeight: '800',
                           textAlign: 'center',
                           whiteSpace: 'nowrap',
@@ -721,7 +733,7 @@ export default function AIPrintLab({
                           lineHeight: '1.1',
                           paddingLeft: '0.4rem'
                         }}>
-                          {nameText || 'Sameena'}
+                          {nameText}
                         </div>
                       </div>
                     </div>
@@ -762,7 +774,7 @@ export default function AIPrintLab({
         </div>
 
         {/* RIGHT PANEL: Form configurations depending on selected Tab */}
-        <div className="glass-panel" style={{ padding: '2rem', backgroundColor: '#ffffff' }}>
+        <div className="glass-panel" style={{ padding: isMobile ? '1.25rem 0.85rem' : '2rem', backgroundColor: '#ffffff', borderRadius: '12px', width: '100%', boxSizing: 'border-box' }}>
           
           {/* ───────────────── SLICER CONFIG PANEL (REQUEST QUOTE FLOW) ───────────────── */}
           {activeLabTab === 'slicer' && quoteSubmitted && (
@@ -1077,9 +1089,9 @@ export default function AIPrintLab({
               <form onSubmit={handleSubmitDesignerQuote} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
                 
                 {/* Product Type Selection */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', width: '100%', minWidth: 0 }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>What would you like to create?</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '0.5rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(auto-fill, minmax(76px, 1fr))' : 'repeat(auto-fit, minmax(100px, 1fr))', gap: '0.35rem', width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
                     {((labSettings?.productTypes && labSettings.productTypes.length > 0)
                       ? labSettings.productTypes.filter(p => p.enabled !== false).map(p => ({
                           id: p.id,
@@ -1099,8 +1111,8 @@ export default function AIPrintLab({
                         type="button" 
                         onClick={() => setProductType(p.id)}
                         style={{
-                          padding: '0.65rem 0.5rem', 
-                          fontSize: '0.75rem',
+                          padding: '0.5rem 0.2rem', 
+                          fontSize: '0.72rem',
                           background: productType === p.id ? '#000' : 'transparent',
                           color: productType === p.id ? '#fff' : '#000',
                           border: '1px solid ' + (productType === p.id ? '#000' : 'var(--border-color)'),
@@ -1109,12 +1121,16 @@ export default function AIPrintLab({
                           display: 'flex', 
                           flexDirection: 'column', 
                           alignItems: 'center', 
-                          gap: '6px',
+                          justifyContent: 'center',
+                          gap: '4px',
                           fontWeight: '600',
+                          minWidth: 0,
+                          width: '100%',
+                          boxSizing: 'border-box',
                           transition: 'all 0.15s ease'
                         }}
                       >
-                        {p.icon} <span>{p.label}</span>
+                        {p.icon} <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '100%', display: 'block', textAlign: 'center' }}>{p.label}</span>
                       </button>
                     ))}
                   </div>
@@ -1227,7 +1243,7 @@ export default function AIPrintLab({
                       <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>1. Text Color</label>
                       <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '600' }}>Selected: <strong>{designerColor}</strong></span>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.35rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(5, 1fr)', gap: '0.35rem' }}>
                       {((labSettings?.textColors && labSettings.textColors.length > 0)
                         ? [...labSettings.textColors, { name: 'Other', hex: 'linear-gradient(45deg, #ef4444, #3b82f6)' }]
                         : [
@@ -1296,7 +1312,7 @@ export default function AIPrintLab({
                       <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>2. Base Contour Color</label>
                       <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '600' }}>Selected: <strong>{baseColor}</strong></span>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.35rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(5, 1fr)', gap: '0.35rem' }}>
                       {((labSettings?.baseColors && labSettings.baseColors.length > 0)
                         ? labSettings.baseColors
                         : [
@@ -1429,26 +1445,27 @@ export default function AIPrintLab({
 
                 {/* Action Buttons: Keychain has instant Buy Now (₹50) & Add to Cart (₹50), others have Request Quote */}
                 {productType === 'keychain' ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.25rem' }}>
-                    <div style={{ display: 'flex', gap: '0.75rem', width: '100%' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: '1.25rem' }}>
+                    <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '0.6rem', width: '100%' }}>
                       <button
                         type="button"
                         onClick={handleAddToCartDesigner}
                         style={{
-                          flex: 1,
-                          height: '48px',
-                          fontSize: '0.88rem',
+                          width: '100%',
+                          flex: isMobile ? 'none' : 1,
+                          height: isMobile ? '38px' : '46px',
+                          fontSize: isMobile ? '0.80rem' : '0.88rem',
                           fontWeight: '800',
-                          borderRadius: '10px',
+                          borderRadius: '8px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           gap: '6px',
                           background: '#f1f5f9',
                           color: '#0f172a',
-                          border: '1.5px solid #cbd5e1',
+                          border: '1px solid #cbd5e1',
                           cursor: 'pointer',
-                          transition: 'all 0.2s ease'
+                          transition: 'all 0.15s ease'
                         }}
                         onMouseEnter={e => { e.currentTarget.style.background = '#e2e8f0'; }}
                         onMouseLeave={e => { e.currentTarget.style.background = '#f1f5f9'; }}
@@ -1459,11 +1476,12 @@ export default function AIPrintLab({
                         type="button"
                         onClick={handleBuyNowDesigner}
                         style={{
-                          flex: 1.2,
-                          height: '48px',
-                          fontSize: '0.92rem',
+                          width: '100%',
+                          flex: isMobile ? 'none' : 1.2,
+                          height: isMobile ? '38px' : '46px',
+                          fontSize: isMobile ? '0.82rem' : '0.90rem',
                           fontWeight: '900',
-                          borderRadius: '10px',
+                          borderRadius: '8px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -1472,9 +1490,9 @@ export default function AIPrintLab({
                           color: '#ffffff',
                           border: 'none',
                           cursor: 'pointer',
-                          boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
                           letterSpacing: '0.02em',
-                          transition: 'all 0.2s ease'
+                          transition: 'all 0.15s ease'
                         }}
                         onMouseEnter={e => { e.currentTarget.style.background = '#1a1a1a'; }}
                         onMouseLeave={e => { e.currentTarget.style.background = '#000000'; }}

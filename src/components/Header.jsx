@@ -1,5 +1,8 @@
 import React from 'react';
 import { ShoppingCart, Search, Heart, LogIn, LogOut, ChevronDown, Menu, X, ChevronRight, ClipboardList } from 'lucide-react';
+import { mockProducts as staticProducts } from '../data/products';
+
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
 
 export default function Header({ 
   activeTab, 
@@ -7,7 +10,8 @@ export default function Header({
   activeCategory,
   setActiveCategory,
   searchQuery, 
-  setSearchQuery, 
+  setSearchQuery,
+  setSelectedProduct, 
   cartCount, 
   setCartOpen,
   wishlistCount,
@@ -22,6 +26,50 @@ export default function Header({
   const [mobileShopOpen, setMobileShopOpen] = React.useState(false);
   const [mobileHelpOpen, setMobileHelpOpen] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+  const [isScrolled, setIsScrolled] = React.useState(false);
+  const [searchProducts, setSearchProducts] = React.useState(staticProducts);
+  const [searchFocused, setSearchFocused] = React.useState(false);
+  const searchRef = React.useRef(null);
+  const mobileSearchRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 30);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  React.useEffect(() => {
+    fetch(`${API_BASE}/api/products`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data && data.length > 0) setSearchProducts(data);
+      })
+      .catch(err => console.error('Header products fetch error:', err));
+  }, []);
+
+  React.useEffect(() => {
+    const handleClickOutside = (e) => {
+      const inDesktop = searchRef.current && searchRef.current.contains(e.target);
+      const inMobile = mobileSearchRef.current && mobileSearchRef.current.contains(e.target);
+      if (!inDesktop && !inMobile) {
+        setSearchFocused(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const matchingProducts = React.useMemo(() => {
+    const q = (searchQuery || '').trim().toLowerCase();
+    if (!q) return [];
+    return searchProducts.filter(p =>
+      (p.name && p.name.toLowerCase().includes(q)) ||
+      (p.category && p.category.toLowerCase().includes(q)) ||
+      (p.description && p.description.toLowerCase().includes(q))
+    ).slice(0, 5);
+  }, [searchQuery, searchProducts]);
 
   React.useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -29,10 +77,21 @@ export default function Header({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Close mobile menu when tab changes
+  // Close mobile menu when tab changes & lock body scroll
   React.useEffect(() => {
     setMobileMenuOpen(false);
   }, [activeTab, activeCategory]);
+
+  React.useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
 
   const helpPages = [
     { label: 'About Us', tab: 'about' },
@@ -47,7 +106,7 @@ export default function Header({
   const navigateTo = (tab, category) => {
     setActiveTab(tab);
     if (category) setActiveCategory(category);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo(0, 0);
     setMobileMenuOpen(false);
   };
 
@@ -102,11 +161,15 @@ export default function Header({
 
   return (
     <header style={{
-      backgroundColor: '#000000',
+      backgroundColor: isScrolled ? 'rgba(0, 0, 0, 0.92)' : '#000000',
+      backdropFilter: isScrolled ? 'blur(16px)' : 'none',
+      WebkitBackdropFilter: isScrolled ? 'blur(16px)' : 'none',
       position: 'sticky',
       top: 0,
-      zIndex: 100,
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+      zIndex: 9999,
+      boxShadow: isScrolled ? '0 10px 30px rgba(0, 0, 0, 0.45)' : '0 2px 8px rgba(0,0,0,0.1)',
+      borderBottom: isScrolled ? '1px solid rgba(255, 255, 255, 0.12)' : 'none',
+      transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
     }}>
 
       {/* ── DESKTOP HEADER (unchanged) ── */}
@@ -116,33 +179,47 @@ export default function Header({
           <div style={{
             borderBottom: '1px solid #1a1a1a',
             padding: '0 1.5rem',
-            height: '68px',
+            height: isScrolled ? '60px' : '68px',
             maxWidth: '95%',
             margin: '0 auto',
             display: 'grid',
             gridTemplateColumns: '1fr minmax(auto, 550px) 1fr',
             alignItems: 'center',
-            gap: '1.5rem'
+            gap: '1.5rem',
+            position: 'relative',
+            zIndex: 50,
+            transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
           }}>
             {/* Logo */}
             <div
               onClick={() => { setActiveTab('shop'); setActiveCategory('home'); }}
               style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', userSelect: 'none' }}
             >
-              <img src="/logo.png" alt="Zylix 3D Logo" style={{ height: '66px', width: 'auto', objectFit: 'contain', display: 'block' }} />
+              <img src="/logo.png" alt="Zylix 3D Logo" style={{ height: isScrolled ? '56px' : '66px', width: 'auto', objectFit: 'contain', display: 'block', transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }} />
             </div>
 
             {/* Central Search Bar */}
-            <div style={{ width: '100%', maxWidth: '550px', position: 'relative', justifySelf: 'center' }}>
+            <div ref={searchRef} style={{ width: '100%', maxWidth: '550px', position: 'relative', justifySelf: 'center', zIndex: 100 }}>
               <form
-                onSubmit={(e) => { e.preventDefault(); if (activeCategory === 'home') { setActiveCategory('all'); setActiveTab('shop'); } }}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (activeCategory === 'home') { setActiveCategory('all'); }
+                  setActiveTab('shop');
+                  window.scrollTo(0, 0);
+                  setSearchFocused(false);
+                }}
                 style={{ display: 'flex', width: '100%' }}
               >
                 <input
                   type="text"
-                  placeholder="Search 3D printers, filaments, casings..."
+                  placeholder="Search 3D keychains, masks, holders..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setSearchFocused(true);
+                  }}
+                  onFocus={() => setSearchFocused(true)}
+                  onClick={() => setSearchFocused(true)}
                   className="input-field"
                   style={{ paddingLeft: '1rem', paddingRight: '3rem', fontSize: '0.85rem', height: '36px', border: 'none', borderRadius: '0', flex: 1 }}
                 />
@@ -150,6 +227,99 @@ export default function Header({
                   <Search size={18} />
                 </button>
               </form>
+
+              {/* Desktop Live Search Dropdown */}
+              {searchFocused && (searchQuery || '').trim().length >= 1 && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  marginTop: '6px',
+                  backgroundColor: '#ffffff',
+                  borderRadius: '10px',
+                  boxShadow: '0 18px 40px rgba(0, 0, 0, 0.35)',
+                  border: '1px solid #cbd5e1',
+                  zIndex: 99999,
+                  overflow: 'hidden'
+                }}>
+                  {matchingProducts.length > 0 ? (
+                    <>
+                      <div style={{ padding: '0.5rem 0.85rem', backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontSize: '0.72rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>MATCHING PRODUCTS ({matchingProducts.length})</span>
+                        <button onClick={() => setSearchFocused(false)} style={{ background: 'none', border: 'none', color: '#64748b', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer', padding: '2px 6px' }}>✕</button>
+                      </div>
+                      <div style={{ maxHeight: '290px', overflowY: 'auto' }}>
+                        {matchingProducts.map(product => (
+                          <div
+                            key={product.id}
+                            onClick={() => {
+                              if (setSelectedProduct) setSelectedProduct(product);
+                              setActiveTab('product-detail');
+                              window.scrollTo(0, 0);
+                              setSearchFocused(false);
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '12px',
+                              padding: '0.65rem 0.85rem',
+                              borderBottom: '1px solid #f1f5f9',
+                              cursor: 'pointer',
+                              transition: 'background 0.15s ease'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
+                          >
+                            <img
+                              src={product.image}
+                              alt={product.name}
+                              style={{ width: '42px', height: '42px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e2e8f0', flexShrink: 0 }}
+                            />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: '0.84rem', fontWeight: '700', color: '#0f172a', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                                {product.name}
+                              </div>
+                              <div style={{ fontSize: '0.72rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                                <span style={{ textTransform: 'capitalize', background: '#f1f5f9', padding: '1px 6px', borderRadius: '4px', fontSize: '0.68rem', fontWeight: '600', color: '#475569' }}>
+                                  {product.category || '3D Print'}
+                                </span>
+                                <span style={{ fontWeight: '800', color: '#090d16' }}>₹{product.price}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div
+                        onClick={() => {
+                          if (activeCategory === 'home') { setActiveCategory('all'); }
+                          setActiveTab('shop');
+                          window.scrollTo(0, 0);
+                          setSearchFocused(false);
+                        }}
+                        style={{
+                          padding: '0.75rem',
+                          textAlign: 'center',
+                          backgroundColor: '#000000',
+                          color: '#ffffff',
+                          fontSize: '0.82rem',
+                          fontWeight: '800',
+                          cursor: 'pointer',
+                          letterSpacing: '0.02em'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#000000'}
+                      >
+                        View all results for "{searchQuery}" →
+                      </div>
+                    </>
+                  ) : (
+                    <div style={{ padding: '1.25rem 1rem', textAlign: 'center', color: '#64748b', fontSize: '0.82rem' }}>
+                      No 3D products found matching "<strong>{searchQuery}</strong>"
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Right Actions */}
@@ -194,7 +364,7 @@ export default function Header({
           </div>
 
           {/* Sub-Navigation Bar */}
-          <div style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e5e5e5' }}>
+          <div style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e5e5e5', position: 'relative', zIndex: 1 }}>
             <div style={{ maxWidth: '95%', margin: '0 auto', padding: '0.5rem 1.5rem', display: 'flex', gap: '1.5rem', alignItems: 'center', justifyContent: 'center' }}>
               {subNavItems.map((item) => {
                 const isSelected = item.id === 'home'
@@ -282,20 +452,113 @@ export default function Header({
           </div>
 
           {/* Mobile Search Bar */}
-          <div style={{ backgroundColor: '#111', padding: '0.5rem 1rem', borderBottom: '1px solid #222' }}>
-            <form onSubmit={(e) => { e.preventDefault(); if (activeCategory === 'home') { setActiveCategory('all'); setActiveTab('shop'); } setMobileMenuOpen(false); }} style={{ display: 'flex' }}>
+          <div ref={mobileSearchRef} style={{ backgroundColor: '#111', padding: '0.5rem 1rem', borderBottom: '1px solid #222', position: 'relative' }}>
+            <form onSubmit={(e) => { e.preventDefault(); if (activeCategory === 'home') { setActiveCategory('all'); } setActiveTab('shop'); window.scrollTo(0, 0); setSearchFocused(false); setMobileMenuOpen(false); }} style={{ display: 'flex' }}>
               <input
                 type="text"
                 placeholder="Search products..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setSearchFocused(true);
+                }}
+                onFocus={() => setSearchFocused(true)}
                 className="input-field"
-                style={{ flex: 1, paddingLeft: '0.75rem', fontSize: '0.82rem', height: '34px', border: 'none', borderRadius: '0' }}
+                style={{ flex: 1, paddingLeft: '0.75rem', fontSize: '0.82rem', height: '36px', border: 'none', borderRadius: '0' }}
               />
               <button type="submit" style={{ background: '#fff', border: 'none', color: '#000', width: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                 <Search size={16} />
               </button>
             </form>
+
+            {/* Mobile Live Search Dropdown */}
+            {searchFocused && (searchQuery || '').trim().length >= 1 && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: '0.5rem',
+                right: '0.5rem',
+                marginTop: '2px',
+                backgroundColor: '#ffffff',
+                borderRadius: '8px',
+                boxShadow: '0 12px 30px rgba(0, 0, 0, 0.3)',
+                border: '1px solid #cbd5e1',
+                zIndex: 1000,
+                overflow: 'hidden'
+              }}>
+                {matchingProducts.length > 0 ? (
+                  <>
+                    <div style={{ padding: '0.4rem 0.75rem', backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontSize: '0.68rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>Matching Products ({matchingProducts.length})</span>
+                      <button onClick={() => setSearchFocused(false)} style={{ background: 'none', border: 'none', color: '#64748b', fontWeight: 'bold', fontSize: '0.7rem' }}>✕</button>
+                    </div>
+                    <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
+                      {matchingProducts.map(product => (
+                        <div
+                          key={product.id}
+                          onClick={() => {
+                            if (setSelectedProduct) setSelectedProduct(product);
+                            setActiveTab('product-detail');
+                            window.scrollTo(0, 0);
+                            setSearchFocused(false);
+                            setMobileMenuOpen(false);
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            padding: '0.6rem 0.75rem',
+                            borderBottom: '1px solid #f1f5f9',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            style={{ width: '38px', height: '38px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e2e8f0', flexShrink: 0 }}
+                          />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: '0.80rem', fontWeight: '700', color: '#0f172a', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                              {product.name}
+                            </div>
+                            <div style={{ fontSize: '0.70rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                              <span style={{ textTransform: 'capitalize', background: '#f1f5f9', padding: '1px 5px', borderRadius: '4px', fontSize: '0.65rem', fontWeight: '600' }}>
+                                {product.category || '3D Print'}
+                              </span>
+                              <span style={{ fontWeight: '800', color: '#090d16' }}>₹{product.price}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div
+                      onClick={() => {
+                        if (activeCategory === 'home') { setActiveCategory('all'); }
+                        setActiveTab('shop');
+                        window.scrollTo(0, 0);
+                        setSearchFocused(false);
+                        setMobileMenuOpen(false);
+                      }}
+                      style={{
+                        padding: '0.65rem',
+                        textAlign: 'center',
+                        backgroundColor: '#000000',
+                        color: '#ffffff',
+                        fontSize: '0.78rem',
+                        fontWeight: '800',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      View all results for "{searchQuery}" →
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ padding: '1.25rem 1rem', textAlign: 'center', color: '#64748b', fontSize: '0.8rem' }}>
+                    No products found for "<strong>{searchQuery}</strong>"
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Mobile Slide-down Menu */}

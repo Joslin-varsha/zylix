@@ -24,10 +24,10 @@ export default function MobileBottomNav({ activeTab, setActiveTab, setActiveCate
               } else if (id === 'shop') {
                 setActiveTab('shop');
                 if (setActiveCategory) setActiveCategory('home');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                window.scrollTo(0, 0);
               } else {
                 setActiveTab(id);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                window.scrollTo(0, 0);
               }
             }}
             className={`mobile-dock-item ${isActive ? 'active' : ''}`}

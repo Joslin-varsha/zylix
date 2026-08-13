@@ -322,7 +322,7 @@ export default function CheckoutPage({ buyNowItem, cartItems, user, setActiveTab
       )}
 
       {/* Main Grid: Shipping Details (Left) + Order Summary (Right) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '2rem', alignItems: 'start' }}>
+      <div className="checkout-main-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '2rem', alignItems: 'start' }}>
         
         {/* ─── LEFT COLUMN: SHIPPING & DELIVERY DETAILS ─── */}
         <div style={{ background: '#ffffff', border: '1.5px solid #e2e8f0', borderRadius: '16px', padding: '1.75rem', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>

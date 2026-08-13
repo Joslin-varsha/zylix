@@ -300,13 +300,13 @@ export default function LoginView({ onLogin, setActiveTab, loginMessage, setLogi
   };
 
   const commonPanelStyles = {
-    maxWidth: isMobile ? '440px' : '800px',
-    width: isMobile ? 'calc(100% - 2.5rem)' : 'auto',
-    margin: isMobile ? '2rem auto' : '1rem auto',
+    maxWidth: isMobile ? '100%' : '800px',
+    width: isMobile ? 'calc(100% - 1.5rem)' : 'auto',
+    margin: isMobile ? '1.5rem auto 2.5rem' : '2rem auto',
     backgroundColor: '#ffffff',
     border: '1px solid var(--border-color)',
-    borderRadius: '12px',
-    boxShadow: '0 15px 35px rgba(0, 0, 0, 0.05)',
+    borderRadius: isMobile ? '16px' : '12px',
+    boxShadow: isMobile ? '0 10px 30px rgba(0, 0, 0, 0.08)' : '0 15px 35px rgba(0, 0, 0, 0.05)',
     display: isMobile ? 'flex' : 'grid',
     flexDirection: isMobile ? 'column' : 'row',
     gridTemplateColumns: isMobile ? 'none' : 'repeat(auto-fit, minmax(300px, 1fr))',
@@ -317,30 +317,38 @@ export default function LoginView({ onLogin, setActiveTab, loginMessage, setLogi
 
   const leftBrandingPanel = (
     <div style={{
-      backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("https://images.unsplash.com/photo-1627856013091-fed6e4e30025?auto=format&fit=crop&q=80&w=600")',
+      backgroundImage: isMobile 
+        ? 'linear-gradient(135deg, #090d16 0%, #1e293b 100%)'
+        : 'linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("https://images.unsplash.com/photo-1627856013091-fed6e4e30025?auto=format&fit=crop&q=80&w=600")',
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       color: '#ffffff',
-      padding: isMobile ? '1.5rem 1rem' : '2rem 1.5rem',
+      padding: isMobile ? '1.25rem 1rem' : '2rem 1.5rem',
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'center',
       alignItems: 'center',
       textAlign: 'center',
-      gap: '0.5rem',
-      height: isMobile ? '110px' : 'auto'
+      gap: '0.3rem',
+      height: isMobile ? 'auto' : 'auto'
     }}>
       <img 
         src="/logo.png" 
         alt="Zylix Logo" 
         style={{ 
-          width: isMobile ? '180px' : '280px',
+          width: isMobile ? '160px' : '280px',
           height: 'auto',
           objectFit: 'contain',
-          cursor: 'pointer'
+          cursor: 'pointer',
+          filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.3))'
         }} 
         onClick={() => setActiveTab('shop')}
       />
+      {isMobile && (
+        <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: '700', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+          3D Printing & Manufacturing E-Store
+        </span>
+      )}
     </div>
   );
 
@@ -401,8 +409,8 @@ export default function LoginView({ onLogin, setActiveTab, loginMessage, setLogi
     return (
       <div style={commonPanelStyles}>
         {leftBrandingPanel}
-        <div style={{ padding: isMobile ? '1.5rem 1.25rem' : '2rem 2.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <h2 style={{ fontSize: '1.35rem', color: '#000', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>
+        <div style={{ padding: isMobile ? '1.25rem 1rem' : '2rem 2.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <h2 style={{ fontSize: isMobile ? '1.2rem' : '1.35rem', color: '#000', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>
             Verify Email
           </h2>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
@@ -423,13 +431,13 @@ export default function LoginView({ onLogin, setActiveTab, loginMessage, setLogi
                   value={otpCode}
                   onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
                   className="input-field"
-                  style={{ paddingLeft: '2.5rem', height: '34px', fontSize: '0.88rem', fontWeight: '700', letterSpacing: '0.25em' }}
+                  style={{ paddingLeft: '2.5rem', height: isMobile ? '42px' : '34px', fontSize: '0.88rem', fontWeight: '700', letterSpacing: '0.25em' }}
                 />
                 <ShieldCheck size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               </div>
             </div>
 
-            <button type="submit" className="btn-primary" disabled={loading} style={{ width: '100%', height: '38px', marginTop: '0.25rem' }}>
+            <button type="submit" className="btn-primary" disabled={loading} style={{ width: '100%', height: isMobile ? '44px' : '38px', marginTop: '0.25rem', fontSize: isMobile ? '0.9rem' : '0.85rem' }}>
               {loading ? "Verifying Account..." : "Verify & Register Account"}
             </button>
           </form>
@@ -474,8 +482,8 @@ export default function LoginView({ onLogin, setActiveTab, loginMessage, setLogi
     return (
       <div style={commonPanelStyles}>
         {leftBrandingPanel}
-        <div style={{ padding: isMobile ? '1.5rem 1.25rem' : '2rem 2.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <h2 style={{ fontSize: '1.35rem', color: '#000', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>
+        <div style={{ padding: isMobile ? '1.25rem 1rem' : '2rem 2.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <h2 style={{ fontSize: isMobile ? '1.2rem' : '1.35rem', color: '#000', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>
             Forgot Password
           </h2>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
@@ -495,13 +503,13 @@ export default function LoginView({ onLogin, setActiveTab, loginMessage, setLogi
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="input-field"
-                  style={{ paddingLeft: '2.5rem', height: '34px', fontSize: '0.8rem' }}
+                  style={{ paddingLeft: '2.5rem', height: isMobile ? '42px' : '34px', fontSize: '0.85rem' }}
                 />
                 <Mail size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               </div>
             </div>
 
-            <button type="submit" className="btn-primary" disabled={loading} style={{ width: '100%', height: '38px', marginTop: '0.25rem' }}>
+            <button type="submit" className="btn-primary" disabled={loading} style={{ width: '100%', height: isMobile ? '44px' : '38px', marginTop: '0.25rem', fontSize: isMobile ? '0.9rem' : '0.85rem' }}>
               {loading ? "Sending Code..." : "Send Verification OTP"}
             </button>
           </form>
@@ -528,8 +536,8 @@ export default function LoginView({ onLogin, setActiveTab, loginMessage, setLogi
     return (
       <div style={commonPanelStyles}>
         {leftBrandingPanel}
-        <div style={{ padding: isMobile ? '1.5rem 1.25rem' : '2rem 2.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <h2 style={{ fontSize: '1.35rem', color: '#000', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>
+        <div style={{ padding: isMobile ? '1.25rem 1rem' : '2rem 2.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <h2 style={{ fontSize: isMobile ? '1.2rem' : '1.35rem', color: '#000', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>
             Reset Password
           </h2>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
@@ -550,7 +558,7 @@ export default function LoginView({ onLogin, setActiveTab, loginMessage, setLogi
                   value={otpCode}
                   onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
                   className="input-field"
-                  style={{ paddingLeft: '2.5rem', height: '34px', fontSize: '0.88rem', fontWeight: '700', letterSpacing: '0.25em' }}
+                  style={{ paddingLeft: '2.5rem', height: isMobile ? '42px' : '34px', fontSize: '0.88rem', fontWeight: '700', letterSpacing: '0.25em' }}
                 />
                 <ShieldCheck size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               </div>
@@ -566,7 +574,7 @@ export default function LoginView({ onLogin, setActiveTab, loginMessage, setLogi
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   className="input-field"
-                  style={{ paddingLeft: '2.5rem', height: '34px', fontSize: '0.8rem' }}
+                  style={{ paddingLeft: '2.5rem', height: isMobile ? '42px' : '34px', fontSize: '0.85rem' }}
                 />
                 <Lock size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               </div>
@@ -582,13 +590,13 @@ export default function LoginView({ onLogin, setActiveTab, loginMessage, setLogi
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="input-field"
-                  style={{ paddingLeft: '2.5rem', height: '34px', fontSize: '0.8rem' }}
+                  style={{ paddingLeft: '2.5rem', height: isMobile ? '42px' : '34px', fontSize: '0.85rem' }}
                 />
                 <Lock size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               </div>
             </div>
 
-            <button type="submit" className="btn-primary" disabled={loading} style={{ width: '100%', height: '38px', marginTop: '0.25rem' }}>
+            <button type="submit" className="btn-primary" disabled={loading} style={{ width: '100%', height: isMobile ? '44px' : '38px', marginTop: '0.25rem', fontSize: isMobile ? '0.9rem' : '0.85rem' }}>
               {loading ? "Updating Password..." : "Update Password & Login"}
             </button>
           </form>
@@ -695,13 +703,13 @@ export default function LoginView({ onLogin, setActiveTab, loginMessage, setLogi
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="input-field"
-                style={{ paddingLeft: '2.5rem', height: '34px', fontSize: '0.8rem' }}
+                style={{ paddingLeft: '2.5rem', height: isMobile ? '42px' : '34px', fontSize: '0.85rem' }}
               />
               <Lock size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             </div>
           </div>
 
-          <button type="submit" className="btn-primary" disabled={loading} style={{ width: '100%', height: '38px', marginTop: '0.25rem' }}>
+          <button type="submit" className="btn-primary" disabled={loading} style={{ width: '100%', height: isMobile ? '44px' : '38px', marginTop: '0.25rem', fontSize: isMobile ? '0.9rem' : '0.85rem' }}>
             {loading ? "Processing..." : (isRegister ? "Send Verification OTP" : "Sign In")}
           </button>
         </form>
@@ -723,13 +731,13 @@ export default function LoginView({ onLogin, setActiveTab, loginMessage, setLogi
           }}
           style={{
             width: '100%',
-            height: '40px',
+            height: isMobile ? '44px' : '40px',
             borderRadius: '8px',
             backgroundColor: '#ffffff',
             color: '#3c4043',
             border: '1px solid #cbd5e1',
             fontWeight: '700',
-            fontSize: '0.82rem',
+            fontSize: isMobile ? '0.85rem' : '0.82rem',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',

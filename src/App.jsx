@@ -43,10 +43,30 @@ const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
 function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeTab, setActiveTab] = React.useState('shop');
-  const [activeCategory, setActiveCategory] = React.useState('home');
-  const lastPathRef = React.useRef('');
-  const lastStateRef = React.useRef({ tab: 'shop', category: 'home' });
+  const getInitialTab = (pathname) => {
+    const key = pathname.replace(/^\//, '');
+    const validTabs = [
+      'shop', 'products', 'ailab', 'designer', 'spareparts', 'student', 'orders', 'cart', 'login',
+      'about', 'faq', 'contact', 'refund', 'shipping', 'privacy', 'terms'
+    ];
+    if (key === 'products') return 'shop';
+    if (key && validTabs.includes(key)) return key;
+    return 'shop';
+  };
+
+  const getInitialCategory = (pathname) => {
+    const key = pathname.replace(/^\//, '');
+    if (key === 'products') return 'all';
+    return 'home';
+  };
+
+  const [activeTab, setActiveTab] = React.useState(() => getInitialTab(window.location.pathname));
+  const [activeCategory, setActiveCategory] = React.useState(() => getInitialCategory(window.location.pathname));
+  const lastPathRef = React.useRef(window.location.pathname);
+  const lastStateRef = React.useRef({
+    tab: getInitialTab(window.location.pathname),
+    category: getInitialCategory(window.location.pathname)
+  });
   const [searchQuery, setSearchQuery] = React.useState('');
   
   // Shopping Cart & User profile state
@@ -154,6 +174,11 @@ function AppContent() {
       return () => clearTimeout(timer);
     }
   }, [welcomeToast]);
+
+  // Ensure page scrolls instantly to top whenever activeTab or selectedProduct changes
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [activeTab, selectedProduct?.id]);
 
   // Synchronize URL pathname with activeTab state using React Router (preventing loops)
   React.useEffect(() => {
@@ -414,6 +439,7 @@ function AppContent() {
           setActiveCategory={setActiveCategory}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
+          setSelectedProduct={setSelectedProduct}
           cartCount={cartCount}
           setCartOpen={setCartOpen}
           wishlistCount={wishlist.length}
@@ -444,7 +470,7 @@ function AppContent() {
                 onProductClick={(prod) => {
                   setSelectedProduct(prod);
                   setActiveTab('product-detail');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  window.scrollTo(0, 0);
                 }}
                 onAddToCart={handleAddToCart}
                 onBuyNow={handleBuyNow}
@@ -472,7 +498,7 @@ function AppContent() {
                 allProducts={[]}
                 onProductClick={(relProd) => {
                   setSelectedProduct(relProd);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  window.scrollTo(0, 0);
                 }}
                 setActiveTab={setActiveTab}
               />
@@ -802,16 +828,18 @@ function AppContent() {
       </div>
 
       {/* App-like Mobile Bottom Dock */}
-      <MobileBottomNav 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-        setActiveCategory={setActiveCategory}
-        cartCount={cartCount} 
-        wishlistCount={wishlist.length} 
-        onOpenWishlist={() => setWishlistOpen(true)} 
-        onCloseWishlist={() => setWishlistOpen(false)} 
-        onCloseCart={() => setCartOpen(false)}
-      />
+      {!['product-detail', 'login'].includes(activeTab) && (
+        <MobileBottomNav 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab} 
+          setActiveCategory={setActiveCategory}
+          cartCount={cartCount} 
+          wishlistCount={wishlist.length} 
+          onOpenWishlist={() => setWishlistOpen(true)} 
+          onCloseWishlist={() => setWishlistOpen(false)} 
+          onCloseCart={() => setCartOpen(false)}
+        />
+      )}
 
       {welcomeToast && (
         <div style={{

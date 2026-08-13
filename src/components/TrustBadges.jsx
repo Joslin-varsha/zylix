@@ -3,6 +3,15 @@ import { Layers, ShieldCheck, Truck, RotateCcw } from 'lucide-react';
 
 export default function TrustBadges() {
   const [hoveredIdx, setHoveredIdx] = React.useState(null);
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  if (isMobile) return null;
 
   const badges = [
     { icon: <Layers size={24} />, title: 'Precision 3D Printing', desc: '20-micron tolerances on SLA & FDM custom prints.' },
@@ -12,7 +21,7 @@ export default function TrustBadges() {
   ];
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-primary)', padding: '3.5rem 1.5rem', borderTop: '1px solid var(--border-color)' }}>
+    <div className="trust-badges-container" style={{ backgroundColor: 'var(--bg-primary)', padding: '3.5rem 1.5rem', borderTop: '1px solid var(--border-color)' }}>
       <div className="trust-badges-grid" style={{
         maxWidth: '95%', margin: '0 auto'
       }}>

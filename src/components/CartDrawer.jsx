@@ -8,6 +8,17 @@ export default function CartDrawer({
   onRemoveItem,
   setActiveTab
 }) {
+  React.useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -39,6 +50,7 @@ export default function CartDrawer({
     >
       {/* Drawer panel */}
       <div
+        className="cart-drawer-panel"
         style={{
           width: '100%', maxWidth: '380px', height: '100%',
           backgroundColor: '#f9f9f9',
