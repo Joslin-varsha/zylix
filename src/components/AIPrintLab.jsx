@@ -104,6 +104,7 @@ const getFontFamily = (fontId) => {
 export default function AIPrintLab({ 
   onAddToCart,
   onBuyNow,
+  selectedProduct,
   labTab = 'slicer',
   setLabTab,
   designerPreset = 'keychain',
@@ -294,13 +295,23 @@ export default function AIPrintLab({
     }
   }, [designerPreset]);
 
+  const currentKeychainPrice = React.useMemo(() => {
+    if (selectedProduct && selectedProduct.price != null && !isNaN(Number(selectedProduct.price))) {
+      return Number(selectedProduct.price);
+    }
+    if (labSettings?.keychainPrice != null && !isNaN(Number(labSettings.keychainPrice))) {
+      return Number(labSettings.keychainPrice);
+    }
+    return 50;
+  }, [selectedProduct, labSettings]);
+
   const handleAddToCartDesigner = () => {
     if (productType === 'keychain' && !nameText.trim()) {
       triggerError("Please specify the custom text/name for your keychain before adding to cart.");
       return;
     }
     
-    const price = 50; // Custom Keychain fixed static price = ₹50
+    const price = currentKeychainPrice;
     const imgMap = {
       keychain: '/images/categories/keychains.webp',
       nameboard: '/images/categories/stencils.jpg',
@@ -309,12 +320,21 @@ export default function AIPrintLab({
     };
 
     const finalTextColor = designerColor === 'Other' && customColor.trim() ? customColor.trim() : designerColor;
+    const customItemName = productType === 'keychain'
+      ? `Custom 3D Keychain ("${nameText.trim() || 'Design'}")`
+      : productType === 'nameboard'
+      ? `Custom 3D Name Board ("${nameText.trim() || 'Design'}")`
+      : productType === 'phonestand'
+      ? `Custom 3D Phone Stand`
+      : productType === 'trophy'
+      ? `Custom 3D Trophy`
+      : `Custom 3D Print ("${customProductType.trim() || 'Design'}")`;
 
     const customItem = {
       id: `custom_${productType}_${Date.now()}`,
-      name: `Custom 3D Keychain ("${nameText.trim() || 'Design'}")`,
+      name: customItemName,
       price: price,
-      image: '/product-1.webp',
+      image: imgMap[productType] || '/images/categories/keychains.webp',
       isCustom: true,
       material: 'PLA Premium',
       infill: 20,
@@ -338,7 +358,7 @@ export default function AIPrintLab({
       return;
     }
     
-    const price = 50; // Custom Keychain fixed static price = ₹50
+    const price = currentKeychainPrice;
     const imgMap = {
       keychain: '/images/categories/keychains.webp',
       nameboard: '/images/categories/stencils.jpg',
@@ -347,12 +367,21 @@ export default function AIPrintLab({
     };
 
     const finalTextColor = designerColor === 'Other' && customColor.trim() ? customColor.trim() : designerColor;
+    const customItemName = productType === 'keychain'
+      ? `Custom 3D Keychain ("${nameText.trim() || 'Design'}")`
+      : productType === 'nameboard'
+      ? `Custom 3D Name Board ("${nameText.trim() || 'Design'}")`
+      : productType === 'phonestand'
+      ? `Custom 3D Phone Stand`
+      : productType === 'trophy'
+      ? `Custom 3D Trophy`
+      : `Custom 3D Print ("${customProductType.trim() || 'Design'}")`;
 
     const customItem = {
       id: `custom_${productType}_${Date.now()}`,
-      name: `Custom 3D Keychain ("${nameText.trim() || 'Design'}")`,
+      name: customItemName,
       price: price,
-      image: '/product-1.webp',
+      image: imgMap[productType] || '/images/categories/keychains.webp',
       isCustom: true,
       material: 'PLA Premium',
       infill: 20,
@@ -1470,7 +1499,7 @@ export default function AIPrintLab({
                         onMouseEnter={e => { e.currentTarget.style.background = '#e2e8f0'; }}
                         onMouseLeave={e => { e.currentTarget.style.background = '#f1f5f9'; }}
                       >
-                        🛒 Add to Cart (₹50)
+                        🛒 Add to Cart (₹{currentKeychainPrice})
                       </button>
                       <button
                         type="button"
@@ -1497,7 +1526,7 @@ export default function AIPrintLab({
                         onMouseEnter={e => { e.currentTarget.style.background = '#1a1a1a'; }}
                         onMouseLeave={e => { e.currentTarget.style.background = '#000000'; }}
                       >
-                        ⚡ BUY NOW (₹50)
+                        ⚡ BUY NOW (₹{currentKeychainPrice})
                       </button>
                     </div>
                   </div>

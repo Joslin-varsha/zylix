@@ -552,6 +552,7 @@ function AppContent() {
             <AIPrintLab
               onAddToCart={handleAddToCart}
               onBuyNow={handleBuyNow}
+              selectedProduct={selectedProduct}
               labTab={activeTab === 'ailab' ? 'slicer' : activeTab}
               setLabTab={(t) => {
                 setActiveTab(t === 'slicer' ? 'ailab' : t);
