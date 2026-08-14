@@ -326,18 +326,18 @@ export default function ECommerceCatalog({
           </div>
 
           {/* ===== HERO CAROUSEL ===== */}
-          <div className="hero-carousel-container scroll-reveal" style={{ position: 'relative', height: '420px', overflow: 'visible', marginBottom: '0', borderRadius: '16px 16px 0 0', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
+          <div className="hero-carousel-container scroll-reveal" style={{ position: 'relative', height: isMobile ? '230px' : '420px', overflow: 'hidden', marginBottom: '0', borderRadius: '16px 16px 0 0', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', transition: 'height 0.3s ease' }}>
             <div style={{
               position: 'absolute', inset: 0,
               backgroundImage: `url(${slide.image})`,
               backgroundSize: 'cover', backgroundPosition: 'center',
-              filter: 'brightness(45%) contrast(102%)',
+              filter: 'brightness(55%) contrast(102%)',
               transition: 'opacity 0.6s ease',
               opacity: animatingSlide ? 0 : 1
             }} />
             <div style={{
               position: 'absolute', inset: 0,
-              background: 'linear-gradient(135deg, rgba(15,23,42,0.6) 0%, rgba(15,23,42,0.1) 60%, transparent 100%)',
+              background: 'linear-gradient(135deg, rgba(15,23,42,0.65) 0%, rgba(15,23,42,0.2) 60%, transparent 100%)',
               zIndex: 2
             }} />
             <div className="hero-corner hero-corner-tl" style={{ borderRadius: '16px 0 0 0' }} />
@@ -346,50 +346,54 @@ export default function ECommerceCatalog({
             {/* Content wrapped in a floating frosted glass panel */}
             <div className="hero-glass-panel" style={{
               position: 'absolute',
-              top: '50%',
-              left: '3rem',
-              transform: animatingSlide ? 'translateY(-46%)' : 'translateY(-50%)',
+              top: isMobile ? 'auto' : '50%',
+              bottom: isMobile ? '12px' : 'auto',
+              left: isMobile ? '12px' : '3rem',
+              right: isMobile ? '12px' : 'auto',
+              transform: isMobile ? 'none' : (animatingSlide ? 'translateY(-46%)' : 'translateY(-50%)'),
               opacity: animatingSlide ? 0 : 1,
               transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
               zIndex: 5,
-              padding: '1.25rem 1.5rem',
-              maxWidth: '440px',
-              backgroundColor: 'rgba(10, 15, 30, 0.6)',
+              padding: isMobile ? '0.75rem 1rem' : '1.25rem 1.5rem',
+              maxWidth: isMobile ? 'none' : '440px',
+              backgroundColor: 'rgba(10, 15, 30, 0.72)',
               backdropFilter: 'blur(18px)',
               WebkitBackdropFilter: 'blur(18px)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
               borderRadius: '12px',
               boxShadow: '0 16px 40px rgba(0, 0, 0, 0.3)',
               display: 'flex',
               flexDirection: 'column',
-              gap: '0.6rem'
+              gap: isMobile ? '0.35rem' : '0.6rem'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <span style={{ backgroundColor: 'var(--accent-color)', color: '#ffffff', fontSize: '0.58rem', fontWeight: '800', padding: '2px 8px', borderRadius: '3px', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ backgroundColor: 'var(--accent-color)', color: '#ffffff', fontSize: '0.55rem', fontWeight: '800', padding: '2px 7px', borderRadius: '3px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                   {slide.tag}
                 </span>
-                <span style={{ color: '#cbd5e1', fontSize: '0.72rem', letterSpacing: '0.05em', fontWeight: '500' }}>
+                <span style={{ color: '#cbd5e1', fontSize: isMobile ? '0.65rem' : '0.72rem', letterSpacing: '0.05em', fontWeight: '500' }}>
                   {slide.subtitle}
                 </span>
               </div>
-              <h2 style={{ fontSize: 'clamp(1.3rem, 3vw, 2rem)', fontWeight: '800', color: '#ffffff', lineHeight: '1.15', fontFamily: 'var(--font-display)', letterSpacing: '-0.01em', margin: 0 }}>
+              <h2 style={{ fontSize: isMobile ? '1.15rem' : 'clamp(1.3rem, 3vw, 2rem)', fontWeight: '800', color: '#ffffff', lineHeight: '1.15', fontFamily: 'var(--font-display)', letterSpacing: '-0.01em', margin: 0 }}>
                 {slide.title}
               </h2>
-              <p style={{ fontSize: '0.78rem', color: '#94a3b8', lineHeight: '1.55', maxWidth: '380px', margin: 0 }}>
-                {slide.description}
-              </p>
-              <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
+              {!isMobile && (
+                <p style={{ fontSize: '0.78rem', color: '#94a3b8', lineHeight: '1.55', maxWidth: '380px', margin: 0 }}>
+                  {slide.description}
+                </p>
+              )}
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.15rem', flexWrap: 'wrap' }}>
                 <button
                   onClick={() => setActiveCategory(slide.category)}
                   className="btn-primary"
-                  style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.78rem', padding: '0.45rem 1rem' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: isMobile ? '0.72rem' : '0.78rem', padding: isMobile ? '0.35rem 0.8rem' : '0.45rem 1rem' }}
                 >
                   {slide.btnText} <ArrowRight size={13} />
                 </button>
                 <button 
                   onClick={() => setActiveCategory('all')} 
                   className="btn-secondary" 
-                  style={{ color: '#ffffff', border: '1px solid rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.07)', fontSize: '0.78rem', padding: '0.45rem 1rem' }}
+                  style={{ color: '#ffffff', border: '1px solid rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.07)', fontSize: isMobile ? '0.72rem' : '0.78rem', padding: isMobile ? '0.35rem 0.8rem' : '0.45rem 1rem' }}
                   onMouseEnter={(e) => { e.currentTarget.style.background = '#ffffff'; e.currentTarget.style.color = '#000000'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; e.currentTarget.style.color = '#ffffff'; }}
                 >
@@ -399,14 +403,18 @@ export default function ECommerceCatalog({
             </div>
 
             {/* Slide dots */}
-            <div className="hero-slide-dots" style={{ position: 'absolute', bottom: '24px', left: '4rem', display: 'flex', gap: '8px', zIndex: 10 }}>
+            <div className="hero-slide-dots" style={{ position: 'absolute', bottom: isMobile ? '16px' : '24px', right: isMobile ? '16px' : 'auto', left: isMobile ? 'auto' : '4rem', display: 'flex', gap: '6px', zIndex: 10 }}>
               {carouselSlides.map((_, i) => (
-                <button key={i} onClick={() => goToSlide(i)} style={{ width: i === carouselIndex ? '28px' : '8px', height: '8px', borderRadius: '4px', backgroundColor: i === carouselIndex ? 'var(--accent-color)' : 'rgba(255,255,255,0.35)', border: 'none', cursor: 'pointer', transition: 'all 0.3s ease', padding: 0 }} />
+                <button key={i} onClick={() => goToSlide(i)} style={{ width: i === carouselIndex ? (isMobile ? '20px' : '28px') : '6px', height: '6px', borderRadius: '3px', backgroundColor: i === carouselIndex ? 'var(--accent-color)' : 'rgba(255,255,255,0.4)', border: 'none', cursor: 'pointer', transition: 'all 0.3s ease', padding: 0 }} />
               ))}
             </div>
 
-            <button onClick={handlePrevSlide} className="carousel-arrow" style={{ left: '1.5rem', borderRadius: '50%' }}><ChevronLeft size={20} /></button>
-            <button onClick={handleNextSlide} className="carousel-arrow" style={{ right: '1.5rem', borderRadius: '50%' }}><ChevronRight size={20} /></button>
+            {!isMobile && (
+              <>
+                <button onClick={handlePrevSlide} className="carousel-arrow" style={{ left: '1.5rem', borderRadius: '50%' }}><ChevronLeft size={20} /></button>
+                <button onClick={handleNextSlide} className="carousel-arrow" style={{ right: '1.5rem', borderRadius: '50%' }}><ChevronRight size={20} /></button>
+              </>
+            )}
 
             <div style={{ position: 'absolute', bottom: '24px', right: '1.5rem', color: 'rgba(255,255,255,0.4)', fontSize: '0.72rem', fontFamily: 'var(--font-display)', fontWeight: '600', zIndex: 10 }}>
               {String(carouselIndex + 1).padStart(2, '0')} / {String(carouselSlides.length).padStart(2, '0')}
