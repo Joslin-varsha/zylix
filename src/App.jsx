@@ -46,7 +46,7 @@ function AppContent() {
   const getInitialTab = (pathname) => {
     const key = pathname.replace(/^\//, '');
     const validTabs = [
-      'shop', 'products', 'ailab', 'designer', 'spareparts', 'student', 'orders', 'cart', 'login',
+      'shop', 'products', 'product-detail', 'ailab', 'designer', 'spareparts', 'student', 'orders', 'cart', 'checkout', 'login',
       'about', 'faq', 'contact', 'refund', 'shipping', 'privacy', 'terms'
     ];
     if (key === 'products') return 'shop';
@@ -57,6 +57,10 @@ function AppContent() {
   const getInitialCategory = (pathname) => {
     const key = pathname.replace(/^\//, '');
     if (key === 'products') return 'all';
+    try {
+      const saved = sessionStorage.getItem('zylix_active_category');
+      if (saved) return saved;
+    } catch (e) {}
     return 'home';
   };
 
@@ -73,8 +77,25 @@ function AppContent() {
   const [cartItems, setCartItems] = React.useState([]);
   const [cartOpen, setCartOpen] = React.useState(false);
   const [studentApplied, setStudentApplied] = React.useState(false);
-  const [selectedProduct, setSelectedProduct] = React.useState(null);
-  const [buyNowItem, setBuyNowItem] = React.useState(null);
+  
+  const [selectedProduct, setSelectedProduct] = React.useState(() => {
+    try {
+      const saved = sessionStorage.getItem('zylix_selected_product');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  const [buyNowItem, setBuyNowItem] = React.useState(() => {
+    try {
+      const saved = sessionStorage.getItem('zylix_buynow_item');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
   const [cartLoaded, setCartLoaded] = React.useState(false);
   
   // States: Login, Wishlist & Toggles
@@ -175,6 +196,29 @@ function AppContent() {
     }
   }, [welcomeToast]);
 
+  // Persist selectedProduct, buyNowItem & activeCategory across page reloads
+  React.useEffect(() => {
+    if (selectedProduct) {
+      sessionStorage.setItem('zylix_selected_product', JSON.stringify(selectedProduct));
+    } else {
+      sessionStorage.removeItem('zylix_selected_product');
+    }
+  }, [selectedProduct]);
+
+  React.useEffect(() => {
+    if (buyNowItem) {
+      sessionStorage.setItem('zylix_buynow_item', JSON.stringify(buyNowItem));
+    } else {
+      sessionStorage.removeItem('zylix_buynow_item');
+    }
+  }, [buyNowItem]);
+
+  React.useEffect(() => {
+    if (activeCategory) {
+      sessionStorage.setItem('zylix_active_category', activeCategory);
+    }
+  }, [activeCategory]);
+
   // Ensure page scrolls instantly to top whenever activeTab or selectedProduct changes
   React.useEffect(() => {
     window.scrollTo(0, 0);
@@ -196,7 +240,7 @@ function AppContent() {
       let newCategory = activeCategory;
       
       const validTabs = [
-        'shop', 'products', 'ailab', 'designer', 'spareparts', 'student', 'orders', 'cart', 'login',
+        'shop', 'products', 'product-detail', 'ailab', 'designer', 'spareparts', 'student', 'orders', 'cart', 'checkout', 'login',
         'about', 'faq', 'contact', 'refund', 'shipping', 'privacy', 'terms'
       ];
 
@@ -234,10 +278,10 @@ function AppContent() {
     }
   }, [location.pathname, activeTab, activeCategory, navigate]);
 
-  // Redirect guest users away from orders and require login
+  // Redirect guest users away from orders, cart, and checkout
   React.useEffect(() => {
-    if ((activeTab === 'orders' || activeTab === 'cart') && !user) {
-      setLoginMessage('Please sign in to view your cart and orders.');
+    if ((activeTab === 'orders' || activeTab === 'cart' || activeTab === 'checkout') && !user) {
+      setLoginMessage('Please sign in to proceed with checkout.');
       setActiveTab('login');
     }
   }, [activeTab, user]);
@@ -696,7 +740,7 @@ function AppContent() {
 
 
       {/* App-like Mobile Bottom Dock */}
-      {!['product-detail', 'login'].includes(activeTab) && (
+      {!['product-detail', 'login', 'checkout'].includes(activeTab) && (
         <MobileBottomNav 
           activeTab={activeTab} 
           setActiveTab={setActiveTab} 

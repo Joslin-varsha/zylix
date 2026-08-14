@@ -45,6 +45,13 @@ export default function CheckoutPage({ buyNowItem, cartItems, user, setActiveTab
   const [isProcessing, setIsProcessing] = useState(false);
   const [validationError, setValidationError] = useState('');
   const [orderSuccess, setOrderSuccess] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Sync state if buyNowItem changes
   useEffect(() => {
@@ -300,17 +307,17 @@ export default function CheckoutPage({ buyNowItem, cartItems, user, setActiveTab
   }
 
   return (
-    <div style={{ padding: '1.5rem 1rem 3rem', maxWidth: '1100px', margin: '0 auto' }}>
+    <div style={{ padding: isMobile ? '1rem 0.85rem 5.5rem' : '1.5rem 1rem 3rem', maxWidth: '1100px', margin: '0 auto' }}>
       
       {/* Header Bar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem' }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'space-between', marginBottom: isMobile ? '1.25rem' : '2rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem', gap: '0.75rem' }}>
         <button
           onClick={() => setActiveTab('shop')}
           style={{ background: 'none', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '0.5rem 1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700', fontSize: '0.82rem' }}
         >
           <ArrowLeft size={16} /> Continue Shopping
         </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontWeight: '800', fontSize: '0.82rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontWeight: '800', fontSize: isMobile ? '0.78rem' : '0.82rem' }}>
           <Shield size={16} /> 256-Bit SSL Encrypted Checkout
         </div>
       </div>
@@ -321,12 +328,12 @@ export default function CheckoutPage({ buyNowItem, cartItems, user, setActiveTab
         </div>
       )}
 
-      {/* Main Grid: Shipping Details (Left) + Order Summary (Right) */}
-      <div className="checkout-main-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '2rem', alignItems: 'start' }}>
+      {/* Main Grid: Shipping Details + Order Summary */}
+      <div className="checkout-main-grid" style={{ display: 'flex', flexDirection: isMobile ? 'column-reverse' : 'row', gap: isMobile ? '1.25rem' : '2rem', alignItems: 'start' }}>
         
-        {/* ─── LEFT COLUMN: SHIPPING & DELIVERY DETAILS ─── */}
-        <div style={{ background: '#ffffff', border: '1.5px solid #e2e8f0', borderRadius: '16px', padding: '1.75rem', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-          <h2 style={{ fontSize: '1.15rem', fontWeight: '900', color: '#0f172a', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {/* ─── SHIPPING & DELIVERY DETAILS ─── */}
+        <div style={{ background: '#ffffff', border: '1.5px solid #e2e8f0', borderRadius: '16px', padding: isMobile ? '1.25rem' : '1.75rem', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', flex: 1, width: '100%' }}>
+          <h2 style={{ fontSize: isMobile ? '1.05rem' : '1.15rem', fontWeight: '900', color: '#0f172a', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <MapPin size={20} color="#2563eb" /> Shipping & Delivery Details
           </h2>
 
@@ -342,7 +349,7 @@ export default function CheckoutPage({ buyNowItem, cartItems, user, setActiveTab
                   placeholder="e.g. Rahul Sharma"
                   value={shippingDetails.fullName}
                   onChange={e => setShippingDetails({ ...shippingDetails, fullName: e.target.value })}
-                  style={{ paddingLeft: '2.5rem', height: '42px', fontSize: '0.88rem' }}
+                  style={{ paddingLeft: '2.5rem', height: '44px', fontSize: '0.88rem' }}
                 />
                 <User size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
               </div>
@@ -359,7 +366,7 @@ export default function CheckoutPage({ buyNowItem, cartItems, user, setActiveTab
                   maxLength={10}
                   value={shippingDetails.phone}
                   onChange={e => setShippingDetails({ ...shippingDetails, phone: e.target.value.replace(/\D/g, '') })}
-                  style={{ paddingLeft: '2.5rem', height: '42px', fontSize: '0.88rem', letterSpacing: '0.05em' }}
+                  style={{ paddingLeft: '2.5rem', height: '44px', fontSize: '0.88rem', letterSpacing: '0.05em' }}
                 />
                 <Phone size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
               </div>
@@ -374,12 +381,12 @@ export default function CheckoutPage({ buyNowItem, cartItems, user, setActiveTab
                 placeholder="House / Flat No., Road, Area, Landmark"
                 value={shippingDetails.address}
                 onChange={e => setShippingDetails({ ...shippingDetails, address: e.target.value })}
-                style={{ height: '42px', fontSize: '0.88rem' }}
+                style={{ height: '44px', fontSize: '0.88rem' }}
               />
             </div>
 
             {/* Pincode + City + State Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr', gap: '10px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '800', color: '#334155', marginBottom: '4px', textTransform: 'uppercase' }}>PIN Code *</label>
                 <input
@@ -389,7 +396,7 @@ export default function CheckoutPage({ buyNowItem, cartItems, user, setActiveTab
                   maxLength={6}
                   value={shippingDetails.zip}
                   onChange={e => setShippingDetails({ ...shippingDetails, zip: e.target.value.replace(/\D/g, '') })}
-                  style={{ height: '42px', fontSize: '0.88rem', fontWeight: '700' }}
+                  style={{ height: '44px', fontSize: '0.88rem', fontWeight: '700' }}
                 />
               </div>
 
@@ -401,11 +408,11 @@ export default function CheckoutPage({ buyNowItem, cartItems, user, setActiveTab
                   placeholder="City"
                   value={shippingDetails.city}
                   onChange={e => setShippingDetails({ ...shippingDetails, city: e.target.value })}
-                  style={{ height: '42px', fontSize: '0.88rem' }}
+                  style={{ height: '44px', fontSize: '0.88rem' }}
                 />
               </div>
 
-              <div>
+              <div style={{ gridColumn: isMobile ? '1 / -1' : 'auto' }}>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '800', color: '#334155', marginBottom: '4px', textTransform: 'uppercase' }}>State *</label>
                 <input
                   type="text"
@@ -413,7 +420,7 @@ export default function CheckoutPage({ buyNowItem, cartItems, user, setActiveTab
                   placeholder="State"
                   value={shippingDetails.state}
                   onChange={e => setShippingDetails({ ...shippingDetails, state: e.target.value })}
-                  style={{ height: '42px', fontSize: '0.88rem' }}
+                  style={{ height: '44px', fontSize: '0.88rem' }}
                 />
               </div>
             </div>
@@ -421,8 +428,8 @@ export default function CheckoutPage({ buyNowItem, cartItems, user, setActiveTab
           </div>
         </div>
 
-        {/* ─── RIGHT COLUMN: ORDER SUMMARY & PAYMENT ─── */}
-        <div style={{ background: '#ffffff', border: '1.5px solid #e2e8f0', borderRadius: '16px', padding: '1.5rem', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', position: 'sticky', top: '90px' }}>
+        {/* ─── ORDER SUMMARY & PAYMENT ─── */}
+        <div style={{ background: '#ffffff', border: '1.5px solid #e2e8f0', borderRadius: '16px', padding: isMobile ? '1.25rem' : '1.5rem', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', position: isMobile ? 'static' : 'sticky', top: '90px', width: isMobile ? '100%' : '400px' }}>
           <h2 style={{ fontSize: '1.05rem', fontWeight: '900', color: '#0f172a', marginBottom: '1.25rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
             🛒 Order Summary ({items.length})
           </h2>
@@ -472,34 +479,36 @@ export default function CheckoutPage({ buyNowItem, cartItems, user, setActiveTab
             </div>
           </div>
 
-          {/* Pay Button */}
-          <button
-            onClick={handlePlaceOrder}
-            disabled={isProcessing}
-            style={{
-              width: '100%',
-              height: '50px',
-              borderRadius: '12px',
-              background: '#000000',
-              color: '#ffffff',
-              border: 'none',
-              fontWeight: '900',
-              fontSize: '0.95rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              marginTop: '1.25rem',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-              letterSpacing: '0.02em',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#1e293b'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#000000'; }}
-          >
-            <CreditCard size={18} /> {isProcessing ? 'Processing Order...' : `Pay ₹${Math.round(finalTotal).toLocaleString('en-IN')} & Place Order`}
-          </button>
+          {/* Pay Button (Desktop only, mobile uses sticky bottom bar) */}
+          {!isMobile && (
+            <button
+              onClick={handlePlaceOrder}
+              disabled={isProcessing}
+              style={{
+                width: '100%',
+                height: '50px',
+                borderRadius: '12px',
+                background: '#000000',
+                color: '#ffffff',
+                border: 'none',
+                fontWeight: '900',
+                fontSize: '0.95rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                marginTop: '1.25rem',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                letterSpacing: '0.02em',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#1e293b'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#000000'; }}
+            >
+              <CreditCard size={18} /> {isProcessing ? 'Processing Order...' : `Pay ₹${Math.round(finalTotal).toLocaleString('en-IN')} & Place Order`}
+            </button>
+          )}
 
           <div style={{ textAlign: 'center', marginTop: '0.75rem', fontSize: '0.72rem', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
             <Truck size={14} color="#16a34a" /> Fast Dispatch in 24 Hours
@@ -507,6 +516,54 @@ export default function CheckoutPage({ buyNowItem, cartItems, user, setActiveTab
         </div>
 
       </div>
+
+      {/* Sticky Bottom Bar on Mobile */}
+      {isMobile && (
+        <div style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: '#ffffff',
+          borderTop: '1px solid #cbd5e1',
+          padding: '0.65rem 1rem',
+          boxShadow: '0 -6px 20px rgba(0, 0, 0, 0.15)',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '1rem'
+        }}>
+          <div>
+            <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' }}>Total Amount</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: '900', color: '#0f172a', lineHeight: '1.1' }}>
+              ₹{Math.round(finalTotal).toLocaleString('en-IN')}
+            </div>
+          </div>
+          <button
+            onClick={handlePlaceOrder}
+            disabled={isProcessing}
+            style={{
+              flex: 1,
+              maxWidth: '230px',
+              height: '44px',
+              borderRadius: '10px',
+              background: '#000000',
+              color: '#ffffff',
+              border: 'none',
+              fontWeight: '900',
+              fontSize: '0.88rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px'
+            }}
+          >
+            <CreditCard size={16} /> {isProcessing ? 'Processing...' : 'Pay & Place Order'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
