@@ -526,7 +526,7 @@ export default function CheckoutPage({ buyNowItem, cartItems, user, setActiveTab
           right: 0,
           backgroundColor: '#ffffff',
           borderTop: '1px solid #cbd5e1',
-          padding: '0.65rem 1rem',
+          padding: '0.65rem 1rem calc(0.65rem + env(safe-area-inset-bottom, 0px))',
           boxShadow: '0 -6px 20px rgba(0, 0, 0, 0.15)',
           zIndex: 1000,
           display: 'flex',

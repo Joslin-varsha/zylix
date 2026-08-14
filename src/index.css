@@ -1161,7 +1161,7 @@ h1, h2, h3, h4, h5, h6 {
 
 @media (max-width: 768px) {
   body {
-    padding-bottom: 64px !important;
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   .mobile-bottom-dock {
@@ -1170,7 +1170,8 @@ h1, h2, h3, h4, h5, h6 {
     bottom: 0;
     left: 0;
     right: 0;
-    height: 62px;
+    height: calc(62px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     background-color: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -1179,7 +1180,8 @@ h1, h2, h3, h4, h5, h6 {
     z-index: 9990;
     align-items: center;
     justify-content: space-around;
-    padding: 0 4px;
+    padding-left: 4px;
+    padding-right: 4px;
   }
 
   .mobile-dock-item {
