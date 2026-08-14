@@ -331,13 +331,13 @@ export default function ECommerceCatalog({
               position: 'absolute', inset: 0,
               backgroundImage: `url(${slide.image})`,
               backgroundSize: 'cover', backgroundPosition: 'center',
-              filter: 'brightness(55%) contrast(102%)',
+              filter: 'brightness(82%) contrast(105%)',
               transition: 'opacity 0.6s ease',
               opacity: animatingSlide ? 0 : 1
             }} />
             <div style={{
               position: 'absolute', inset: 0,
-              background: 'linear-gradient(135deg, rgba(15,23,42,0.65) 0%, rgba(15,23,42,0.2) 60%, transparent 100%)',
+              background: 'linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.15) 60%, transparent 100%)',
               zIndex: 2
             }} />
             <div className="hero-corner hero-corner-tl" style={{ borderRadius: '16px 0 0 0' }} />
@@ -356,10 +356,10 @@ export default function ECommerceCatalog({
               zIndex: 5,
               padding: isMobile ? '0.75rem 1rem' : '1.25rem 1.5rem',
               maxWidth: isMobile ? 'none' : '440px',
-              backgroundColor: 'rgba(10, 15, 30, 0.72)',
-              backdropFilter: 'blur(18px)',
-              WebkitBackdropFilter: 'blur(18px)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
+              backgroundColor: isMobile ? 'rgba(0, 0, 0, 0.45)' : 'rgba(10, 15, 30, 0.72)',
+              backdropFilter: isMobile ? 'none' : 'blur(16px)',
+              WebkitBackdropFilter: isMobile ? 'none' : 'blur(16px)',
+              border: '1px solid rgba(255, 255, 255, 0.18)',
               borderRadius: '12px',
               boxShadow: '0 16px 40px rgba(0, 0, 0, 0.3)',
               display: 'flex',
