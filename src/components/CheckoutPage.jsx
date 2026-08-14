@@ -436,27 +436,45 @@ export default function CheckoutPage({ buyNowItem, cartItems, user, setActiveTab
 
           {/* List of Items being purchased */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', maxHeight: '260px', overflowY: 'auto', marginBottom: '1.25rem', paddingRight: '4px' }}>
-            {items.map((item, idx) => (
-              <div key={idx} style={{ display: 'flex', gap: '12px', alignItems: 'center', background: '#f8fafc', padding: '0.65rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                <img src={item.image} alt={item.name} style={{ width: '52px', height: '52px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: '800', fontSize: '0.82rem', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
-                  {item.isCustom && (
-                    <div style={{ fontSize: '0.7rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      "{item.customText}" · {item.textColor} / {item.baseColor}
-                    </div>
-                  )}
-                  <div style={{ fontSize: '0.84rem', fontWeight: '900', color: '#000', marginTop: '2px' }}>₹{item.price.toLocaleString('en-IN')}</div>
-                </div>
+            {items.map((item, idx) => {
+              const imgSrc = item.image || item.image_url || item.img || item.picture || '/logo.png';
+              return (
+                <div key={idx} style={{ display: 'flex', gap: '12px', alignItems: 'center', background: '#f8fafc', padding: '0.65rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <img
+                    src={imgSrc}
+                    alt={item.name}
+                    onError={(e) => { e.target.onerror = null; e.target.src = '/logo.png'; }}
+                    style={{
+                      width: '52px',
+                      height: '52px',
+                      minWidth: '52px',
+                      minHeight: '52px',
+                      flexShrink: 0,
+                      objectFit: 'cover',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      backgroundColor: '#ffffff'
+                    }}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: '800', fontSize: '0.82rem', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
+                    {item.isCustom && (
+                      <div style={{ fontSize: '0.7rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        "{item.customText}" · {item.textColor} / {item.baseColor}
+                      </div>
+                    )}
+                    <div style={{ fontSize: '0.84rem', fontWeight: '900', color: '#000', marginTop: '2px' }}>₹{item.price.toLocaleString('en-IN')}</div>
+                  </div>
 
-                {/* Quantity Controls */}
-                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #cbd5e1', borderRadius: '6px', overflow: 'hidden', background: '#ffffff' }}>
-                  <button onClick={() => updateQuantity(idx, -1)} style={{ width: '24px', height: '24px', border: 'none', background: 'none', cursor: 'pointer', fontWeight: '800' }}>-</button>
-                  <span style={{ width: '24px', textAlign: 'center', fontSize: '0.78rem', fontWeight: '800' }}>{item.quantity}</span>
-                  <button onClick={() => updateQuantity(idx, 1)} style={{ width: '24px', height: '24px', border: 'none', background: 'none', cursor: 'pointer', fontWeight: '800' }}>+</button>
+                  {/* Quantity Controls */}
+                  <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #cbd5e1', borderRadius: '6px', overflow: 'hidden', background: '#ffffff', flexShrink: 0 }}>
+                    <button onClick={() => updateQuantity(idx, -1)} style={{ width: '24px', height: '24px', border: 'none', background: 'none', cursor: 'pointer', fontWeight: '800' }}>-</button>
+                    <span style={{ width: '24px', textAlign: 'center', fontSize: '0.78rem', fontWeight: '800' }}>{item.quantity}</span>
+                    <button onClick={() => updateQuantity(idx, 1)} style={{ width: '24px', height: '24px', border: 'none', background: 'none', cursor: 'pointer', fontWeight: '800' }}>+</button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Price Breakdown */}
