@@ -313,10 +313,11 @@ export default function AIPrintLab({
     
     const price = currentKeychainPrice;
     const imgMap = {
-      keychain: '/images/categories/keychains.webp',
+      keychain: '/images/categories/keychains.jpg',
       nameboard: '/images/categories/stencils.jpg',
       phonestand: '/images/categories/holders.jpg',
-      trophy: '/images/categories/gifts.jpg'
+      trophy: '/images/categories/gifts.jpg',
+      other: '/images/categories/gifts.jpg'
     };
 
     const finalTextColor = designerColor === 'Other' && customColor.trim() ? customColor.trim() : designerColor;
@@ -330,11 +331,13 @@ export default function AIPrintLab({
       ? `Custom 3D Trophy`
       : `Custom 3D Print ("${customProductType.trim() || 'Design'}")`;
 
+    const itemImage = selectedProduct?.image || selectedProduct?.image_url || selectedProduct?.img || imgMap[productType] || '/images/categories/keychains.jpg';
+
     const customItem = {
       id: `custom_${productType}_${Date.now()}`,
       name: customItemName,
       price: price,
-      image: imgMap[productType] || '/images/categories/keychains.webp',
+      image: itemImage,
       isCustom: true,
       material: 'PLA Premium',
       infill: 20,
@@ -360,10 +363,11 @@ export default function AIPrintLab({
     
     const price = currentKeychainPrice;
     const imgMap = {
-      keychain: '/images/categories/keychains.webp',
+      keychain: '/images/categories/keychains.jpg',
       nameboard: '/images/categories/stencils.jpg',
       phonestand: '/images/categories/holders.jpg',
-      trophy: '/images/categories/gifts.jpg'
+      trophy: '/images/categories/gifts.jpg',
+      other: '/images/categories/gifts.jpg'
     };
 
     const finalTextColor = designerColor === 'Other' && customColor.trim() ? customColor.trim() : designerColor;
@@ -377,11 +381,13 @@ export default function AIPrintLab({
       ? `Custom 3D Trophy`
       : `Custom 3D Print ("${customProductType.trim() || 'Design'}")`;
 
+    const itemImage = selectedProduct?.image || selectedProduct?.image_url || selectedProduct?.img || imgMap[productType] || '/images/categories/keychains.jpg';
+
     const customItem = {
       id: `custom_${productType}_${Date.now()}`,
       name: customItemName,
       price: price,
-      image: imgMap[productType] || '/images/categories/keychains.webp',
+      image: itemImage,
       isCustom: true,
       material: 'PLA Premium',
       infill: 20,

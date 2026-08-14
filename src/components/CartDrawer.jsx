@@ -92,53 +92,61 @@ export default function CartDrawer({
               </p>
             </div>
           ) : (
-            cartItems.map((item, index) => (
-              <div key={index} style={{
-                backgroundColor: '#fff',
-                borderRadius: '10px',
-                border: '1px solid #ebebeb',
-                padding: '0.65rem',
-                display: 'flex', gap: '0.65rem', alignItems: 'flex-start',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
-              }}>
-                {/* Thumbnail */}
-                <div style={{
-                  width: '50px', height: '50px', borderRadius: '6px',
-                  backgroundColor: '#f3f3f3', overflow: 'hidden', flexShrink: 0,
-                  border: '1px solid #eee'
+            cartItems.map((item, index) => {
+              const imgSrc = item.image || item.image_url || item.img || item.picture || '/images/categories/keychains.jpg';
+              return (
+                <div key={index} style={{
+                  backgroundColor: '#fff',
+                  borderRadius: '10px',
+                  border: '1px solid #ebebeb',
+                  padding: '0.65rem',
+                  display: 'flex', gap: '0.65rem', alignItems: 'flex-start',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
                 }}>
-                  <img src={item.image || '/product-1.webp'} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
-
-                {/* Info */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
-                  <h4 style={{ fontSize: '0.8rem', fontWeight: '700', color: '#111', lineHeight: '1.3' }}>{item.name}</h4>
-                  {item.isCustom && (
-                    <p style={{ fontSize: '0.65rem', color: '#999' }}>{item.material} · {item.infill}% infill · {item.resolution}</p>
-                  )}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.2rem' }}>
-                    <span style={{
-                      fontSize: '0.65rem', color: '#666',
-                      backgroundColor: '#f5f5f5', padding: '2px 8px',
-                      borderRadius: '20px', border: '1px solid #e8e8e8'
-                    }}>Qty: {item.quantity}</span>
-                    <span style={{ fontSize: '0.88rem', fontWeight: '800', color: '#000', fontFamily: 'var(--font-display)' }}>
-                      ₹{(item.price * item.quantity).toLocaleString('en-IN')}
-                    </span>
+                  {/* Thumbnail */}
+                  <div style={{
+                    width: '50px', height: '50px', borderRadius: '6px',
+                    backgroundColor: '#f3f3f3', overflow: 'hidden', flexShrink: 0,
+                    border: '1px solid #eee'
+                  }}>
+                    <img
+                      src={imgSrc}
+                      alt={item.name}
+                      onError={(e) => { e.target.onerror = null; e.target.src = '/images/categories/keychains.jpg'; }}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
                   </div>
-                </div>
 
-                {/* Remove */}
-                <button
-                  onClick={() => onRemoveItem(index)}
-                  style={{ background: 'transparent', border: 'none', color: '#ccc', cursor: 'pointer', padding: '2px', flexShrink: 0, transition: 'color 0.2s' }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#ff4444'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#ccc'}
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            ))
+                  {/* Info */}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
+                    <h4 style={{ fontSize: '0.8rem', fontWeight: '700', color: '#111', lineHeight: '1.3' }}>{item.name}</h4>
+                    {item.isCustom && (
+                      <p style={{ fontSize: '0.65rem', color: '#999' }}>{item.material} · {item.infill}% infill · {item.resolution}</p>
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.2rem' }}>
+                      <span style={{
+                        fontSize: '0.65rem', color: '#666',
+                        backgroundColor: '#f5f5f5', padding: '2px 8px',
+                        borderRadius: '20px', border: '1px solid #e8e8e8'
+                      }}>Qty: {item.quantity}</span>
+                      <span style={{ fontSize: '0.88rem', fontWeight: '800', color: '#000', fontFamily: 'var(--font-display)' }}>
+                        ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Remove */}
+                  <button
+                    onClick={() => onRemoveItem(index)}
+                    style={{ background: 'transparent', border: 'none', color: '#ccc', cursor: 'pointer', padding: '2px', flexShrink: 0, transition: 'color 0.2s' }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = '#ff4444'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = '#ccc'}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              );
+            })
           )}
         </div>
 

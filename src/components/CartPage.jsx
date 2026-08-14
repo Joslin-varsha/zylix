@@ -408,7 +408,12 @@ export default function CartPage({
             <div key={index} className="cart-item-card">
               {/* Thumbnail */}
               <div className="cart-item-thumb">
-                <img src={item.image || '/product-1.webp'} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img
+                  src={item.image || item.image_url || item.img || item.picture || '/images/categories/keychains.jpg'}
+                  alt={item.name}
+                  onError={(e) => { e.target.onerror = null; e.target.src = '/images/categories/keychains.jpg'; }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
               </div>
 
               {/* Info */}
