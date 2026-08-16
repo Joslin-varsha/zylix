@@ -295,6 +295,10 @@ export default function AIPrintLab({
     }
   }, [designerPreset]);
 
+  const hasProductPrice = React.useMemo(() => {
+    return !!(selectedProduct && selectedProduct.price != null && !isNaN(Number(selectedProduct.price)));
+  }, [selectedProduct]);
+
   const currentKeychainPrice = React.useMemo(() => {
     if (selectedProduct && selectedProduct.price != null && !isNaN(Number(selectedProduct.price))) {
       return Number(selectedProduct.price);
@@ -302,7 +306,7 @@ export default function AIPrintLab({
     if (labSettings?.keychainPrice != null && !isNaN(Number(labSettings.keychainPrice))) {
       return Number(labSettings.keychainPrice);
     }
-    return 50;
+    return 1;
   }, [selectedProduct, labSettings]);
 
   const handleAddToCartDesigner = () => {
@@ -1431,7 +1435,7 @@ export default function AIPrintLab({
                           width: '100%',
                           flex: isMobile ? 'none' : 1,
                           height: isMobile ? '38px' : '46px',
-                          fontSize: isMobile ? '0.80rem' : '0.88rem',
+                          fontSize: isMobile ? '0.82rem' : '0.90rem',
                           fontWeight: '800',
                           borderRadius: '8px',
                           display: 'flex',
@@ -1447,7 +1451,7 @@ export default function AIPrintLab({
                         onMouseEnter={e => { e.currentTarget.style.background = '#e2e8f0'; }}
                         onMouseLeave={e => { e.currentTarget.style.background = '#f1f5f9'; }}
                       >
-                        🛒 Add to Cart (₹{currentKeychainPrice})
+                        🛒 Add to Cart{hasProductPrice ? ` (₹${currentKeychainPrice})` : ''}
                       </button>
                       <button
                         type="button"
@@ -1474,7 +1478,7 @@ export default function AIPrintLab({
                         onMouseEnter={e => { e.currentTarget.style.background = '#1a1a1a'; }}
                         onMouseLeave={e => { e.currentTarget.style.background = '#000000'; }}
                       >
-                        ⚡ BUY NOW (₹{currentKeychainPrice})
+                        ⚡ BUY NOW{hasProductPrice ? ` (₹${currentKeychainPrice})` : ''}
                       </button>
                     </div>
                   </div>

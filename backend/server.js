@@ -73,6 +73,7 @@ const DEFAULT_LAB_SETTINGS = {
   slicerMaterials: ['PLA', 'PETG', 'ABS', 'Resin', 'Wood', 'PP', 'PET'],
   slicerColors: ['Matte Black', 'Pure White', 'Signal Red', 'Navy Blue', 'Metallic Silver', 'Golden Yellow', 'Forest Green'],
   prototypeTypes: ['School Project', 'College Project', 'Startup Prototype', 'Research Model', 'Architecture Model', 'Robotics Project', 'Science Model', 'Other'],
+  keychainPrice: 1,
   enabledLabTabs: {
     slicer: true,
     designer: true,
@@ -1893,6 +1894,52 @@ app.post('/api/payment/verify-quote', async (req, res) => {
     res.json({ success: true, quote: updatedQuote });
   } catch (err) {
     console.error('Verify quote payment error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin status update endpoint
+app.patch('/api/quotes/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!status) {
+      return res.status(400).json({ error: 'Status string is required.' });
+    }
+
+    let updatedQuote = null;
+    let useLocal = !isSupabaseConfigured || !supabase;
+
+    if (!useLocal) {
+      try {
+        const { data, error } = await supabase
+          .from('quotes')
+          .update({ status })
+          .eq('id', id)
+          .select();
+        if (error) throw error;
+        if (data && data.length > 0) updatedQuote = data[0];
+      } catch (err) {
+        console.warn('[Supabase Fallback] Status update failed, fallback to local:', err.message);
+        useLocal = true;
+      }
+    }
+
+    if (useLocal) {
+      const quotes = readLocalQuotes();
+      const index = quotes.findIndex(q => q.id === id);
+      if (index === -1) {
+        return res.status(404).json({ error: 'Quote ticket not found.' });
+      }
+      quotes[index].status = status;
+      writeLocalQuotes(quotes);
+      updatedQuote = quotes[index];
+    }
+
+    res.json({ success: true, quote: updatedQuote });
+  } catch (err) {
+    console.error('Update status error:', err);
     res.status(500).json({ error: err.message });
   }
 });

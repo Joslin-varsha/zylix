@@ -1,7 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Loader2, Download, Package, Clock, CheckCircle2, XCircle, AlertCircle, ShoppingCart } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
+const calculateShipping = (zip, subtotal) => {
+  if (subtotal > 5000) return 0;
+  if (!zip || zip.trim().length < 6) return null;
+
+  const cleanZip = zip.trim();
+  const firstDigit = cleanZip.charAt(0);
+
+  switch (firstDigit) {
+    case '6': return 50;  // South (TN, Kerala)
+    case '5': return 70;  // KA, AP, TS
+    case '4': return 100; // MH, MP, Goa
+    case '3': return 110; // GJ, RJ
+    case '1':
+    case '2': return 130; // North
+    case '7':
+    case '8': return 150; // East
+    default:  return 120;
+  }
+};
 
 export default function MyOrders({ user, setActiveTab }) {
   const [email, setEmail] = useState('');
@@ -97,16 +115,20 @@ export default function MyOrders({ user, setActiveTab }) {
       return;
     }
 
+    const quoteSubtotal = activeQuoteToPay?.price_estimate || 0;
+    const quoteShipping = calculateShipping(shippingDetails.zip, quoteSubtotal);
+    const finalQuoteTotal = quoteSubtotal + (quoteShipping ?? 0);
+
     const fullShippingAddress = `${address.trim()}, ${city.trim()}, ${state.trim()} - ${zipClean}`;
     setProcessingPayment(true);
 
     try {
-      // 1. Create order on backend
+      // 1. Create order on backend with final amount including pincode shipping
       const createRes = await fetch(`${API_BASE}/api/payment/create-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amount: activeQuoteToPay.price_estimate,
+          amount: Math.round(finalQuoteTotal),
           email: user.email,
           name: fullName.trim()
         })
@@ -270,6 +292,27 @@ export default function MyOrders({ user, setActiveTab }) {
         bg: '#ecfdf5',
         color: '#10b981',
         border: '#a7f3d0',
+        icon: <CheckCircle2 size={13} />
+      },
+      Completed: {
+        text: 'Completed - Ready to Ship',
+        bg: '#dcfce7',
+        color: '#15803d',
+        border: '#86efac',
+        icon: <CheckCircle2 size={13} />
+      },
+      Dispatched: {
+        text: 'Out for Delivery',
+        bg: '#e0f2fe',
+        color: '#0369a1',
+        border: '#7dd3fc',
+        icon: <Package size={13} />
+      },
+      Delivered: {
+        text: 'Order Delivered',
+        bg: '#f0fdf4',
+        color: '#16a34a',
+        border: '#bbf7d0',
         icon: <CheckCircle2 size={13} />
       },
       Declined: {
@@ -697,7 +740,9 @@ export default function MyOrders({ user, setActiveTab }) {
                       {/* Total Amount & Action CTA */}
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: isMobile ? 'space-between' : 'flex-end', gap: '1rem' }}>
                         <div>
-                          <span style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.04em', display: 'block' }}>Total Amount</span>
+                          <span style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.04em', display: 'block' }}>
+                            {quote.price_estimate ? 'Quoted Estimate (+ Shipping)' : 'Total Amount'}
+                          </span>
                           <span style={{ fontSize: '1.2rem', fontWeight: '900', color: '#0f172a' }}>
                             {quote.price_estimate ? `₹${quote.price_estimate.toLocaleString('en-IN')}` : (isCatalogOrder ? `₹${quote.extra_data?.total?.toLocaleString('en-IN')}` : 'Calculating...')}
                           </span>
@@ -727,6 +772,18 @@ export default function MyOrders({ user, setActiveTab }) {
                           >
                             ⚡ PAY NOW (₹{quote.price_estimate.toLocaleString('en-IN')})
                           </button>
+                        ) : quote.status === 'Completed' ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.76rem', fontWeight: '800', color: '#15803d', backgroundColor: '#dcfce7', border: '1px solid #86efac', padding: '6px 12px', borderRadius: '8px' }}>
+                            <CheckCircle2 size={14} /> 🎉 Production Completed (Ready to Ship)
+                          </div>
+                        ) : quote.status === 'Dispatched' ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.76rem', fontWeight: '800', color: '#0369a1', backgroundColor: '#e0f2fe', border: '1px solid #7dd3fc', padding: '6px 12px', borderRadius: '8px' }}>
+                            <Package size={14} /> 🚚 Out For Delivery
+                          </div>
+                        ) : quote.status === 'Delivered' ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.76rem', fontWeight: '800', color: '#16a34a', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', padding: '6px 12px', borderRadius: '8px' }}>
+                            <CheckCircle2 size={14} /> ✅ Order Delivered
+                          </div>
                         ) : quote.status === 'Approved' ? (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.76rem', fontWeight: '800', color: '#16a34a', backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0', padding: '6px 12px', borderRadius: '8px' }}>
                             <CheckCircle2 size={14} /> Production In Progress
@@ -876,7 +933,7 @@ export default function MyOrders({ user, setActiveTab }) {
 
                 {/* ZIP */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', gridColumn: isMobile ? 'span 2' : 'span 1' }}>
-                  <label style={{ fontSize: '0.72rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>ZIP *</label>
+                  <label style={{ fontSize: '0.72rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>ZIP / PIN Code *</label>
                   <input
                     type="text"
                     placeholder="6-digit ZIP"
@@ -885,11 +942,41 @@ export default function MyOrders({ user, setActiveTab }) {
                     className="input-field"
                     style={{ height: '38px', fontSize: '0.82rem' }}
                   />
+                  {shippingDetails.zip?.trim().length === 6 && (
+                    <div style={{ marginTop: '0.35rem', padding: '0.45rem 0.75rem', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', fontSize: '0.74rem', color: '#15803d', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      🚚 Shipping Fee for PIN {shippingDetails.zip.trim()}: <strong>{calculateShipping(shippingDetails.zip, activeQuoteToPay?.price_estimate || 0) === 0 ? 'FREE (Order > ₹5000)' : `+ ₹${calculateShipping(shippingDetails.zip, activeQuoteToPay?.price_estimate || 0)}`}</strong>
+                    </div>
+                  )}
                 </div>
               </div>
 
+              {/* Shipping & Price Breakdown */}
+              {(() => {
+                const sub = activeQuoteToPay?.price_estimate || 0;
+                const ship = calculateShipping(shippingDetails.zip, sub);
+                const tot = sub + (ship ?? 0);
+                return (
+                  <div style={{ backgroundColor: '#f8fafc', padding: '0.85rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.82rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b' }}>
+                      <span>Custom Quote Estimate</span>
+                      <strong style={{ color: '#0f172a' }}>₹{sub.toLocaleString('en-IN')}</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b' }}>
+                      <span>Shipping Fee ({shippingDetails.zip?.trim().length === 6 ? `PIN ${shippingDetails.zip}` : 'Enter PIN'})</span>
+                      <strong style={{ color: ship === 0 ? '#16a34a' : '#0f172a' }}>
+                        {ship === 0 ? 'FREE' : ship === null ? 'Enter 6-digit PIN' : `+ ₹${ship}`}
+                      </strong>
+                    </div>
+                    <div style={{ borderTop: '1.5px dashed #cbd5e1', paddingTop: '0.45rem', marginTop: '2px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.92rem' }}>
+                      <span style={{ fontWeight: '800', color: '#0f172a' }}>Total Amount Payable</span>
+                      <span style={{ fontWeight: '900', color: '#000000', fontSize: '1.15rem' }}>₹{Math.round(tot).toLocaleString('en-IN')}</span>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Submit Buttons */}
-              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.25rem' }}>
                 <button
                   type="button"
                   onClick={handleCloseShippingModal}
@@ -912,7 +999,7 @@ export default function MyOrders({ user, setActiveTab }) {
                     fontFamily: 'inherit'
                   }}
                 >
-                  {processingPayment ? 'Processing...' : `Pay ₹${activeQuoteToPay?.price_estimate?.toLocaleString('en-IN')}`}
+                  {processingPayment ? 'Processing...' : `Pay ₹${Math.round((activeQuoteToPay?.price_estimate || 0) + (calculateShipping(shippingDetails.zip, activeQuoteToPay?.price_estimate || 0) ?? 0)).toLocaleString('en-IN')}`}
                 </button>
               </div>
             </form>
