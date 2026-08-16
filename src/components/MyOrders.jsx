@@ -10,6 +10,13 @@ export default function MyOrders({ user, setActiveTab }) {
   const [error, setError] = useState('');
   const [searched, setSearched] = useState(false);
   const [overrideUserSession, setOverrideUserSession] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Quote Payment checkout states
   const [showShippingModal, setShowShippingModal] = useState(false);
@@ -313,10 +320,10 @@ export default function MyOrders({ user, setActiveTab }) {
     <div className="orders-page-container">
       
       {/* Header Banner */}
-      <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+      <div style={{ textAlign: 'center', marginBottom: isMobile ? '1.5rem' : '3rem' }}>
         <span className="badge-outline" style={{ marginBottom: '0.5rem' }}>ORDER TRACKING</span>
-        <h1 className="orders-title" style={{ fontSize: '2.2rem', fontWeight: '800', textTransform: 'uppercase', color: '#000' }}>My Custom Quotes & Orders</h1>
-        <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0.5rem auto 0', fontSize: '0.9rem' }}>
+        <h1 className="orders-title" style={{ fontSize: isMobile ? '1.4rem' : '2.2rem', fontWeight: '800', textTransform: 'uppercase', color: '#000' }}>My Custom Quotes & Orders</h1>
+        <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0.5rem auto 0', fontSize: isMobile ? '0.8rem' : '0.9rem' }}>
           {user && !overrideUserSession
             ? `Viewing custom 3D printing and prototyping quote requests submitted by you.`
             : `Enter the email address you used during submission to track status, download file attachments, and view price estimates.`
@@ -328,8 +335,8 @@ export default function MyOrders({ user, setActiveTab }) {
       {(!user || overrideUserSession) && (
         <div className="glass-panel" style={{
           maxWidth: '550px',
-          margin: '0 auto 3.5rem',
-          padding: '1.5rem',
+          margin: isMobile ? '0 auto 2rem' : '0 auto 3.5rem',
+          padding: isMobile ? '1rem' : '1.5rem',
           backgroundColor: '#ffffff',
           borderRadius: '12px'
         }}>
@@ -352,7 +359,7 @@ export default function MyOrders({ user, setActiveTab }) {
                 </button>
               )}
             </div>
-            <div className="orders-search-box" style={{ display: 'flex', gap: '0.5rem' }}>
+            <div className="orders-search-box" style={{ display: 'flex', gap: '0.5rem', flexDirection: isMobile ? 'column' : 'row' }}>
               <input
                 type="email"
                 placeholder="name@email.com"
@@ -365,7 +372,7 @@ export default function MyOrders({ user, setActiveTab }) {
               <button
                 type="submit"
                 className="btn-primary"
-                style={{ height: '42px', padding: '0 1.25rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                style={{ height: '42px', padding: '0 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', width: isMobile ? '100%' : 'auto' }}
                 disabled={loading}
               >
                 {loading ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
@@ -400,7 +407,7 @@ export default function MyOrders({ user, setActiveTab }) {
       {searched && !loading && (
         <div style={{ maxWidth: '850px', margin: '0 auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#1e293b' }}>
+            <h2 style={{ fontSize: isMobile ? '1.05rem' : '1.25rem', fontWeight: '800', color: '#1e293b' }}>
               Submissions ({quotes.length})
             </h2>
             <button
@@ -413,7 +420,7 @@ export default function MyOrders({ user, setActiveTab }) {
           </div>
 
           {quotes.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '4rem 2rem', border: '1px dashed #cbd5e1', borderRadius: '12px', background: '#fafafa' }}>
+            <div style={{ textAlign: 'center', padding: isMobile ? '2.5rem 1rem' : '4rem 2rem', border: '1px dashed #cbd5e1', borderRadius: '12px', background: '#fafafa' }}>
               <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🔍</div>
               <h3 style={{ fontSize: '1rem', fontWeight: '700', color: '#334155', margin: 0 }}>No Quote Submissions Found</h3>
               <p style={{ fontSize: '0.82rem', color: '#64748b', marginTop: '0.5rem', maxWidth: '400px', margin: '0.5rem auto 1.5rem' }}>
@@ -428,7 +435,7 @@ export default function MyOrders({ user, setActiveTab }) {
               </button>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '1.25rem' : '2rem' }}>
               {quotes.map((quote) => {
                 // Check if file is image for preview
                 const isImg = quote.file_name?.match(/\.(jpeg|jpg|gif|png|webp)$/i);
@@ -448,21 +455,21 @@ export default function MyOrders({ user, setActiveTab }) {
                     {/* Card Top Title Row */}
                     <div style={{
                       backgroundColor: '#f8fafc',
-                      padding: '1rem 1.5rem',
+                      padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem',
                       borderBottom: '1px solid #e2e8f0',
                       display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      flexWrap: 'wrap',
-                      gap: '0.75rem'
+                      justify: 'space-between',
+                      alignItems: isMobile ? 'flex-start' : 'center',
+                      flexDirection: isMobile ? 'column' : 'row',
+                      gap: isMobile ? '0.4rem' : '0.75rem'
                     }}>
                       <div>
                         <span style={{ fontSize: '0.67rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Ticket Reference</span>
-                        <h3 style={{ fontFamily: 'monospace', fontSize: '1.05rem', fontWeight: '700', color: '#0f172a', margin: '2px 0 0 0' }}>
+                        <h3 style={{ fontFamily: 'monospace', fontSize: isMobile ? '0.95rem' : '1.05rem', fontWeight: '700', color: '#0f172a', margin: '2px 0 0 0' }}>
                           {quote.id}
                         </h3>
                       </div>
-                      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
                         <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
                           {new Date(quote.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                         </span>
@@ -471,7 +478,7 @@ export default function MyOrders({ user, setActiveTab }) {
                     </div>
 
                     {/* Card Inner Grid Details */}
-                    <div style={{ padding: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', flexWrap: 'wrap' }}>
+                    <div style={{ padding: isMobile ? '1rem' : '1.5rem', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '1.25rem' : '1.5rem' }}>
                       
                       {/* Left: Spec Details */}
                       <div>
@@ -558,7 +565,7 @@ export default function MyOrders({ user, setActiveTab }) {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                               {quote.extra_data.files.map((fileObj, idx) => (
                                 <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', padding: '4px 8px', borderRadius: '4px', fontSize: '0.74rem' }}>
-                                  <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '220px', color: '#334155' }}>📎 {fileObj.fileName}</span>
+                                  <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: isMobile ? '160px' : '220px', color: '#334155' }}>📎 {fileObj.fileName}</span>
                                   <a href={fileObj.fileUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '3px', color: 'var(--accent-color)', textDecoration: 'none', fontWeight: '700' }}>
                                     <Download size={11} /> Download
                                   </a>
@@ -567,7 +574,7 @@ export default function MyOrders({ user, setActiveTab }) {
                             </div>
                           ) : quote.file_url ? (
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', padding: '4px 8px', borderRadius: '4px', fontSize: '0.74rem' }}>
-                              <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '220px', color: '#334155' }}>📎 {quote.file_name}</span>
+                              <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: isMobile ? '160px' : '220px', color: '#334155' }}>📎 {quote.file_name}</span>
                               <a href={quote.file_url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '3px', color: 'var(--accent-color)', textDecoration: 'none', fontWeight: '700' }}>
                                 <Download size={11} /> Download
                               </a>
@@ -665,15 +672,18 @@ export default function MyOrders({ user, setActiveTab }) {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 300,
+          padding: isMobile ? '1rem' : '0',
           animation: 'fadeIn 0.25s ease'
         }}>
           <div style={{
             backgroundColor: '#ffffff',
             borderRadius: '16px',
             border: '1px solid #e2e8f0',
-            padding: '2rem',
-            width: '90%',
+            padding: isMobile ? '1.25rem' : '2rem',
+            width: '100%',
             maxWidth: '520px',
+            maxHeight: isMobile ? '90vh' : 'auto',
+            overflowY: isMobile ? 'auto' : 'visible',
             boxShadow: '0 20px 45px rgba(0, 0, 0, 0.12)',
             display: 'flex',
             flexDirection: 'column',
@@ -681,7 +691,7 @@ export default function MyOrders({ user, setActiveTab }) {
             animation: 'slideUpOverlay 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f0f0f0', paddingBottom: '0.75rem' }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.04em', margin: 0, color: '#111' }}>
+              <h3 style={{ fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.04em', margin: 0, color: '#111' }}>
                 Delivery Details
               </h3>
               <button 
@@ -708,7 +718,7 @@ export default function MyOrders({ user, setActiveTab }) {
 
             <form onSubmit={handlePayQuoteSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem' }}>
                 {/* Full Name */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                   <label style={{ fontSize: '0.72rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Recipient Name *</label>
@@ -749,7 +759,7 @@ export default function MyOrders({ user, setActiveTab }) {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr', gap: '0.75rem' }}>
                 {/* City */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                   <label style={{ fontSize: '0.72rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>City *</label>
@@ -777,7 +787,7 @@ export default function MyOrders({ user, setActiveTab }) {
                 </div>
 
                 {/* ZIP */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', gridColumn: isMobile ? 'span 2' : 'span 1' }}>
                   <label style={{ fontSize: '0.72rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>ZIP *</label>
                   <input
                     type="text"
