@@ -162,7 +162,7 @@ export default function StudentHub({ user, setActiveTab }) {
       }}>
         
         {/* Left Column: Instructions Guide */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', order: isMobile ? 2 : 1 }}>
           <div className="glass-panel" style={{ padding: '2rem', backgroundColor: '#ffffff', borderRadius: '12px' }}>
             <span className="badge-outline" style={{ marginBottom: '0.75rem', display: 'inline-block' }}>Prototype Pipeline</span>
             <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#000', marginBottom: '1rem' }}>How Prototyping Works</h3>
@@ -206,7 +206,7 @@ export default function StudentHub({ user, setActiveTab }) {
         </div>
 
         {/* Right Column: Feasibility Report / Form */}
-        <div className="glass-panel" style={{ padding: '2rem', backgroundColor: '#ffffff', minHeight: '350px' }}>
+        <div className="glass-panel" style={{ padding: '2rem', backgroundColor: '#ffffff', minHeight: '350px', order: isMobile ? 1 : 2 }}>
           
           {submitted ? (
             <div style={{ textAlign: 'center', padding: '1.5rem 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}>

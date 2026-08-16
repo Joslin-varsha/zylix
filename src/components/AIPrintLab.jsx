@@ -1123,65 +1123,7 @@ export default function AIPrintLab({
 
               <form onSubmit={handleSubmitDesignerQuote} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
                 
-                {/* Product Type Selection */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', width: '100%', minWidth: 0 }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#000' }}>What would you like to create?</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(auto-fill, minmax(76px, 1fr))' : 'repeat(auto-fit, minmax(100px, 1fr))', gap: '0.35rem', width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
-                    {((labSettings?.productTypes && labSettings.productTypes.length > 0)
-                      ? labSettings.productTypes.filter(p => p.enabled !== false).map(p => ({
-                          id: p.id,
-                          label: p.label.replace(/^[\p{Emoji}\s]+/gu, '') || p.label,
-                          icon: p.id === 'keychain' ? <Key size={14} /> : p.id === 'nameboard' ? <Gift size={14} /> : p.id === 'trophy' ? <Award size={14} /> : p.id === 'phonestand' ? <Box size={14} /> : <FileText size={14} />
-                        }))
-                      : [
-                          { id: 'keychain', label: 'Keychain', icon: <Key size={14} /> },
-                          { id: 'nameboard', label: 'Name Board', icon: <Gift size={14} /> },
-                          { id: 'trophy', label: 'Trophy', icon: <Award size={14} /> },
-                          { id: 'phonestand', label: 'Phone Stand', icon: <Box size={14} /> },
-                          { id: 'other', label: 'Other', icon: <FileText size={14} /> }
-                        ]
-                    ).map(p => (
-                      <button
-                        key={p.id} 
-                        type="button" 
-                        onClick={() => setProductType(p.id)}
-                        style={{
-                          padding: '0.5rem 0.2rem', 
-                          fontSize: '0.72rem',
-                          background: productType === p.id ? '#000' : 'transparent',
-                          color: productType === p.id ? '#fff' : '#000',
-                          border: '1px solid ' + (productType === p.id ? '#000' : 'var(--border-color)'),
-                          cursor: 'pointer', 
-                          borderRadius: '6px',
-                          display: 'flex', 
-                          flexDirection: 'column', 
-                          alignItems: 'center', 
-                          justifyContent: 'center',
-                          gap: '4px',
-                          fontWeight: '600',
-                          minWidth: 0,
-                          width: '100%',
-                          boxSizing: 'border-box',
-                          transition: 'all 0.15s ease'
-                        }}
-                      >
-                        {p.icon} <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '100%', display: 'block', textAlign: 'center' }}>{p.label}</span>
-                      </button>
-                    ))}
-                  </div>
 
-                  {productType === 'other' && (
-                    <input
-                      type="text"
-                      className="input-field animate-fadeIn"
-                      value={customProductType}
-                      onChange={(e) => setCustomProductType(e.target.value)}
-                      placeholder='e.g. "Mechanical Bracket", "Custom Phone Case"'
-                      style={{ fontSize: '0.82rem', height: '36px', borderRadius: '6px', marginTop: '0.5rem' }}
-                      required={productType === 'other'}
-                    />
-                  )}
-                </div>
 
                 {/* Custom text & Font Selector (Needed ONLY for Keychain) */}
                 {productType === 'keychain' && (

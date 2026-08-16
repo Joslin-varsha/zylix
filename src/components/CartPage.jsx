@@ -4,30 +4,7 @@ import { ShoppingBag, Trash2, Plus, Minus, ArrowLeft, CreditCard, CheckCircle2, 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
 
 const calculateShipping = (zip, subtotal) => {
-  if (subtotal > 5000) return 0;
-  if (!zip || zip.trim().length < 6) return null; // Not calculated yet
-
-  const cleanZip = zip.trim();
-  const firstDigit = cleanZip.charAt(0);
-
-  switch (firstDigit) {
-    case '6': // Local Region (Tamil Nadu, Kerala)
-      return 50;
-    case '5': // South-Central (Karnataka, AP, Telangana)
-      return 70;
-    case '4': // West-Central (Maharashtra, Goa, MP)
-      return 100;
-    case '3': // West (Gujarat, Rajasthan)
-      return 110;
-    case '1': // North (Delhi, Haryana, Punjab)
-    case '2': // North-Central (UP, Uttarakhand)
-      return 130;
-    case '7': // East (WB, Odisha)
-    case '8': // East-Central (Bihar, Jharkhand)
-      return 150;
-    default: // North-East / Remote (starts with 9 or other)
-      return 120;
-  }
+  return 0; // Set to 0 for testing free shipping
 };
 
 export default function CartPage({

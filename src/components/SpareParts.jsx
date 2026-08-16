@@ -150,7 +150,7 @@ export default function SpareParts({ onAddToCart, user, setActiveTab }) {
       }}>
         
         {/* Left Column: Diagnostics Input Form */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', order: isMobile ? 2 : 1 }}>
           
           <div className="glass-panel" style={{ padding: '2rem', backgroundColor: '#ffffff', borderRadius: '12px' }}>
             <span className="badge-outline" style={{ marginBottom: '0.75rem', display: 'inline-block' }}>RE-CREATION WORKFLOW</span>
@@ -196,7 +196,7 @@ export default function SpareParts({ onAddToCart, user, setActiveTab }) {
         </div>
 
         {/* Right Column: Feasibility Report / Form */}
-        <div className="glass-panel" style={{ padding: '2rem', backgroundColor: '#ffffff', minHeight: '350px' }}>
+        <div className="glass-panel" style={{ padding: '2rem', backgroundColor: '#ffffff', minHeight: '350px', order: isMobile ? 1 : 2 }}>
           
           {submitted ? (
             <div style={{ textAlign: 'center', padding: '1.5rem 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}>
