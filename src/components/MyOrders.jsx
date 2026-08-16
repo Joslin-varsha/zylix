@@ -437,218 +437,297 @@ export default function MyOrders({ user, setActiveTab }) {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '1.25rem' : '2rem' }}>
               {quotes.map((quote) => {
-                // Check if file is image for preview
-                const isImg = quote.file_name?.match(/\.(jpeg|jpg|gif|png|webp)$/i);
-                
+                // Determine item rows for this quote/order
+                const isCatalogOrder = quote.type === 'order' && Array.isArray(quote.extra_data?.items);
+                const orderItems = isCatalogOrder ? quote.extra_data.items : [quote];
+
+                const getItemThumbnail = (q, item = null) => {
+                  if (item?.image || item?.image_url || item?.img) {
+                    return item.image || item.image_url || item.img;
+                  }
+                  if (q.file_url && q.file_name?.match(/\.(jpg|jpeg|png|webp|gif)$/i)) {
+                    return q.file_url;
+                  }
+                  switch (q.type) {
+                    case 'designer': return '/images/categories/keychains.jpg';
+                    case 'spareparts': return '/images/categories/holders.jpg';
+                    case 'prototype': return '/images/categories/gifts.jpg';
+                    case 'slicer': return '/images/categories/stencils.jpg';
+                    default: return '/images/categories/keychains.jpg';
+                  }
+                };
+
+                const getItemTitle = (q, item = null) => {
+                  if (q.type === 'order' && item) return item.name;
+                  if (q.type === 'designer') {
+                    const pType = q.extra_data?.productType === 'other' ? q.extra_data?.customProductType : q.extra_data?.productType;
+                    const text = q.extra_data?.nameText;
+                    return `Custom 3D ${pType || 'Design'} ${text ? `("${text}")` : ''}`;
+                  }
+                  if (q.type === 'spareparts') return q.extra_data?.partName || 'Spare Part Re-Creation';
+                  if (q.type === 'prototype') return q.extra_data?.projectName || 'Prototype Lab Request';
+                  if (q.type === 'slicer') return q.file_name || 'CAD Slicer Model Print';
+                  return 'Custom 3D Order';
+                };
+
                 return (
                   <div
                     key={quote.id}
                     className="glass-panel animate-fadeIn"
                     style={{
                       backgroundColor: '#ffffff',
-                      borderRadius: '12px',
-                      border: '1px solid #e2e8f0',
-                      boxShadow: '0 4px 12px rgba(15,23,42,0.03)',
+                      borderRadius: '16px',
+                      border: '1.5px solid #e2e8f0',
+                      boxShadow: '0 4px 20px rgba(15,23,42,0.04)',
                       overflow: 'hidden'
                     }}
                   >
-                    {/* Card Top Title Row */}
+                    {/* Card Top Order Header Bar */}
                     <div style={{
                       backgroundColor: '#f8fafc',
-                      padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem',
+                      padding: isMobile ? '0.85rem 1rem' : '1rem 1.5rem',
                       borderBottom: '1px solid #e2e8f0',
                       display: 'flex',
-                      justify: 'space-between',
+                      justifyContent: 'space-between',
                       alignItems: isMobile ? 'flex-start' : 'center',
                       flexDirection: isMobile ? 'column' : 'row',
-                      gap: isMobile ? '0.4rem' : '0.75rem'
+                      gap: isMobile ? '0.5rem' : '1rem'
                     }}>
-                      <div>
-                        <span style={{ fontSize: '0.67rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Ticket Reference</span>
-                        <h3 style={{ fontFamily: 'monospace', fontSize: isMobile ? '0.95rem' : '1.05rem', fontWeight: '700', color: '#0f172a', margin: '2px 0 0 0' }}>
-                          {quote.id}
-                        </h3>
-                      </div>
-                      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
-                          {new Date(quote.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                         <StatusBadge status={quote.status} />
+                        <div>
+                          <span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Order Ref</span>
+                          <div style={{ fontFamily: 'monospace', fontSize: isMobile ? '0.88rem' : '0.98rem', fontWeight: '800', color: '#0f172a' }}>
+                            {quote.id}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '500' }}>
+                          📅 {new Date(quote.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </span>
                       </div>
                     </div>
 
-                    {/* Card Inner Grid Details */}
-                    <div style={{ padding: isMobile ? '1rem' : '1.5rem', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '1.25rem' : '1.5rem' }}>
-                      
-                      {/* Left: Spec Details */}
-                      <div>
-                        <h4 style={{ fontSize: '0.8rem', fontWeight: '800', color: '#1e293b', textTransform: 'uppercase', borderBottom: '1px dashed #e2e8f0', paddingBottom: '0.4rem', marginBottom: '0.75rem' }}>
-                          Specifications
-                        </h4>
-                        
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.82rem' }}>
-                          <div><span style={{ color: '#64748b' }}>Service Mode:</span> <strong style={{ color: '#0f172a' }}>{getServiceTypeLabel(quote.type)}</strong></div>
-                          
-                          {/* CAD Print specs */}
-                          {quote.type === 'slicer' && (
-                            <>
-                              <div><span style={{ color: '#64748b' }}>Material:</span> <strong style={{ color: '#0f172a' }}>{quote.material}</strong></div>
-                              <div><span style={{ color: '#64748b' }}>Filament Color:</span> <strong style={{ color: '#0f172a' }}>{quote.color}</strong></div>
-                              <div><span style={{ color: '#64748b' }}>Quantity:</span> <strong style={{ color: '#0f172a' }}>{quote.quantity} pcs</strong></div>
-                            </>
-                          )}
+                    {/* Card Middle: Product Item List */}
+                    <div style={{ padding: isMobile ? '1rem' : '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      {orderItems.map((item, idx) => {
+                        const thumbImg = getItemThumbnail(quote, isCatalogOrder ? item : null);
+                        const title = getItemTitle(quote, isCatalogOrder ? item : null);
 
-                          {/* Custom Design specs */}
-                          {quote.type === 'designer' && (
-                            <>
-                              <div><span style={{ color: '#64748b' }}>Product Type:</span> <strong style={{ color: '#0f172a', textTransform: 'capitalize' }}>{quote.extra_data?.productType === 'other' ? quote.extra_data?.customProductType : quote.extra_data?.productType}</strong></div>
-                              <div><span style={{ color: '#64748b' }}>Custom Text:</span> <strong style={{ color: '#0f172a' }}>"{quote.extra_data?.nameText}"</strong></div>
-                              <div><span style={{ color: '#64748b' }}>Requested Size:</span> <strong style={{ color: '#0f172a' }}>{quote.extra_data?.designerSize || 'Medium'}</strong></div>
-                              <div><span style={{ color: '#64748b' }}>Preferred Color:</span> <strong style={{ color: '#0f172a' }}>{quote.color}</strong></div>
-                            </>
-                          )}
+                        return (
+                          <div
+                            key={idx}
+                            style={{
+                              display: 'flex',
+                              gap: isMobile ? '0.75rem' : '1.25rem',
+                              alignItems: 'center',
+                              padding: isMobile ? '0.75rem' : '1rem',
+                              backgroundColor: '#ffffff',
+                              border: '1px solid #f1f5f9',
+                              borderRadius: '12px',
+                              boxShadow: '0 1px 4px rgba(0,0,0,0.02)'
+                            }}
+                          >
+                            {/* Product Thumbnail */}
+                            <div style={{
+                              width: isMobile ? '56px' : '72px',
+                              height: isMobile ? '56px' : '72px',
+                              borderRadius: '10px',
+                              overflow: 'hidden',
+                              backgroundColor: '#f8fafc',
+                              border: '1px solid #e2e8f0',
+                              flexShrink: 0
+                            }}>
+                              <img
+                                src={thumbImg}
+                                alt={title}
+                                onError={(e) => { e.target.onerror = null; e.target.src = '/images/categories/keychains.jpg'; }}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                              />
+                            </div>
 
-                          {/* Spare Parts specs */}
-                          {quote.type === 'spareparts' && (
-                            <>
-                              <div><span style={{ color: '#64748b' }}>Component Name:</span> <strong style={{ color: '#0f172a' }}>{quote.extra_data?.partName}</strong></div>
-                              {quote.extra_data?.dimensions && (
-                                <div><span style={{ color: '#64748b' }}>Approx. Dimensions:</span> <strong style={{ color: '#0f172a' }}>{quote.extra_data.dimensions.length}×{quote.extra_data.dimensions.width}×{quote.extra_data.dimensions.height} mm</strong></div>
-                              )}
-                            </>
-                          )}
-
-                          {/* Prototype Lab specs */}
-                          {quote.type === 'prototype' && (
-                            <>
-                              <div><span style={{ color: '#64748b' }}>Project Name:</span> <strong style={{ color: '#0f172a' }}>{quote.extra_data?.projectName}</strong></div>
-                              <div><span style={{ color: '#64748b' }}>Project Category:</span> <strong style={{ color: '#0f172a' }}>{quote.extra_data?.projectType}</strong></div>
-                              <div><span style={{ color: '#64748b' }}>Required Date:</span> <strong style={{ color: '#0f172a' }}>{quote.extra_data?.requiredDate}</strong></div>
-                              <div><span style={{ color: '#64748b' }}>Quantity:</span> <strong style={{ color: '#0f172a' }}>{quote.quantity} pcs</strong></div>
-                            </>
-                          )}
-
-                          {/* Catalog Order specs */}
-                          {quote.type === 'order' && (
-                            <>
-                              <div><span style={{ color: '#64748b' }}>Payment Status:</span> <strong style={{ color: '#16a34a' }}>Paid (Confirmed)</strong></div>
-                              <div><span style={{ color: '#64748b' }}>Receipt Ref:</span> <strong style={{ color: '#0f172a', fontFamily: 'monospace' }}>{quote.extra_data?.receiptId}</strong></div>
-                              <div style={{ marginTop: '0.6rem', fontWeight: '800', fontSize: '0.78rem', color: '#1e293b' }}>Items Purchased:</div>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.25rem' }}>
-                                {quote.extra_data?.items?.map((item, idx) => (
-                                  <div key={idx} style={{ padding: '6px 10px', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem' }}>
-                                    <span style={{ color: '#334155', fontWeight: '600' }}>📦 {item.name} <span style={{ color: '#64748b', fontWeight: '400' }}>x{item.quantity}</span></span>
-                                    <span style={{ fontWeight: '800', color: '#0f172a' }}>₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>
-                                  </div>
-                                ))}
+                            {/* Product Details & Specs */}
+                            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                <span style={{ fontSize: '0.65rem', fontWeight: '800', backgroundColor: '#f1f5f9', color: '#334155', padding: '2px 8px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+                                  {getServiceTypeLabel(quote.type)}
+                                </span>
                               </div>
-                            </>
-                          )}
 
-                          {quote.notes && (
-                            <div style={{ marginTop: '0.5rem', padding: '0.5rem', background: '#f8fafc', borderRadius: '4px', borderLeft: '2px solid #94a3b8', fontStyle: 'italic', color: '#475569', fontSize: '0.78rem' }}>
-                              Notes: "{quote.notes}"
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                              <h4 style={{ fontSize: isMobile ? '0.88rem' : '0.98rem', fontWeight: '800', color: '#0f172a', margin: 0, lineHeight: '1.35' }}>
+                                {title}
+                              </h4>
 
-                      {/* Right: File Assets & Quotation Details */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        
-                        {/* File Details */}
-                        <div>
-                          <h4 style={{ fontSize: '0.8rem', fontWeight: '800', color: '#1e293b', textTransform: 'uppercase', borderBottom: '1px dashed #e2e8f0', paddingBottom: '0.4rem', marginBottom: '0.75rem' }}>
-                            Attached Reference Files
-                          </h4>
-                          {quote.extra_data?.files && quote.extra_data.files.length > 0 ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                              {quote.extra_data.files.map((fileObj, idx) => (
-                                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', padding: '4px 8px', borderRadius: '4px', fontSize: '0.74rem' }}>
-                                  <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: isMobile ? '160px' : '220px', color: '#334155' }}>📎 {fileObj.fileName}</span>
-                                  <a href={fileObj.fileUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '3px', color: 'var(--accent-color)', textDecoration: 'none', fontWeight: '700' }}>
-                                    <Download size={11} /> Download
-                                  </a>
+                              {/* Specs Pill List */}
+                              <div style={{ fontSize: '0.74rem', color: '#64748b', display: 'flex', flexWrap: 'wrap', gap: '0.4rem 0.75rem', marginTop: '2px' }}>
+                                {quote.type === 'designer' && (
+                                  <>
+                                    {quote.extra_data?.nameText && <span>Text: <strong style={{ color: '#0f172a' }}>"{quote.extra_data.nameText}"</strong></span>}
+                                    {quote.color && <span>Color: <strong style={{ color: '#0f172a' }}>{quote.color}</strong></span>}
+                                    {quote.extra_data?.designerSize && <span>Size: <strong style={{ color: '#0f172a' }}>{quote.extra_data.designerSize}</strong></span>}
+                                  </>
+                                )}
+
+                                {quote.type === 'slicer' && (
+                                  <>
+                                    <span>Material: <strong style={{ color: '#0f172a' }}>{quote.material}</strong></span>
+                                    <span>Color: <strong style={{ color: '#0f172a' }}>{quote.color}</strong></span>
+                                    <span>Qty: <strong style={{ color: '#0f172a' }}>{quote.quantity} pcs</strong></span>
+                                  </>
+                                )}
+
+                                {quote.type === 'spareparts' && quote.extra_data?.dimensions && (
+                                  <span>Dimensions: <strong style={{ color: '#0f172a' }}>{quote.extra_data.dimensions.length}×{quote.extra_data.dimensions.width}×{quote.extra_data.dimensions.height} mm</strong></span>
+                                )}
+
+                                {quote.type === 'prototype' && (
+                                  <>
+                                    <span>Category: <strong style={{ color: '#0f172a' }}>{quote.extra_data?.projectType}</strong></span>
+                                    {quote.extra_data?.requiredDate && <span>Required By: <strong style={{ color: '#0f172a' }}>{quote.extra_data.requiredDate}</strong></span>}
+                                  </>
+                                )}
+
+                                {isCatalogOrder && item.isCustom && (
+                                  <span>Custom: <strong style={{ color: '#0f172a' }}>"{item.customText}"</strong> ({item.textColor} / {item.baseColor})</span>
+                                )}
+                              </div>
+
+                              {quote.notes && (
+                                <div style={{ fontSize: '0.72rem', color: '#475569', fontStyle: 'italic', marginTop: '2px' }}>
+                                  Note: "{quote.notes}"
                                 </div>
-                              ))}
+                              )}
                             </div>
-                          ) : quote.file_url ? (
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', padding: '4px 8px', borderRadius: '4px', fontSize: '0.74rem' }}>
-                              <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: isMobile ? '160px' : '220px', color: '#334155' }}>📎 {quote.file_name}</span>
-                              <a href={quote.file_url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '3px', color: 'var(--accent-color)', textDecoration: 'none', fontWeight: '700' }}>
-                                <Download size={11} /> Download
+
+                            {/* Item Price Tag */}
+                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                              <div style={{ fontSize: isMobile ? '0.95rem' : '1.15rem', fontWeight: '900', color: '#000000' }}>
+                                {isCatalogOrder
+                                  ? `₹${(item.price * item.quantity).toLocaleString('en-IN')}`
+                                  : quote.price_estimate
+                                  ? `₹${quote.price_estimate.toLocaleString('en-IN')}`
+                                  : <span style={{ fontSize: '0.75rem', color: '#d97706', fontWeight: '700', backgroundColor: '#fffbeb', padding: '2px 6px', borderRadius: '4px', border: '1px solid #fde68a' }}>Reviewing</span>
+                                }
+                              </div>
+                              {isCatalogOrder && item.quantity > 1 && (
+                                <span style={{ fontSize: '0.68rem', color: '#64748b' }}>Qty: {item.quantity}</span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Card Bottom Footer: Files & CTA Actions */}
+                    <div style={{
+                      backgroundColor: '#f8fafc',
+                      padding: isMobile ? '0.85rem 1rem' : '1rem 1.5rem',
+                      borderTop: '1px solid #e2e8f0',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: isMobile ? 'stretch' : 'center',
+                      flexDirection: isMobile ? 'column' : 'row',
+                      gap: '1rem'
+                    }}>
+                      {/* Attachments list */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        {quote.extra_data?.files && quote.extra_data.files.length > 0 ? (
+                          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            {quote.extra_data.files.map((fileObj, idx) => (
+                              <a
+                                key={idx}
+                                href={fileObj.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  fontSize: '0.72rem',
+                                  fontWeight: '700',
+                                  color: '#2563eb',
+                                  backgroundColor: '#eff6ff',
+                                  border: '1px solid #bfdbfe',
+                                  padding: '3px 8px',
+                                  borderRadius: '6px',
+                                  textDecoration: 'none'
+                                }}
+                              >
+                                📎 {fileObj.fileName} <Download size={11} />
                               </a>
-                            </div>
-                          ) : (
-                            <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontStyle: 'italic' }}>No files attached.</span>
-                          )}
-                        </div>
-
-                        {/* Price Details Block */}
-                        <div style={{
-                          border: `1px solid ${quote.price_estimate ? '#bbf7d0' : '#e2e8f0'}`,
-                          borderRadius: '8px',
-                          padding: '1rem',
-                          background: quote.price_estimate ? '#f0fdf4' : '#fafafa',
-                          marginTop: 'auto'
-                        }}>
-                          {quote.price_estimate ? (
-                            <div>
-                              <div style={{ fontSize: '0.67rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.04em' }}>Final Quotation Price</div>
-                              <div style={{ fontSize: '1.4rem', fontWeight: '900', color: '#16a34a', marginTop: '2px' }}>
-                                ₹{quote.price_estimate.toLocaleString('en-IN')}
-                              </div>
-                              {quote.admin_notes && (
-                                <div style={{ fontSize: '0.78rem', color: '#334155', marginTop: '0.5rem', borderTop: '1px dashed #bbf7d0', paddingTop: '0.5rem', lineHeight: '1.4' }}>
-                                  <strong>Feedback Notes:</strong> "{quote.admin_notes}"
-                                </div>
-                              )}
-                              {quote.status === 'Quoted' ? (
-                                <button
-                                  onClick={() => handleOpenShippingModal(quote)}
-                                  className="btn-primary"
-                                  style={{
-                                    width: '100%',
-                                    marginTop: '0.8rem',
-                                    height: '38px',
-                                    fontSize: '0.78rem',
-                                    fontWeight: '800',
-                                    letterSpacing: '0.04em',
-                                    textTransform: 'uppercase',
-                                    borderRadius: '8px',
-                                    cursor: 'pointer',
-                                    backgroundColor: '#000',
-                                    color: '#fff',
-                                    border: 'none',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '6px',
-                                    transition: 'background 0.2s'
-                                  }}
-                                  onMouseEnter={e => e.currentTarget.style.backgroundColor = '#222'}
-                                  onMouseLeave={e => e.currentTarget.style.backgroundColor = '#000'}
-                                >
-                                  Pay Now (₹{quote.price_estimate.toLocaleString('en-IN')})
-                                </button>
-                              ) : (
-                                <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.6rem', fontStyle: 'italic' }}>
-                                  *Our support team will contact you on your phone/email to finalize production & shipping.
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <div style={{ color: '#64748b', fontSize: '0.8rem', lineHeight: '1.5' }}>
-                              <div style={{ fontWeight: '700', color: '#334155', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                ⏳ Quote Under Review
-                              </div>
-                              Your specifications are being analyzed by our cost engineers. Your customized price quotation will be updated here within 2 hours.
-                            </div>
-                          )}
-                        </div>
-
+                            ))}
+                          </div>
+                        ) : quote.file_url ? (
+                          <a
+                            href={quote.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              fontSize: '0.72rem',
+                              fontWeight: '700',
+                              color: '#2563eb',
+                              backgroundColor: '#eff6ff',
+                              border: '1px solid #bfdbfe',
+                              padding: '3px 8px',
+                              borderRadius: '6px',
+                              textDecoration: 'none'
+                            }}
+                          >
+                            📎 {quote.file_name} <Download size={11} />
+                          </a>
+                        ) : (
+                          <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>No file attachments</span>
+                        )}
                       </div>
 
+                      {/* Total Amount & Action CTA */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: isMobile ? 'space-between' : 'flex-end', gap: '1rem' }}>
+                        <div>
+                          <span style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.04em', display: 'block' }}>Total Amount</span>
+                          <span style={{ fontSize: '1.2rem', fontWeight: '900', color: '#0f172a' }}>
+                            {quote.price_estimate ? `₹${quote.price_estimate.toLocaleString('en-IN')}` : (isCatalogOrder ? `₹${quote.extra_data?.total?.toLocaleString('en-IN')}` : 'Calculating...')}
+                          </span>
+                        </div>
+
+                        {quote.status === 'Quoted' && quote.price_estimate ? (
+                          <button
+                            onClick={() => handleOpenShippingModal(quote)}
+                            className="btn-primary"
+                            style={{
+                              height: '40px',
+                              padding: '0 1.25rem',
+                              fontSize: '0.8rem',
+                              fontWeight: '900',
+                              letterSpacing: '0.03em',
+                              textTransform: 'uppercase',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              backgroundColor: '#000000',
+                              color: '#ffffff',
+                              border: 'none',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                            }}
+                          >
+                            ⚡ PAY NOW (₹{quote.price_estimate.toLocaleString('en-IN')})
+                          </button>
+                        ) : quote.status === 'Approved' ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.76rem', fontWeight: '800', color: '#16a34a', backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0', padding: '6px 12px', borderRadius: '8px' }}>
+                            <CheckCircle2 size={14} /> Production In Progress
+                          </div>
+                        ) : (
+                          <div style={{ fontSize: '0.74rem', color: '#64748b', fontStyle: 'italic', backgroundColor: '#ffffff', padding: '6px 10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                            ⏳ Under Review
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
