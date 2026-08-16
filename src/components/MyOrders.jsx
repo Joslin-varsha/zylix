@@ -52,6 +52,16 @@ export default function MyOrders({ user, setActiveTab }) {
   const [payError, setPayError] = useState('');
   const [processingPayment, setProcessingPayment] = useState(false);
 
+  // Hide mobile bottom navigation when delivery modal is active
+  useEffect(() => {
+    if (showShippingModal) {
+      document.body.classList.add('hide-bottom-nav');
+    } else {
+      document.body.classList.remove('hide-bottom-nav');
+    }
+    return () => document.body.classList.remove('hide-bottom-nav');
+  }, [showShippingModal]);
+
   useEffect(() => {
     const zip = shippingDetails.zip.trim();
     if (zip.length === 6 && /^\d+$/.test(zip)) {
@@ -818,7 +828,7 @@ export default function MyOrders({ user, setActiveTab }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 300,
+          zIndex: 99999,
           padding: isMobile ? '1rem' : '0',
           animation: 'fadeIn 0.25s ease'
         }}>
