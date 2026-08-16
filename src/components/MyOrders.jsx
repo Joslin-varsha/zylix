@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Loader2, Download, Package, Clock, CheckCircle2, XCircle, AlertCircle, ShoppingCart } from 'lucide-react';
 
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
+
 const calculateShipping = (zip, subtotal) => {
   if (subtotal > 5000) return 0;
   if (!zip || zip.trim().length < 6) return null;
