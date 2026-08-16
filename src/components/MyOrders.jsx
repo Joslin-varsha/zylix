@@ -631,9 +631,18 @@ export default function MyOrders({ user, setActiveTab }) {
                       flexDirection: isMobile ? 'column' : 'row',
                       gap: '1rem'
                     }}>
-                      {/* Attachments list */}
+                      {/* Attachments list / Order Info */}
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        {quote.extra_data?.files && quote.extra_data.files.length > 0 ? (
+                        {isCatalogOrder ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '0.72rem', color: '#475569' }}>
+                            <div><strong style={{ color: '#0f172a' }}>Receipt Ref:</strong> <span style={{ fontFamily: 'monospace', color: '#2563eb', fontWeight: '700' }}>{quote.extra_data?.receiptId}</span></div>
+                            {quote.extra_data?.shippingAddress && (
+                              <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '320px' }}>
+                                📍 <span style={{ color: '#64748b' }}>Deliver to:</span> {quote.extra_data.shippingAddress}
+                              </div>
+                            )}
+                          </div>
+                        ) : quote.extra_data?.files && quote.extra_data.files.length > 0 ? (
                           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                             {quote.extra_data.files.map((fileObj, idx) => (
                               <a

@@ -7,23 +7,7 @@ import {
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
 
 const calculateShipping = (zip, subtotal) => {
-  if (subtotal > 5000) return 0;
-  if (!zip || zip.trim().length < 6) return null;
-
-  const cleanZip = zip.trim();
-  const firstDigit = cleanZip.charAt(0);
-
-  switch (firstDigit) {
-    case '6': return 50;  // South (TN, Kerala)
-    case '5': return 70;  // KA, AP, TS
-    case '4': return 100; // MH, MP, Goa
-    case '3': return 110; // GJ, RJ
-    case '1':
-    case '2': return 130; // North
-    case '7':
-    case '8': return 150; // East
-    default:  return 120;
-  }
+  return 0; // Set to 0 for testing free shipping
 };
 
 export default function CheckoutPage({ buyNowItem, cartItems, user, setActiveTab, onClearCart }) {
