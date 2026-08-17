@@ -3,7 +3,7 @@ import { MapPin, Mail, Phone, ChevronDown, ChevronUp } from 'lucide-react';
 
 const COMPANY = {
   name: 'Zylix 3D',
-  website: 'www.zen3d.in',
+  website: 'www.zylix3d.in',
   phone: '+91 78710 13024',
   email: 'support@zen3d.in',
   address: 'Ajin.R, Mulagumoodu, 47A Tharavillai, Mulagumoodu P.O – 629167',
