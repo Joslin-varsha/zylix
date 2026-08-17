@@ -82,7 +82,7 @@ export default function Footer({ setActiveTab }) {
           <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.25rem' }}>
             {[
               { Icon: InstagramIcon, label: 'Instagram', url: 'https://www.instagram.com/zylix_3d_official/' },
-              { Icon: MessageCircle, label: 'WhatsApp', url: 'https://wa.me/919629935467' },
+              { Icon: MessageCircle, label: 'WhatsApp', url: 'https://wa.me/917871013024' },
               { Icon: Play, label: 'YouTube', url: '#' },
               { Icon: Send, label: 'Twitter / X', url: '#' },
             ].map(({ Icon, label, url }) => (
@@ -156,7 +156,7 @@ export default function Footer({ setActiveTab }) {
             {[
               { icon: <MapPin size={13} />, text: 'Mulagumoodu, Tamil Nadu – 629167' },
               { icon: <Mail size={13} />, text: 'support@zylix3d.in' },
-              { icon: <Phone size={13} />, text: '+91 96299 35467' },
+              { icon: <Phone size={13} />, text: '+91 78710 13024' },
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', color: '#666' }}>
                 <span style={{ color: '#444', flexShrink: 0, marginTop: '3px' }}>{item.icon}</span>
@@ -167,7 +167,7 @@ export default function Footer({ setActiveTab }) {
 
             {/* WhatsApp CTA */}
             <a
-              href="https://wa.me/919629935467"
+              href="https://wa.me/917871013024"
               target="_blank"
               rel="noopener noreferrer"
               style={{
