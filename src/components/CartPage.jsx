@@ -718,7 +718,7 @@ export default function CartPage({
           </p>
 
           {/* Trust badges */}
-          <div style={{
+          <div className="cart-trust-badges" style={{
             display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem',
             borderTop: '1px solid #f0f0f0', paddingTop: '1rem'
           }}>
@@ -749,6 +749,9 @@ export default function CartPage({
           to { transform: rotate(360deg); }
         }
         @media (max-width: 768px) {
+          .cart-trust-badges {
+            display: none !important;
+          }
           /* Stack the grid vertically on mobile */
           div[style*="gridTemplateColumns: '1fr 380px'"],
           div[style*="grid-template-columns"] {

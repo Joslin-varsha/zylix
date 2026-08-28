@@ -11,11 +11,14 @@ export default function CartDrawer({
   React.useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      document.body.classList.add('cart-drawer-open');
     } else {
       document.body.style.overflow = '';
+      document.body.classList.remove('cart-drawer-open');
     }
     return () => {
       document.body.style.overflow = '';
+      document.body.classList.remove('cart-drawer-open');
     };
   }, [isOpen]);
 
@@ -40,7 +43,7 @@ export default function CartDrawer({
   return (
     <div
       style={{
-        position: 'fixed', inset: 0, zIndex: 200,
+        position: 'fixed', inset: 0, zIndex: 99999,
         backgroundColor: 'rgba(0,0,0,0.45)',
         backdropFilter: 'blur(6px)',
         display: 'flex', justifyContent: 'flex-end',
@@ -52,7 +55,7 @@ export default function CartDrawer({
       <div
         className="cart-drawer-panel"
         style={{
-          width: '100%', maxWidth: '380px', height: '100%',
+          width: '100%', maxWidth: '380px', height: '100dvh',
           backgroundColor: '#f9f9f9',
           display: 'flex', flexDirection: 'column',
           position: 'relative', cursor: 'default',
@@ -99,48 +102,40 @@ export default function CartDrawer({
                   backgroundColor: '#fff',
                   borderRadius: '10px',
                   border: '1px solid #ebebeb',
-                  padding: '0.65rem',
-                  display: 'flex', gap: '0.65rem', alignItems: 'flex-start',
-                  boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
+                  padding: '0.75rem',
+                  display: 'flex', gap: '0.75rem', alignItems: 'center',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
                 }}>
-                  {/* Thumbnail */}
-                  <div style={{
-                    width: '50px', height: '50px', borderRadius: '6px',
-                    backgroundColor: '#f3f3f3', overflow: 'hidden', flexShrink: 0,
-                    border: '1px solid #eee'
-                  }}>
-                    <img
-                      src={imgSrc}
-                      alt={item.name}
-                      onError={(e) => { e.target.onerror = null; e.target.src = '/images/categories/keychains.jpg'; }}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  </div>
-
-                  {/* Info */}
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
-                    <h4 style={{ fontSize: '0.8rem', fontWeight: '700', color: '#111', lineHeight: '1.3' }}>{item.name}</h4>
+                  <img
+                    src={imgSrc}
+                    alt={item.name}
+                    onError={(e) => { e.target.onerror = null; e.target.src = '/images/categories/keychains.jpg'; }}
+                    style={{ width: '52px', height: '52px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #eee', flexShrink: 0 }}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: '0.82rem', fontWeight: '700', color: '#111', margin: '0 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {item.name}
+                    </p>
                     {item.isCustom && (
-                      <p style={{ fontSize: '0.65rem', color: '#999' }}>{item.material} · {item.infill}% infill · {item.resolution}</p>
+                      <p style={{ fontSize: '0.7rem', color: '#666', margin: '0 0 4px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        "{item.customText}" · {item.textColor}/{item.baseColor}
+                      </p>
                     )}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.2rem' }}>
-                      <span style={{
-                        fontSize: '0.65rem', color: '#666',
-                        backgroundColor: '#f5f5f5', padding: '2px 8px',
-                        borderRadius: '20px', border: '1px solid #e8e8e8'
-                      }}>Qty: {item.quantity}</span>
-                      <span style={{ fontSize: '0.88rem', fontWeight: '800', color: '#000', fontFamily: 'var(--font-display)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ fontSize: '0.72rem', color: '#888', backgroundColor: '#f2f2f2', padding: '1px 6px', borderRadius: '4px' }}>
+                        Qty: {item.quantity}
+                      </span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: '800', color: '#000' }}>
                         ₹{(item.price * item.quantity).toLocaleString('en-IN')}
                       </span>
                     </div>
                   </div>
-
-                  {/* Remove */}
                   <button
-                    onClick={() => onRemoveItem(index)}
-                    style={{ background: 'transparent', border: 'none', color: '#ccc', cursor: 'pointer', padding: '2px', flexShrink: 0, transition: 'color 0.2s' }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = '#ff4444'}
+                    onClick={() => onRemoveItem && onRemoveItem(index)}
+                    style={{ background: 'transparent', border: 'none', color: '#ccc', cursor: 'pointer', padding: '4px', flexShrink: 0, transition: 'color 0.15s' }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = '#ef4444'}
                     onMouseLeave={(e) => e.currentTarget.style.color = '#ccc'}
+                    title="Remove item"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -152,7 +147,7 @@ export default function CartDrawer({
 
         {/* Summary + Go to Cart button */}
         {cartItems.length > 0 && (
-          <div style={{ backgroundColor: '#fff', borderTop: '1px solid #ebebeb', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', flexShrink: 0 }}>
+          <div style={{ backgroundColor: '#fff', borderTop: '1px solid #ebebeb', padding: '1rem 1rem calc(1.2rem + env(safe-area-inset-bottom, 12px)) 1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', flexShrink: 0 }}>
 
             {/* Price breakdown */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>

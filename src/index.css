@@ -1164,6 +1164,10 @@ body.modal-open .mobile-bottom-dock {
   display: none !important;
 }
 
+body.cart-drawer-open header {
+  z-index: 1 !important;
+}
+
 @media (max-width: 768px) {
   body {
     padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)) !important;

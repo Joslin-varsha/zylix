@@ -2147,8 +2147,8 @@ app.get('/api/lab-settings', (req, res) => {
   }
 });
 
-// Update 3D Lab configuration settings
-app.put('/api/lab-settings', (req, res) => {
+// Update 3D Lab configuration settings (PUT, POST, PATCH)
+const handleUpdateLabSettings = (req, res) => {
   try {
     const newSettings = req.body;
     if (!newSettings || typeof newSettings !== 'object') {
@@ -2160,7 +2160,11 @@ app.put('/api/lab-settings', (req, res) => {
     console.error('Update lab settings error:', err);
     res.status(500).json({ error: err.message });
   }
-});
+};
+
+app.put('/api/lab-settings', handleUpdateLabSettings);
+app.post('/api/lab-settings', handleUpdateLabSettings);
+app.patch('/api/lab-settings', handleUpdateLabSettings);
 
 
 // --- PRODUCTS ENDPOINTS ---

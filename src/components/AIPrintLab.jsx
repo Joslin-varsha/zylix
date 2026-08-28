@@ -168,6 +168,44 @@ export default function AIPrintLab({
     setActiveLabTab(labTab);
   }, [labTab]);
 
+  // Dynamic color resolvers from Admin Lab Settings (/api/lab-settings)
+  const getTextColorHex = (colorName, customVal) => {
+    if (!colorName) return '#facc15';
+    if (colorName === 'Other') return customVal || '#facc15';
+    if (labSettings?.textColors && Array.isArray(labSettings.textColors)) {
+      const found = labSettings.textColors.find(c => c.name && String(c.name).trim().toLowerCase() === String(colorName).trim().toLowerCase());
+      if (found && found.hex) return found.hex;
+    }
+    const defaultMap = {
+      Gold: '#facc15',
+      White: '#ffffff',
+      Black: '#18181b',
+      Red: '#ef4444',
+      Blue: '#3b82f6',
+      Pink: '#ec4899',
+      Green: '#22c55e',
+      Orange: '#f97316',
+      Purple: '#a855f7'
+    };
+    return defaultMap[colorName] || customVal || '#facc15';
+  };
+
+  const getBaseColorHex = (colorName) => {
+    if (!colorName) return '#1c130d';
+    if (labSettings?.baseColors && Array.isArray(labSettings.baseColors)) {
+      const found = labSettings.baseColors.find(c => c.name && String(c.name).trim().toLowerCase() === String(colorName).trim().toLowerCase());
+      if (found && found.hex) return found.hex;
+    }
+    const defaultMap = {
+      Black: '#1c130d',
+      White: '#f8fafc',
+      Red: '#7f1d1d',
+      Navy: '#0f172a',
+      Gold: '#78350f'
+    };
+    return defaultMap[colorName] || '#1c130d';
+  };
+
   // 1. --- CAD SLICER (UPLOAD FILE TO PRINT) STATES & HANDLERS ---
   const [file, setFile] = React.useState(null);
   const [material, setMaterial] = React.useState('PLA');
@@ -744,7 +782,7 @@ export default function AIPrintLab({
                           width: '18px',
                           height: '18px',
                           borderRadius: '50%',
-                          backgroundColor: baseColor === 'White' ? '#ffffff' : baseColor === 'Red' ? '#7f1d1d' : baseColor === 'Navy' ? '#0f172a' : baseColor === 'Gold' ? '#78350f' : '#1c130d',
+                          backgroundColor: getBaseColorHex(baseColor),
                           border: '3.5px solid ' + (baseColor === 'White' ? '#cbd5e1' : '#09090b'),
                           boxShadow: 'inset 1px 1px 2px rgba(0,0,0,0.5)',
                           display: 'flex',
@@ -762,9 +800,9 @@ export default function AIPrintLab({
                           fontWeight: '800',
                           textAlign: 'center',
                           whiteSpace: 'nowrap',
-                          color: designerColor === 'Gold' ? '#facc15' : designerColor === 'White' ? '#ffffff' : designerColor === 'Black' ? '#38bdf8' : designerColor === 'Red' ? '#ef4444' : designerColor === 'Blue' ? '#3b82f6' : designerColor === 'Pink' ? '#ec4899' : designerColor === 'Green' ? '#22c55e' : designerColor === 'Orange' ? '#f97316' : designerColor === 'Purple' ? '#a855f7' : (customColor || '#facc15'),
+                          color: getTextColorHex(designerColor, customColor),
                           textShadow: (() => {
-                            const contourHex = baseColor === 'White' ? '#f8fafc' : baseColor === 'Red' ? '#7f1d1d' : baseColor === 'Navy' ? '#0f172a' : baseColor === 'Gold' ? '#78350f' : '#1c130d';
+                            const contourHex = getBaseColorHex(baseColor);
                             const shadowHex = baseColor === 'White' ? '#cbd5e1' : '#090604';
                             return `-3px -3px 0 ${contourHex}, 3px -3px 0 ${contourHex}, -3px 3px 0 ${contourHex}, 3px 3px 0 ${contourHex}, -4px 0px 0 ${contourHex}, 4px 0px 0 ${contourHex}, 0px -4px 0 ${contourHex}, 0px 4px 0 ${contourHex}, 2px 4px 0px ${shadowHex}, 3px 5px 8px rgba(0,0,0,0.6)`;
                           })(),
