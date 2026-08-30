@@ -5,92 +5,76 @@ const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
 
 const FONT_CATEGORIES = [
   {
-    category: '✨ Modern & Clean (Sans-Serif)',
+    category: '⭐ Top Picks',
     fonts: [
-      { id: 'Inter', name: 'Inter (Modern Standard)', family: "'Inter', system-ui, sans-serif" },
-      { id: 'Montserrat', name: 'Montserrat (Geometric)', family: "'Montserrat', Arial, sans-serif" },
-      { id: 'Poppins', name: 'Poppins (Rounded Clean)', family: "'Poppins', Verdana, sans-serif" },
-      { id: 'Oswald', name: 'Oswald (Condensed Heavy)', family: "'Oswald', 'Arial Narrow', sans-serif" },
-      { id: 'Raleway', name: 'Raleway (Elegant Thin/Bold)', family: "'Raleway', Helvetica, sans-serif" },
-      { id: 'Roboto', name: 'Roboto (Universal Modern)', family: "'Roboto', sans-serif" },
-      { id: 'Work Sans', name: 'Work Sans (Grotesque Sans)', family: "'Work Sans', sans-serif" },
-      { id: 'Outfit', name: 'Outfit (Sleek Geometric)', family: "'Outfit', sans-serif" },
-      { id: 'Rubik', name: 'Rubik (Soft Curved)', family: "'Rubik', sans-serif" },
-      { id: 'Lexend', name: 'Lexend (Clean Minimalist)', family: "'Lexend', sans-serif" }
+      { id: 'Luckiest Guy', name: 'Luckiest Guy', family: "'Luckiest Guy', cursive" },
+      { id: 'Fredoka', name: 'Fredoka', family: "'Fredoka', sans-serif" },
+      { id: 'Baloo 2', name: 'Baloo 2', family: "'Baloo 2', cursive" },
+      { id: 'Chewy', name: 'Chewy', family: "'Chewy', cursive" },
+      { id: 'Lilita One', name: 'Lilita One', family: "'Lilita One', cursive" },
+      { id: 'Bubblegum Sans', name: 'Bubblegum Sans', family: "'Bubblegum Sans', cursive" },
+      { id: 'Coiny', name: 'Coiny', family: "'Coiny', cursive" },
+      { id: 'Sniglet', name: 'Sniglet', family: "'Sniglet', cursive" },
+      { id: 'Concert One', name: 'Concert One', family: "'Concert One', cursive" },
+      { id: 'Grandstander', name: 'Grandstander', family: "'Grandstander', cursive" }
     ]
   },
   {
-    category: '🏛️ Classic & Royal (Serif)',
+    category: '🧸 Cute & Playful Cartoon',
     fonts: [
-      { id: 'Playfair Display', name: 'Playfair Display (Luxury Serif)', family: "'Playfair Display', Georgia, serif" },
-      { id: 'Cinzel', name: 'Cinzel (Roman Imperial)', family: "'Cinzel', 'Times New Roman', serif" },
-      { id: 'Merriweather', name: 'Merriweather (Classic Editorial)', family: "'Merriweather', Georgia, serif" },
-      { id: 'Bodoni Moda', name: 'Bodoni Moda (High Fashion)', family: "'Bodoni Moda', 'Didot', serif" },
-      { id: 'Cormorant Garamond', name: 'Cormorant Garamond (Royal Calligraphic)', family: "'Cormorant Garamond', serif" },
-      { id: 'Lora', name: 'Lora (Contemporary Serif)', family: "'Lora', Georgia, serif" },
-      { id: 'Prata', name: 'Prata (Didone High Contrast)', family: "'Prata', serif" },
-      { id: 'Marcellus', name: 'Marcellus (Flared Trajan Serif)', family: "'Marcellus', serif" }
+      { id: 'Bagel Fat One', name: 'Bagel Fat One', family: "'Bagel Fat One', cursive" },
+      { id: 'DynaPuff', name: 'DynaPuff', family: "'DynaPuff', cursive" },
+      { id: 'Cherry Bomb One', name: 'Cherry Bomb One', family: "'Cherry Bomb One', cursive" },
+      { id: 'Titan One', name: 'Titan One', family: "'Titan One', sans-serif" },
+      { id: 'Bungee', name: 'Bungee', family: "'Bungee', cursive" },
+      { id: 'Mochiy Pop One', name: 'Mochiy Pop One', family: "'Mochiy Pop One', sans-serif" },
+      { id: 'Gochi Hand', name: 'Gochi Hand', family: "'Gochi Hand', cursive" },
+      { id: 'Patrick Hand', name: 'Patrick Hand', family: "'Patrick Hand', cursive" },
+      { id: 'Atma', name: 'Atma', family: "'Atma', cursive" },
+      { id: 'Jua', name: 'Jua', family: "'Jua', sans-serif" }
     ]
   },
   {
-    category: '📦 Bold 3D & Heavy Stencil',
+    category: '✨ Modern & Clean',
     fonts: [
-      { id: 'Anton', name: 'Anton (Ultra Heavy Block)', family: "'Anton', Impact, 'Arial Black', sans-serif" },
-      { id: 'Bebas Neue', name: 'Bebas Neue (Tall Stencil)', family: "'Bebas Neue', Impact, sans-serif" },
-      { id: 'Bungee', name: 'Bungee (3D Box Sign)', family: "'Bungee', 'Arial Black', cursive" },
-      { id: 'Bungee Shade', name: 'Bungee Shade (3D Shadowed Block)', family: "'Bungee Shade', cursive" },
-      { id: 'Black Ops One', name: 'Black Ops One (Military Stencil)', family: "'Black Ops One', Impact, cursive" },
-      { id: 'Rubik Mono One', name: 'Rubik Mono One (Chunky 3D Block)', family: "'Rubik Mono One', monospace" },
-      { id: 'Bangers', name: 'Bangers (Comic Superhero)', family: "'Bangers', Impact, cursive" },
-      { id: 'Luckiest Guy', name: 'Luckiest Guy (Chunky Cartoon)', family: "'Luckiest Guy', cursive" },
-      { id: 'Titan One', name: 'Titan One (Heavy Soft Block)', family: "'Titan One', sans-serif" },
-      { id: 'Alfa Slab One', name: 'Alfa Slab One (Heavy Slab Serif)', family: "'Alfa Slab One', serif" }
+      { id: 'Poppins', name: 'Poppins', family: "'Poppins', sans-serif" },
+      { id: 'Montserrat', name: 'Montserrat', family: "'Montserrat', sans-serif" },
+      { id: 'Outfit', name: 'Outfit', family: "'Outfit', sans-serif" },
+      { id: 'Rubik', name: 'Rubik', family: "'Rubik', sans-serif" },
+      { id: 'Nunito', name: 'Nunito', family: "'Nunito', sans-serif" },
+      { id: 'DM Sans', name: 'DM Sans', family: "'DM Sans', sans-serif" },
+      { id: 'Sora', name: 'Sora', family: "'Sora', sans-serif" },
+      { id: 'Manrope', name: 'Manrope', family: "'Manrope', sans-serif" },
+      { id: 'Plus Jakarta Sans', name: 'Plus Jakarta Sans', family: "'Plus Jakarta Sans', sans-serif" },
+      { id: 'Urbanist', name: 'Urbanist', family: "'Urbanist', sans-serif" }
     ]
   },
   {
-    category: '✍️ Calligraphy & Cursive Script',
+    category: '⚡ Tech & Futuristic',
     fonts: [
-      { id: 'Pacifico', name: 'Pacifico (Retro Surf Script)', family: "'Pacifico', 'Brush Script MT', cursive" },
-      { id: 'Dancing Script', name: 'Dancing Script (Playful Flow)', family: "'Dancing Script', cursive" },
-      { id: 'Great Vibes', name: 'Great Vibes (Formal Calligraphy)', family: "'Great Vibes', cursive" },
-      { id: 'Lobster', name: 'Lobster (Bold Vintage Script)', family: "'Lobster', cursive" },
-      { id: 'Satisfy', name: 'Satisfy (Handwritten Sign)', family: "'Satisfy', cursive" },
-      { id: 'Caveat', name: 'Caveat (Casual Handwriting)', family: "'Caveat', cursive" },
-      { id: 'Alex Brush', name: 'Alex Brush (Classic Calligraphy)', family: "'Alex Brush', cursive" },
-      { id: 'Sacramento', name: 'Sacramento (Monoline Script)', family: "'Sacramento', cursive" },
-      { id: 'Allura', name: 'Allura (Soft Elegant Script)', family: "'Allura', cursive" },
-      { id: 'Parisienne', name: 'Parisienne (French Calligraphy)', family: "'Parisienne', cursive" },
-      { id: 'Tangerine', name: 'Tangerine (Slanted Script)', family: "'Tangerine', cursive" },
-      { id: 'Grand Hotel', name: 'Grand Hotel (Retro Script)', family: "'Grand Hotel', cursive" },
-      { id: 'Cookie', name: 'Cookie (Sweet Handwritten)', family: "'Cookie', cursive" },
-      { id: 'Yellowtail', name: 'Yellowtail (Flat Brush Script)', family: "'Yellowtail', cursive" },
-      { id: 'Kaushan Script', name: 'Kaushan Script (Rustic Brush)', family: "'Kaushan Script', cursive" }
+      { id: 'Orbitron', name: 'Orbitron', family: "'Orbitron', sans-serif" },
+      { id: 'Audiowide', name: 'Audiowide', family: "'Audiowide', cursive" },
+      { id: 'Rajdhani', name: 'Rajdhani', family: "'Rajdhani', sans-serif" },
+      { id: 'Exo 2', name: 'Exo 2', family: "'Exo 2', sans-serif" },
+      { id: 'Oxanium', name: 'Oxanium', family: "'Oxanium', cursive" },
+      { id: 'Chakra Petch', name: 'Chakra Petch', family: "'Chakra Petch', sans-serif" },
+      { id: 'Teko', name: 'Teko', family: "'Teko', sans-serif" },
+      { id: 'Russo One', name: 'Russo One', family: "'Russo One', sans-serif" },
+      { id: 'Syncopate', name: 'Syncopate', family: "'Syncopate', sans-serif" },
+      { id: 'Barlow Condensed', name: 'Barlow Condensed', family: "'Barlow Condensed', sans-serif" },
+      { id: 'Kanit', name: 'Kanit', family: "'Kanit', sans-serif" }
     ]
   },
   {
-    category: '⚡ Tech, Cyberpunk & Gaming',
+    category: '💥 Bold & Premium',
     fonts: [
-      { id: 'Orbitron', name: 'Orbitron (Futuristic Sci-Fi)', family: "'Orbitron', sans-serif" },
-      { id: 'Audiowide', name: 'Audiowide (Cyberpunk Synthwave)', family: "'Audiowide', sans-serif" },
-      { id: 'Michroma', name: 'Michroma (Industrial Tech)', family: "'Michroma', sans-serif" },
-      { id: 'Fira Code', name: 'Fira Code (Developer Code)', family: "'Fira Code', monospace" },
-      { id: 'Press Start 2P', name: 'Press Start 2P (Retro 8-Bit Pixel)', family: "'Press Start 2P', monospace" },
-      { id: 'Silkscreen', name: 'Silkscreen (Pixel Arcade)', family: "'Silkscreen', monospace" },
-      { id: 'Share Tech Mono', name: 'Share Tech Mono (Console Terminal)', family: "'Share Tech Mono', monospace" }
-    ]
-  },
-  {
-    category: '🎨 Funky, Retro & Handdrawn',
-    fonts: [
-      { id: 'Permanent Marker', name: 'Permanent Marker (Sharpie Pen)', family: "'Permanent Marker', cursive" },
-      { id: 'Righteous', name: 'Righteous (Smooth Retro)', family: "'Righteous', cursive" },
-      { id: 'Monoton', name: 'Monoton (Multi-line Neon)', family: "'Monoton', cursive" },
-      { id: 'Creepster', name: 'Creepster (Spooky Horror Stencil)', family: "'Creepster', cursive" },
-      { id: 'Special Elite', name: 'Special Elite (Vintage Typewriter)', family: "'Special Elite', monospace" },
-      { id: 'Rock Salt', name: 'Rock Salt (Felt Tip Marker)', family: "'Rock Salt', cursive" },
-      { id: 'Shadows Into Light', name: 'Shadows Into Light (Neat Handwriting)', family: "'Shadows Into Light', cursive" },
-      { id: 'Indie Flower', name: 'Indie Flower (Bubble Handwriting)', family: "'Indie Flower', cursive" },
-      { id: 'Amatic SC', name: 'Amatic SC (Tall Condensed Sketch)', family: "'Amatic SC', cursive" }
+      { id: 'Bebas Neue', name: 'Bebas Neue', family: "'Bebas Neue', sans-serif" },
+      { id: 'Anton', name: 'Anton', family: "'Anton', sans-serif" },
+      { id: 'League Spartan', name: 'League Spartan', family: "'League Spartan', sans-serif" },
+      { id: 'Archivo Black', name: 'Archivo Black', family: "'Archivo Black', sans-serif" },
+      { id: 'Oswald', name: 'Oswald', family: "'Oswald', sans-serif" },
+      { id: 'Righteous', name: 'Righteous', family: "'Righteous', cursive" },
+      { id: 'Alfa Slab One', name: 'Alfa Slab One', family: "'Alfa Slab One', serif" }
     ]
   }
 ];
@@ -293,7 +277,7 @@ export default function AIPrintLab({
   const [productType, setProductType] = React.useState('keychain'); // 'keychain', 'nameboard', 'trophy', 'phonestand', 'other'
   const [customProductType, setCustomProductType] = React.useState('');
   const [nameText, setNameText] = React.useState(customizerText || 'ZYLIX 3D');
-  const [selectedFont, setSelectedFont] = React.useState('Pacifico');
+  const [selectedFont, setSelectedFont] = React.useState('Luckiest Guy');
   const [designerColor, setDesignerColor] = React.useState('Gold'); // Text Color: 'Gold', 'White', 'Red', 'Blue', 'Pink', 'Green', 'Orange', 'Black', 'Other'
   const [baseColor, setBaseColor] = React.useState('Black'); // Base Contour Color: 'Black', 'White', 'Red', 'Navy', 'Gold'
   const [customColor, setCustomColor] = React.useState('');
@@ -802,9 +786,16 @@ export default function AIPrintLab({
                           whiteSpace: 'nowrap',
                           color: getTextColorHex(designerColor, customColor),
                           textShadow: (() => {
-                            const contourHex = getBaseColorHex(baseColor);
-                            const shadowHex = baseColor === 'White' ? '#cbd5e1' : '#090604';
-                            return `-3px -3px 0 ${contourHex}, 3px -3px 0 ${contourHex}, -3px 3px 0 ${contourHex}, 3px 3px 0 ${contourHex}, -4px 0px 0 ${contourHex}, 4px 0px 0 ${contourHex}, 0px -4px 0 ${contourHex}, 0px 4px 0 ${contourHex}, 2px 4px 0px ${shadowHex}, 3px 5px 8px rgba(0,0,0,0.6)`;
+                            const c = getBaseColorHex(baseColor);
+                            const dropS = baseColor === 'White' ? 'rgba(15,23,42,0.2)' : 'rgba(0,0,0,0.55)';
+                            return `
+                              -2.5px -2.5px 0 ${c}, 2.5px -2.5px 0 ${c}, -2.5px 2.5px 0 ${c}, 2.5px 2.5px 0 ${c},
+                              -3.2px 0 0 ${c}, 3.2px 0 0 ${c}, 0 -3.2px 0 ${c}, 0 3.2px 0 ${c},
+                              -1.5px -3.2px 0 ${c}, 1.5px -3.2px 0 ${c}, -1.5px 3.2px 0 ${c}, 1.5px 3.2px 0 ${c},
+                              -3.2px -1.5px 0 ${c}, 3.2px -1.5px 0 ${c}, -3.2px 1.5px 0 ${c}, 3.2px 1.5px 0 ${c},
+                              0 0 1px ${c}, 0 0 2px ${c},
+                              2px 4px 6px ${dropS}, 4px 7px 14px rgba(0,0,0,0.3)
+                            `.replace(/\s+/g, ' ');
                           })(),
                           transition: 'all 0.25s ease',
                           lineHeight: '1.1',
@@ -1207,14 +1198,10 @@ export default function AIPrintLab({
                           border: '1px solid #cbd5e1'
                         }}
                       >
-                        {FONT_CATEGORIES.map((catGroup) => (
-                          <optgroup key={catGroup.category} label={catGroup.category} style={{ fontWeight: 'bold', color: '#000' }}>
-                            {catGroup.fonts.map((f) => (
-                              <option key={f.id} value={f.id} style={{ fontFamily: f.family, fontSize: '0.9rem' }}>
-                                {f.name}
-                              </option>
-                            ))}
-                          </optgroup>
+                        {ALL_FONTS.map((f) => (
+                          <option key={f.id} value={f.id} style={{ fontFamily: f.family, fontSize: '0.9rem' }}>
+                            {f.name}
+                          </option>
                         ))}
                       </select>
                     </div>
