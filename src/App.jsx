@@ -219,6 +219,20 @@ function AppContent() {
     }
   }, [activeCategory]);
 
+  React.useEffect(() => {
+    if (wishlistOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('wishlist-drawer-open');
+    } else {
+      document.body.style.overflow = '';
+      document.body.classList.remove('wishlist-drawer-open');
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.classList.remove('wishlist-drawer-open');
+    };
+  }, [wishlistOpen]);
+
   // Ensure page scrolls instantly to top whenever activeTab or selectedProduct changes
   React.useEffect(() => {
     window.scrollTo(0, 0);
@@ -647,7 +661,7 @@ function AppContent() {
           left: 0,
           right: 0,
           bottom: 0,
-          zIndex: 200,
+          zIndex: 99999,
           backgroundColor: 'rgba(0, 0, 0, 0.4)',
           backdropFilter: 'blur(3px)',
           display: 'flex',
@@ -660,14 +674,15 @@ function AppContent() {
             style={{
               width: '100%',
               maxWidth: '460px',
-              height: '100%',
+              height: '100dvh',
               backgroundColor: '#ffffff',
               borderLeft: '1px solid var(--border-color)',
               display: 'flex',
               flexDirection: 'column',
               position: 'relative',
               cursor: 'default',
-              animation: 'slideLeft 0.25s ease-out'
+              animation: 'slideLeft 0.25s ease-out',
+              paddingBottom: 'calc(1.2rem + env(safe-area-inset-bottom, 12px))'
             }}
             onClick={(e) => e.stopPropagation()}
           >

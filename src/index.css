@@ -1164,7 +1164,8 @@ body.modal-open .mobile-bottom-dock {
   display: none !important;
 }
 
-body.cart-drawer-open header {
+body.cart-drawer-open header,
+body.wishlist-drawer-open header {
   z-index: 1 !important;
 }
 
