@@ -190,6 +190,21 @@ export default function AIPrintLab({
     return defaultMap[colorName] || '#1c130d';
   };
 
+  const activeFontList = React.useMemo(() => {
+    if (labSettings?.designerFonts && Array.isArray(labSettings.designerFonts) && labSettings.designerFonts.length > 0) {
+      return labSettings.designerFonts.map(fName => {
+        const found = ALL_FONTS.find(f => f.id.toLowerCase() === String(fName).toLowerCase() || f.name.toLowerCase() === String(fName).toLowerCase());
+        return found || { id: fName, name: fName, family: `'${fName}', sans-serif` };
+      });
+    }
+    return ALL_FONTS;
+  }, [labSettings]);
+
+  const getFontFamilyDynamic = (fontId) => {
+    const found = activeFontList.find(f => f.id === fontId || f.name === fontId);
+    return found ? found.family : getFontFamily(fontId);
+  };
+
   // 1. --- CAD SLICER (UPLOAD FILE TO PRINT) STATES & HANDLERS ---
   const [file, setFile] = React.useState(null);
   const [material, setMaterial] = React.useState('PLA');
@@ -1193,12 +1208,12 @@ export default function AIPrintLab({
                           height: '38px',
                           padding: '0.35rem 0.75rem',
                           fontSize: '0.82rem',
-                          fontFamily: getFontFamily(selectedFont),
+                          fontFamily: getFontFamilyDynamic(selectedFont),
                           fontWeight: '600',
                           border: '1px solid #cbd5e1'
                         }}
                       >
-                        {ALL_FONTS.map((f) => (
+                        {activeFontList.map((f) => (
                           <option key={f.id} value={f.id} style={{ fontFamily: f.family, fontSize: '0.9rem' }}>
                             {f.name}
                           </option>

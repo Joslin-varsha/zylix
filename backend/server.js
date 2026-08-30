@@ -73,7 +73,16 @@ const DEFAULT_LAB_SETTINGS = {
   slicerMaterials: ['PLA', 'PETG', 'ABS', 'Resin', 'Wood', 'PP', 'PET'],
   slicerColors: ['Matte Black', 'Pure White', 'Signal Red', 'Navy Blue', 'Metallic Silver', 'Golden Yellow', 'Forest Green'],
   prototypeTypes: ['School Project', 'College Project', 'Startup Prototype', 'Research Model', 'Architecture Model', 'Robotics Project', 'Science Model', 'Other'],
-  keychainPrice: 1,
+  designerFonts: [
+    'Luckiest Guy', 'Fredoka', 'Baloo 2', 'Chewy', 'Lilita One', 'Bubblegum Sans',
+    'Coiny', 'Sniglet', 'Concert One', 'Grandstander', 'Bagel Fat One', 'DynaPuff',
+    'Cherry Bomb One', 'Titan One', 'Bungee', 'Mochiy Pop One', 'Gochi Hand',
+    'Patrick Hand', 'Atma', 'Jua', 'Poppins', 'Montserrat', 'Outfit', 'Rubik',
+    'Nunito', 'DM Sans', 'Sora', 'Manrope', 'Plus Jakarta Sans', 'Urbanist',
+    'Orbitron', 'Audiowide', 'Rajdhani', 'Exo 2', 'Oxanium', 'Chakra Petch',
+    'Teko', 'Russo One', 'Syncopate', 'Barlow Condensed', 'Kanit', 'Bebas Neue',
+    'Anton', 'League Spartan', 'Archivo Black', 'Oswald', 'Righteous', 'Alfa Slab One'
+  ],
   enabledLabTabs: {
     slicer: true,
     designer: true,
