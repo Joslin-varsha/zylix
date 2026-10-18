@@ -544,6 +544,7 @@ function AppContent() {
             <ErrorBoundary>
               <ProductDetailPage
                 product={selectedProduct}
+                user={user}
                 onBack={() => {
                   setActiveTab('shop');
                   setSelectedProduct(null);

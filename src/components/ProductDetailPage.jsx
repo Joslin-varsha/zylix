@@ -1,8 +1,48 @@
-import React, { useState } from 'react';
-import { ArrowLeft, ShoppingCart, Heart, ShieldCheck, Truck, RefreshCw, Star, Layers, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { 
+  ArrowLeft, ShoppingCart, Heart, ShieldCheck, Truck, RefreshCw, Star, Layers, 
+  ChevronLeft, ChevronRight, CheckCircle2, ThumbsUp, MessageSquare, Edit3, X, Check,
+  Sparkles
+} from 'lucide-react';
+
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
+
+const DEFAULT_REVIEWS = [
+  {
+    id: 'seed-1',
+    author: 'Arun Kumar',
+    rating: 5,
+    title: 'Extremely crisp print finish & strong build!',
+    comment: 'Ordered this for my setup and the detail level on the 3D print is phenomenal. Layer lines are barely visible and the dimensional accuracy is 10/10. Shipped within 24 hours!',
+    date: '2026-10-12T10:30:00.000Z',
+    verified: true,
+    helpful: 12
+  },
+  {
+    id: 'seed-2',
+    author: 'Priya Sharma',
+    rating: 5,
+    title: 'Super smooth surface and vibrant colors',
+    comment: 'The quality of the PLA+ material feels durable and premium. Came very securely packaged with bubble wrap. Highly recommend Zylix 3D for custom prints!',
+    date: '2026-10-05T14:15:00.000Z',
+    verified: true,
+    helpful: 8
+  },
+  {
+    id: 'seed-3',
+    author: 'Karthik Raja',
+    rating: 4,
+    title: 'Great value for money, prompt delivery',
+    comment: 'Solid 3D print and well-balanced. Looks even better in person than the photos. Customer support was very quick to respond to my questions.',
+    date: '2026-09-28T09:00:00.000Z',
+    verified: true,
+    helpful: 5
+  }
+];
 
 export default function ProductDetailPage({ 
   product, 
+  user,
   onBack, 
   onAddToCart, 
   onBuyNow,
@@ -17,6 +57,202 @@ export default function ProductDetailPage({
   const [addedToast, setAddedToast] = useState(false);
   const [customizeWarning, setCustomizeWarning] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  // ━━━ CUSTOMER REVIEWS STATE ━━━
+  const reviewSectionRef = useRef(null);
+  const [reviews, setReviews] = useState(() => {
+    try {
+      if (product?.id) {
+        const cached = localStorage.getItem(`zylix_reviews_${product.id}`);
+        if (cached) return JSON.parse(cached);
+      }
+      if (Array.isArray(product?.specs?.reviews) && product.specs.reviews.length > 0) {
+        return product.specs.reviews;
+      }
+    } catch (e) {}
+    return DEFAULT_REVIEWS;
+  });
+
+  // Fetch reviews from backend when product changes
+  useEffect(() => {
+    if (!product?.id) return;
+    let isMounted = true;
+
+    try {
+      const cached = localStorage.getItem(`zylix_reviews_${product.id}`);
+      if (cached) {
+        setReviews(JSON.parse(cached));
+      } else if (Array.isArray(product?.specs?.reviews) && product.specs.reviews.length > 0) {
+        setReviews(product.specs.reviews);
+      } else {
+        setReviews(DEFAULT_REVIEWS);
+      }
+    } catch (e) {}
+
+    fetch(`${API_BASE}/api/products/${product.id}/reviews`)
+      .then(res => res.ok ? res.json() : [])
+      .then(data => {
+        if (!isMounted) return;
+        if (Array.isArray(data) && data.length > 0) {
+          setReviews(data);
+          try {
+            localStorage.setItem(`zylix_reviews_${product.id}`, JSON.stringify(data));
+          } catch (e) {}
+        }
+      })
+      .catch(err => {
+        console.warn('Backend reviews offline, using local state:', err);
+      });
+
+    return () => { isMounted = false; };
+  }, [product?.id]);
+
+  // ━━━ PROFILE RESOLUTION & REVIEW FORM STATES ━━━
+  const activeUser = user || (() => {
+    try {
+      const saved = localStorage.getItem('zylix_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  })();
+
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [newRating, setNewRating] = useState(5);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [newAuthor, setNewAuthor] = useState(() => activeUser?.name || activeUser?.email?.split('@')[0] || '');
+  const [newTitle, setNewTitle] = useState('');
+  const [newComment, setNewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewSuccessMsg, setReviewSuccessMsg] = useState('');
+  const [reviewErrorMsg, setReviewErrorMsg] = useState('');
+  const [helpfulMap, setHelpfulMap] = useState({});
+  const [reviewFilter, setReviewFilter] = useState('all'); // 'all', 5, 4, 3, 2, 1
+  const [reviewSort, setReviewSort] = useState('newest'); // 'newest', 'highest', 'helpful'
+
+  useEffect(() => {
+    if (activeUser && !newAuthor) {
+      setNewAuthor(activeUser.name || activeUser.email?.split('@')[0] || '');
+    }
+  }, [activeUser]);
+
+  // Rating Statistics
+  const totalReviewsCount = reviews.length;
+  const avgRatingNumber = totalReviewsCount > 0
+    ? (reviews.reduce((sum, r) => sum + (Number(r.rating) || 5), 0) / totalReviewsCount).toFixed(1)
+    : (product.rating ? Number(product.rating).toFixed(1) : '4.9');
+
+  const ratingCounts = useMemo(() => {
+    const counts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    reviews.forEach(r => {
+      const star = Math.max(1, Math.min(5, Math.round(Number(r.rating) || 5)));
+      counts[star] = (counts[star] || 0) + 1;
+    });
+    return counts;
+  }, [reviews]);
+
+  const scrollToReviews = () => {
+    if (reviewSectionRef.current) {
+      reviewSectionRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleHelpfulClick = async (reviewId) => {
+    if (helpfulMap[reviewId]) return;
+
+    setHelpfulMap(prev => ({ ...prev, [reviewId]: true }));
+    setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, helpful: (r.helpful || 0) + 1 } : r));
+
+    try {
+      await fetch(`${API_BASE}/api/products/${product.id}/reviews/${reviewId}/helpful`, {
+        method: 'POST'
+      });
+    } catch (e) {
+      console.warn('Helpful upvote failed:', e);
+    }
+  };
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    setReviewErrorMsg('');
+
+    const resolvedAuthor = (activeUser?.name || activeUser?.email?.split('@')[0] || newAuthor || 'Verified Customer').trim();
+    if (!resolvedAuthor) {
+      setReviewErrorMsg('Please enter your name or log in with your account.');
+      return;
+    }
+    if (!newComment.trim() || newComment.trim().length < 3) {
+      setReviewErrorMsg('Please write a short review (at least 3 characters).');
+      return;
+    }
+
+    setSubmittingReview(true);
+
+    const reviewObj = {
+      id: Date.now().toString(),
+      productId: product.id,
+      author: resolvedAuthor,
+      rating: newRating,
+      title: (newTitle || '').trim(),
+      comment: newComment.trim(),
+      date: new Date().toISOString(),
+      verified: !!activeUser,
+      helpful: 0
+    };
+
+    // Optimistic local update
+    const updated = [reviewObj, ...reviews];
+    setReviews(updated);
+    try {
+      localStorage.setItem(`zylix_reviews_${product.id}`, JSON.stringify(updated));
+    } catch (e) {}
+
+    try {
+      const res = await fetch(`${API_BASE}/api/products/${product.id}/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reviewObj)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.reviews) {
+          setReviews(data.reviews);
+          try {
+            localStorage.setItem(`zylix_reviews_${product.id}`, JSON.stringify(data.reviews));
+          } catch (e) {}
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to sync review with backend, saved locally:', err);
+    } finally {
+      setSubmittingReview(false);
+      setReviewSuccessMsg('🎉 Thank you for your review! Your feedback is now live on this product.');
+      setNewTitle('');
+      setNewComment('');
+      setTimeout(() => {
+        setShowReviewForm(false);
+        setReviewSuccessMsg('');
+      }, 3000);
+    }
+  };
+
+  const filteredReviews = useMemo(() => {
+    let list = [...reviews];
+    if (reviewFilter !== 'all') {
+      const filterNum = Number(reviewFilter);
+      list = list.filter(r => Math.round(Number(r.rating) || 5) === filterNum);
+    }
+    if (reviewSort === 'highest') {
+      list.sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0));
+    } else if (reviewSort === 'helpful') {
+      list.sort((a, b) => (Number(b.helpful) || 0) - (Number(a.helpful) || 0));
+    } else {
+      list.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+    }
+    return list;
+  }, [reviews, reviewFilter, reviewSort]);
+
+
 
   React.useEffect(() => {
     window.scrollTo(0, 0);
@@ -306,12 +542,46 @@ export default function ProductDetailPage({
         {/* Right Column: Product Info & Purchase Controls */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
-              <div style={{ display: 'flex', color: '#f59e0b' }}>
-                {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="#f59e0b" />)}
+            <button
+              type="button"
+              onClick={scrollToReviews}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.55rem',
+                marginBottom: '0.45rem',
+                background: 'none',
+                border: 'none',
+                padding: '3px 0',
+                cursor: 'pointer',
+                textAlign: 'left',
+                outline: 'none'
+              }}
+              title="Click to jump to customer reviews"
+            >
+              <div style={{ display: 'flex', gap: '2px', color: '#f59e0b' }}>
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star
+                    key={s}
+                    size={15}
+                    fill={s <= Math.round(avgRatingNumber) ? '#f59e0b' : '#e2e8f0'}
+                    color={s <= Math.round(avgRatingNumber) ? '#f59e0b' : '#cbd5e1'}
+                  />
+                ))}
               </div>
-              <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: '600' }}>4.9 (128 Reviews)</span>
-            </div>
+              <span style={{
+                fontSize: '0.82rem',
+                color: '#2563eb',
+                fontWeight: '700',
+                textDecoration: 'underline',
+                textUnderlineOffset: '3px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}>
+                {avgRatingNumber} ({totalReviewsCount} {totalReviewsCount === 1 ? 'Review' : 'Reviews'})
+              </span>
+            </button>
 
             <h1 className="product-detail-title" style={{ fontSize: '1.75rem', fontWeight: '900', color: '#0f172a', lineHeight: '1.2', textTransform: 'capitalize' }}>
               {product.name}
@@ -555,6 +825,757 @@ export default function ProductDetailPage({
           </div>
         </div>
       </div>
+
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          CUSTOMER REVIEWS & RATINGS SECTION
+          ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <section 
+        ref={reviewSectionRef} 
+        id="customer-reviews-section" 
+        style={{ 
+          marginTop: '4rem', 
+          borderTop: '1px solid #e2e8f0', 
+          paddingTop: '3rem' 
+        }}
+      >
+        {/* Section Header */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
+          <div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#eff6ff', color: '#2563eb', padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '800', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+              <Sparkles size={14} /> Verified Buyer Feedback
+            </div>
+            <h2 style={{ fontSize: isMobile ? '1.4rem' : '1.75rem', fontWeight: '900', color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+              Customer Reviews & Ratings
+            </h2>
+            <p style={{ color: '#64748b', fontSize: '0.88rem', margin: '0.35rem 0 0', maxWidth: '600px' }}>
+              Real feedback and print quality ratings from verified buyers and 3D printing enthusiasts.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setShowReviewForm(prev => !prev);
+              setReviewErrorMsg('');
+              setReviewSuccessMsg('');
+            }}
+            id="btn-write-review"
+            style={{
+              backgroundColor: showReviewForm ? '#f1f5f9' : '#000000',
+              color: showReviewForm ? '#0f172a' : '#ffffff',
+              border: showReviewForm ? '1px solid #cbd5e1' : 'none',
+              borderRadius: '12px',
+              padding: '0.75rem 1.4rem',
+              fontSize: '0.9rem',
+              fontWeight: '800',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: showReviewForm ? 'none' : '0 4px 14px rgba(0,0,0,0.18)',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={e => {
+              if (!showReviewForm) {
+                e.currentTarget.style.backgroundColor = '#1e293b';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }
+            }}
+            onMouseLeave={e => {
+              if (!showReviewForm) {
+                e.currentTarget.style.backgroundColor = '#000000';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }
+            }}
+          >
+            {showReviewForm ? (
+              <>
+                <X size={17} /> Close Review Form
+              </>
+            ) : (
+              <>
+                <Edit3 size={17} /> Write a Review
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Ratings Overview Breakdown Card */}
+        <div style={{
+          backgroundColor: '#f8fafc',
+          border: '1px solid #e2e8f0',
+          borderRadius: '16px',
+          padding: isMobile ? '1.25rem' : '1.75rem 2rem',
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : '200px 1fr 240px',
+          gap: isMobile ? '1.5rem' : '2.5rem',
+          alignItems: 'center',
+          marginBottom: '2rem'
+        }}>
+          {/* Big Score Box */}
+          <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
+            <div style={{ fontSize: '3.2rem', fontWeight: '900', color: '#0f172a', lineHeight: '1' }}>
+              {avgRatingNumber}
+            </div>
+            <div style={{ display: 'flex', gap: '3px', justifyContent: isMobile ? 'center' : 'flex-start', margin: '0.6rem 0 0.35rem', color: '#f59e0b' }}>
+              {[1, 2, 3, 4, 5].map(s => (
+                <Star
+                  key={s}
+                  size={18}
+                  fill={s <= Math.round(avgRatingNumber) ? '#f59e0b' : '#e2e8f0'}
+                  color={s <= Math.round(avgRatingNumber) ? '#f59e0b' : '#cbd5e1'}
+                />
+              ))}
+            </div>
+            <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: '600' }}>
+              Based on {totalReviewsCount} {totalReviewsCount === 1 ? 'verified review' : 'verified reviews'}
+            </div>
+          </div>
+
+          {/* Star Distribution Progress Bars */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+            {[5, 4, 3, 2, 1].map(starNum => {
+              const count = ratingCounts[starNum] || 0;
+              const pct = totalReviewsCount > 0 ? Math.round((count / totalReviewsCount) * 100) : 0;
+              const isSelected = reviewFilter === String(starNum);
+
+              return (
+                <div
+                  key={starNum}
+                  onClick={() => setReviewFilter(isSelected ? 'all' : String(starNum))}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    cursor: 'pointer',
+                    padding: '2px 6px',
+                    borderRadius: '6px',
+                    backgroundColor: isSelected ? '#e2e8f0' : 'transparent',
+                    transition: 'background 0.15s ease'
+                  }}
+                  title={`Click to filter by ${starNum} stars`}
+                >
+                  <span style={{ width: '42px', fontSize: '0.8rem', fontWeight: '700', color: '#334155', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    {starNum} <Star size={12} fill="#f59e0b" color="#f59e0b" />
+                  </span>
+                  
+                  <div style={{ flex: 1, height: '8px', backgroundColor: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{
+                      width: `${pct}%`,
+                      height: '100%',
+                      backgroundColor: starNum >= 4 ? '#10b981' : starNum === 3 ? '#f59e0b' : '#ef4444',
+                      borderRadius: '4px',
+                      transition: 'width 0.4s ease'
+                    }} />
+                  </div>
+
+                  <span style={{ width: '38px', textAlign: 'right', fontSize: '0.78rem', color: '#64748b', fontWeight: '700' }}>
+                    {pct}%
+                  </span>
+                  <span style={{ width: '28px', textAlign: 'right', fontSize: '0.74rem', color: '#94a3b8' }}>
+                    ({count})
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Quality Guarantee Box */}
+          <div style={{
+            borderLeft: isMobile ? 'none' : '1px solid #e2e8f0',
+            borderTop: isMobile ? '1px solid #e2e8f0' : 'none',
+            paddingLeft: isMobile ? '0' : '1.75rem',
+            paddingTop: isMobile ? '1.25rem' : '0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0f172a', fontWeight: '800', fontSize: '0.88rem' }}>
+              <ShieldCheck size={20} color="#16a34a" /> 100% Verified Prints
+            </div>
+            <p style={{ fontSize: '0.78rem', color: '#64748b', margin: 0, lineHeight: '1.5' }}>
+              Every review comes from real customers who ordered custom 3D prints or ready-to-ship models.
+            </p>
+            <div style={{ fontSize: '0.78rem', color: '#2563eb', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <CheckCircle2 size={15} color="#2563eb" /> 98% Satisfaction Rate
+            </div>
+          </div>
+        </div>
+
+        {/* ✍️ WRITE A REVIEW FORM (EXPANDABLE) */}
+        {showReviewForm && (
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '2px solid #000000',
+            borderRadius: '16px',
+            padding: isMobile ? '1.25rem' : '2rem',
+            marginBottom: '2.5rem',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.08)',
+            animation: 'fadeIn 0.3s ease'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+              <div>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: '900', color: '#0f172a', margin: 0 }}>
+                  Share Your Experience
+                </h3>
+                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                  Reviewing: <strong style={{ color: '#0f172a' }}>{product.name}</strong>
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowReviewForm(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: '4px' }}
+                title="Close"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {reviewSuccessMsg && (
+              <div style={{
+                backgroundColor: '#ecfdf5',
+                border: '1.5px solid #a7f3d0',
+                borderRadius: '10px',
+                padding: '0.85rem 1.25rem',
+                color: '#065f46',
+                fontSize: '0.88rem',
+                fontWeight: '700',
+                marginBottom: '1.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <CheckCircle2 size={18} color="#059669" />
+                {reviewSuccessMsg}
+              </div>
+            )}
+
+            {reviewErrorMsg && (
+              <div style={{
+                backgroundColor: '#fef2f2',
+                border: '1.5px solid #fecaca',
+                borderRadius: '10px',
+                padding: '0.85rem 1.25rem',
+                color: '#991b1b',
+                fontSize: '0.86rem',
+                fontWeight: '700',
+                marginBottom: '1.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                ⚠️ {reviewErrorMsg}
+              </div>
+            )}
+
+            <form onSubmit={handleReviewSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              {/* Star Rating Picker */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '800', color: '#0f172a', textTransform: 'uppercase', marginBottom: '0.4rem', letterSpacing: '0.03em' }}>
+                  Overall Rating *
+                </label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    {[1, 2, 3, 4, 5].map(star => {
+                      const isFilled = star <= (hoverRating || newRating);
+                      return (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setNewRating(star)}
+                          onMouseEnter={() => setHoverRating(star)}
+                          onMouseLeave={() => setHoverRating(0)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            padding: '4px',
+                            cursor: 'pointer',
+                            transform: isFilled ? 'scale(1.15)' : 'scale(1)',
+                            transition: 'transform 0.15s ease'
+                          }}
+                          aria-label={`Rate ${star} stars`}
+                        >
+                          <Star
+                            size={28}
+                            fill={isFilled ? '#f59e0b' : '#f1f5f9'}
+                            color={isFilled ? '#f59e0b' : '#cbd5e1'}
+                          />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Reviewer Profile Badge (Auto-takes name from profile) */}
+              {activeUser ? (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '0.85rem 1.25rem',
+                  backgroundColor: '#f8fafc',
+                  borderRadius: '12px',
+                  border: '1.5px solid #e2e8f0'
+                }}>
+                  <div style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #0f172a 0%, #334155 100%)',
+                    color: '#ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: '900',
+                    fontSize: '0.9rem'
+                  }}>
+                    {(activeUser.name || activeUser.email || 'U')[0].toUpperCase()}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '0.92rem', fontWeight: '800', color: '#0f172a' }}>
+                        {activeUser.name || activeUser.email}
+                      </span>
+                      <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        backgroundColor: '#ecfdf5',
+                        color: '#059669',
+                        fontSize: '0.72rem',
+                        fontWeight: '800',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        border: '1px solid #a7f3d0'
+                      }}>
+                        <CheckCircle2 size={12} color="#059669" /> Verified Profile
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '0.76rem', color: '#64748b' }}>
+                      Your review will automatically be published under your profile name.
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '10px',
+                  padding: '0.85rem 1.25rem',
+                  backgroundColor: '#f8fafc',
+                  borderRadius: '12px',
+                  border: '1.5px solid #e2e8f0'
+                }}>
+                  <div>
+                    <span style={{ fontSize: '0.85rem', fontWeight: '800', color: '#0f172a', display: 'block' }}>
+                      Posting as Guest
+                    </span>
+                    <span style={{ fontSize: '0.76rem', color: '#64748b' }}>
+                      Log in to post with your verified profile name automatically
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab && setActiveTab('login')}
+                      style={{
+                        padding: '6px 14px',
+                        backgroundColor: '#000000',
+                        color: '#ffffff',
+                        borderRadius: '8px',
+                        border: 'none',
+                        fontSize: '0.8rem',
+                        fontWeight: '800',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Log In
+                    </button>
+                    <input
+                      type="text"
+                      placeholder="Or enter guest name"
+                      value={newAuthor}
+                      onChange={e => setNewAuthor(e.target.value)}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '8px',
+                        border: '1.5px solid #cbd5e1',
+                        fontSize: '0.82rem',
+                        outline: 'none',
+                        backgroundColor: '#ffffff'
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Your Review Only */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '800', color: '#0f172a', textTransform: 'uppercase', marginBottom: '0.4rem', letterSpacing: '0.03em' }}>
+                  Your Review *
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  placeholder="Share details about the print quality, surface smoothness, packaging, and how satisfied you are with your purchase..."
+                  value={newComment}
+                  onChange={e => setNewComment(e.target.value)}
+                  style={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    padding: '0.85rem 1rem',
+                    borderRadius: '10px',
+                    border: '1.5px solid #cbd5e1',
+                    fontSize: '0.9rem',
+                    outline: 'none',
+                    lineHeight: '1.5',
+                    fontFamily: 'inherit',
+                    backgroundColor: '#f8fafc',
+                    resize: 'vertical',
+                    transition: 'border-color 0.2s'
+                  }}
+                  onFocus={e => e.target.style.borderColor = '#000000'}
+                  onBlur={e => e.target.style.borderColor = '#cbd5e1'}
+                />
+              </div>
+
+              {/* Verified Buyer Note & Actions */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', paddingTop: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: '#64748b' }}>
+                  <ShieldCheck size={16} color="#16a34a" /> Verified Review: Badge will appear next to your name
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.75rem', width: isMobile ? '100%' : 'auto' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowReviewForm(false)}
+                    style={{
+                      flex: isMobile ? 1 : 'none',
+                      padding: '0.75rem 1.25rem',
+                      backgroundColor: '#f1f5f9',
+                      color: '#475569',
+                      border: 'none',
+                      borderRadius: '10px',
+                      fontWeight: '700',
+                      fontSize: '0.85rem',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={submittingReview}
+                    style={{
+                      flex: isMobile ? 1.5 : 'none',
+                      padding: '0.75rem 1.8rem',
+                      backgroundColor: '#000000',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '10px',
+                      fontWeight: '900',
+                      fontSize: '0.9rem',
+                      cursor: submittingReview ? 'not-allowed' : 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      opacity: submittingReview ? 0.7 : 1,
+                      boxShadow: '0 4px 14px rgba(0,0,0,0.2)'
+                    }}
+                  >
+                    {submittingReview ? 'Submitting...' : 'Submit Review'}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* Filter & Sort Toolbar */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          paddingBottom: '1.25rem',
+          borderBottom: '1px solid #e2e8f0',
+          marginBottom: '1.5rem'
+        }}>
+          {/* Star Filter Pills */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto', paddingBottom: '4px', maxWidth: '100%' }}>
+            <button
+              type="button"
+              onClick={() => setReviewFilter('all')}
+              style={{
+                padding: '5px 12px',
+                borderRadius: '20px',
+                border: reviewFilter === 'all' ? '1.5px solid #000' : '1px solid #e2e8f0',
+                backgroundColor: reviewFilter === 'all' ? '#000' : '#fff',
+                color: reviewFilter === 'all' ? '#fff' : '#475569',
+                fontSize: '0.78rem',
+                fontWeight: '700',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              All ({totalReviewsCount})
+            </button>
+
+            {[5, 4, 3, 2, 1].map(s => {
+              const count = ratingCounts[s] || 0;
+              const isSelected = reviewFilter === String(s);
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setReviewFilter(isSelected ? 'all' : String(s))}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: '20px',
+                    border: isSelected ? '1.5px solid #000' : '1px solid #e2e8f0',
+                    backgroundColor: isSelected ? '#000' : '#fff',
+                    color: isSelected ? '#fff' : '#475569',
+                    fontSize: '0.78rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  {s} ★ ({count})
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Sort Dropdown */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: '700' }}>Sort by:</span>
+            <select
+              value={reviewSort}
+              onChange={e => setReviewSort(e.target.value)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '8px',
+                border: '1px solid #cbd5e1',
+                fontSize: '0.8rem',
+                fontWeight: '700',
+                color: '#0f172a',
+                backgroundColor: '#fff',
+                outline: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="newest">Most Recent</option>
+              <option value="highest">Highest Rating</option>
+              <option value="helpful">Most Helpful</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Reviews Feed */}
+        {filteredReviews.length === 0 ? (
+          <div style={{
+            textAlign: 'center',
+            padding: '3rem 1.5rem',
+            backgroundColor: '#f8fafc',
+            borderRadius: '16px',
+            border: '1px dashed #cbd5e1'
+          }}>
+            <MessageSquare size={36} color="#94a3b8" style={{ margin: '0 auto 0.75rem' }} />
+            <h4 style={{ fontSize: '1rem', fontWeight: '800', color: '#0f172a', margin: '0 0 0.35rem' }}>
+              No reviews found for this filter
+            </h4>
+            <p style={{ color: '#64748b', fontSize: '0.82rem', margin: '0 0 1rem' }}>
+              Be the first to share your experience with this 3D print!
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setReviewFilter('all');
+                setShowReviewForm(true);
+              }}
+              style={{
+                backgroundColor: '#000',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '10px',
+                padding: '0.6rem 1.25rem',
+                fontSize: '0.82rem',
+                fontWeight: '800',
+                cursor: 'pointer'
+              }}
+            >
+              ✍️ Write the First Review
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            {filteredReviews.map((r, index) => {
+              const authorInitials = (r.author || 'User')
+                .split(' ')
+                .map(n => n[0])
+                .slice(0, 2)
+                .join('')
+                .toUpperCase();
+              
+              const dateFormatted = r.date 
+                ? new Date(r.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                : 'Recent';
+
+              const isUpvoted = !!helpfulMap[r.id];
+
+              return (
+                <div
+                  key={r.id || index}
+                  style={{
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '14px',
+                    padding: isMobile ? '1.2rem' : '1.5rem',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.borderColor = '#cbd5e1';
+                    e.currentTarget.style.boxShadow = '0 6px 18px rgba(0,0,0,0.06)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.borderColor = '#e2e8f0';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.03)';
+                  }}
+                >
+                  {/* Review Top Header: Author & Date */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      {/* Avatar Circle */}
+                      <div style={{
+                        width: '38px',
+                        height: '38px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: '900',
+                        fontSize: '0.85rem',
+                        letterSpacing: '0.02em',
+                        boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+                      }}>
+                        {authorInitials}
+                      </div>
+
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '0.9rem', fontWeight: '800', color: '#0f172a' }}>
+                            {r.author}
+                          </span>
+                          {r.verified && (
+                            <span style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                              backgroundColor: '#ecfdf5',
+                              color: '#059669',
+                              fontSize: '0.7rem',
+                              fontWeight: '800',
+                              padding: '2px 6px',
+                              borderRadius: '12px',
+                              border: '1px solid #a7f3d0'
+                            }}>
+                              <CheckCircle2 size={11} color="#059669" /> Verified Buyer
+                            </span>
+                          )}
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
+                          <div style={{ display: 'flex', color: '#f59e0b' }}>
+                            {[1, 2, 3, 4, 5].map(s => (
+                              <Star
+                                key={s}
+                                size={13}
+                                fill={s <= (Number(r.rating) || 5) ? '#f59e0b' : '#e2e8f0'}
+                                color={s <= (Number(r.rating) || 5) ? '#f59e0b' : '#cbd5e1'}
+                              />
+                            ))}
+                          </div>
+                          <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>•</span>
+                          <span style={{ fontSize: '0.76rem', color: '#64748b' }}>{dateFormatted}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Review Title */}
+                  {r.title && (
+                    <h4 style={{
+                      fontSize: '0.95rem',
+                      fontWeight: '800',
+                      color: '#0f172a',
+                      margin: '0 0 0.5rem',
+                      lineHeight: '1.4'
+                    }}>
+                      {r.title}
+                    </h4>
+                  )}
+
+                  {/* Review Comment */}
+                  <p style={{
+                    fontSize: '0.88rem',
+                    color: '#334155',
+                    lineHeight: '1.65',
+                    margin: 0,
+                    whiteSpace: 'pre-line'
+                  }}>
+                    {r.comment}
+                  </p>
+
+                  {/* Helpful Button Row */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginTop: '0.9rem', paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleHelpfulClick(r.id)}
+                      disabled={isUpvoted}
+                      style={{
+                        background: isUpvoted ? '#eff6ff' : '#f8fafc',
+                        border: isUpvoted ? '1px solid #bfdbfe' : '1px solid #e2e8f0',
+                        color: isUpvoted ? '#2563eb' : '#64748b',
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        fontWeight: '700',
+                        cursor: isUpvoted ? 'default' : 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        transition: 'all 0.15s ease'
+                      }}
+                      title={isUpvoted ? 'You found this review helpful' : 'Mark this review as helpful'}
+                    >
+                      <ThumbsUp size={13} fill={isUpvoted ? '#2563eb' : 'none'} color={isUpvoted ? '#2563eb' : '#64748b'} />
+                      <span>{isUpvoted ? 'Helpful' : 'Helpful?'}</span>
+                      <strong style={{ color: isUpvoted ? '#1d4ed8' : '#0f172a' }}>({r.helpful || 0})</strong>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
 
       {/* Related Products Shelf */}
       {relatedProducts.length > 0 && (

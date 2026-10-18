@@ -44,6 +44,7 @@ const CARTS_FILE = path.join(DATA_DIR, 'carts.json');
 const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
 const CATEGORIES_FILE = path.join(DATA_DIR, 'categories.json');
 const LAB_SETTINGS_FILE = path.join(DATA_DIR, 'lab_settings.json');
+const REVIEWS_FILE = path.join(DATA_DIR, 'reviews.json');
 
 const DEFAULT_LAB_SETTINGS = {
   productTypes: [
@@ -430,6 +431,30 @@ const writeLocalLabSettings = (settings) => {
     fs.writeFileSync(LAB_SETTINGS_FILE, JSON.stringify(settings, null, 2));
   } catch (err) {
     console.error('Error writing local lab settings:', err);
+  }
+};
+
+const readLocalReviews = () => {
+  try {
+    if (!fs.existsSync(REVIEWS_FILE)) {
+      return {};
+    }
+    const data = fs.readFileSync(REVIEWS_FILE, 'utf8');
+    return JSON.parse(data);
+  } catch (err) {
+    console.error('Error reading local reviews:', err);
+    return {};
+  }
+};
+
+const writeLocalReviews = (reviewsMap) => {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(REVIEWS_FILE, JSON.stringify(reviewsMap, null, 2));
+  } catch (err) {
+    console.error('Error writing local reviews:', err);
   }
 };
 
@@ -2692,6 +2717,138 @@ app.put('/api/products/:id', upload.any(), async (req, res) => {
     res.json({ success: true, product: mapProductDbToFrontend(updatedProduct) });
   } catch (err) {
     console.error('Update product error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// --- PRODUCT REVIEWS ENDPOINTS ---
+
+// Fetch reviews for a product
+app.get('/api/products/:id/reviews', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const numericId = parseInt(id);
+
+    // 1. Check local storage first
+    const allReviews = readLocalReviews();
+    let productReviews = allReviews[String(id)] || [];
+
+    // 2. Also check if Supabase product has specs.reviews
+    if (isSupabaseConfigured && supabase && productReviews.length === 0) {
+      try {
+        let query = supabase.from('products').select('specs');
+        if (!isNaN(numericId)) query = query.eq('id', numericId);
+        else query = query.eq('id', id);
+        const { data, error } = await query.maybeSingle();
+        if (!error && data?.specs?.reviews && Array.isArray(data.specs.reviews)) {
+          productReviews = data.specs.reviews;
+        }
+      } catch (err) {
+        // Fallback to local
+      }
+    }
+
+    res.json(productReviews);
+  } catch (err) {
+    console.error('Fetch reviews error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Submit a new review for a product
+app.post('/api/products/:id/reviews', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const numericId = parseInt(id);
+    const { rating, author, comment, title, verified = true } = req.body;
+
+    if (!rating || !author || !comment) {
+      return res.status(400).json({ error: 'Rating, author name, and review comments are required.' });
+    }
+
+    const numRating = Math.max(1, Math.min(5, Math.round(Number(rating) || 5)));
+    const newReview = {
+      id: Date.now().toString(),
+      productId: !isNaN(numericId) ? numericId : id,
+      author: String(author).trim(),
+      rating: numRating,
+      title: title ? String(title).trim() : '',
+      comment: String(comment).trim(),
+      date: new Date().toISOString(),
+      verified: verified !== false,
+      helpful: 0
+    };
+
+    // 1. Save to local reviews.json
+    const allReviews = readLocalReviews();
+    if (!allReviews[String(id)]) {
+      allReviews[String(id)] = [];
+    }
+    allReviews[String(id)].unshift(newReview);
+    writeLocalReviews(allReviews);
+
+    const updatedReviewsList = allReviews[String(id)];
+    const avgRating = parseFloat((updatedReviewsList.reduce((sum, r) => sum + r.rating, 0) / updatedReviewsList.length).toFixed(1));
+    const totalReviews = updatedReviewsList.length;
+
+    // 2. Persist inside Supabase product specs & update rating
+    if (isSupabaseConfigured && supabase) {
+      try {
+        let query = supabase.from('products').select('specs');
+        if (!isNaN(numericId)) query = query.eq('id', numericId);
+        else query = query.eq('id', id);
+        const { data: current } = await query.maybeSingle();
+
+        if (current) {
+          const updatedSpecs = {
+            ...(current.specs || {}),
+            reviews: updatedReviewsList
+          };
+
+          let updateQuery = supabase.from('products').update({
+            specs: updatedSpecs,
+            rating: avgRating,
+            reviews_count: totalReviews
+          });
+
+          if (!isNaN(numericId)) updateQuery = updateQuery.eq('id', numericId);
+          else updateQuery = updateQuery.eq('id', id);
+          await updateQuery;
+        }
+      } catch (dbErr) {
+        console.warn('[Supabase Reviews Sync Error]:', dbErr.message);
+      }
+    }
+
+    res.status(201).json({
+      success: true,
+      review: newReview,
+      reviews: updatedReviewsList,
+      averageRating: avgRating,
+      totalReviews: totalReviews
+    });
+  } catch (err) {
+    console.error('Submit review error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Upvote review helpful counter
+app.post('/api/products/:id/reviews/:reviewId/helpful', (req, res) => {
+  try {
+    const { id, reviewId } = req.params;
+    const allReviews = readLocalReviews();
+    const productReviews = allReviews[String(id)] || [];
+    const target = productReviews.find(r => String(r.id) === String(reviewId));
+    if (target) {
+      target.helpful = (target.helpful || 0) + 1;
+      writeLocalReviews(allReviews);
+      return res.json({ success: true, helpful: target.helpful });
+    }
+    res.status(404).json({ error: 'Review not found.' });
+  } catch (err) {
+    console.error('Review helpful error:', err);
     res.status(500).json({ error: err.message });
   }
 });
