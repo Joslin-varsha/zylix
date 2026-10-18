@@ -4,23 +4,31 @@
     "name": "Custom Name Keychain",
     "category": "keychains",
     "categoryLabel": "Custom Keychains",
-    "price": 99,
+    "price": 49,
     "originalPrice": 149,
-    "discount": 34,
+    "discount": null,
     "rating": 4.8,
     "reviewsCount": 124,
-    "image": "/product-1.webp",
+    "image": "https://aghpqypwkqdpchdzcjtw.supabase.co/storage/v1/object/public/zylix-quotes/products/product-1.webp",
     "description": "Personalized 3D printed keychain with your name or initials. Available in multiple colors and fonts.",
     "specs": {
-      "Material": "PLA",
-      "Size": "5 x 2 cm",
-      "Customization": "Name / Initials"
+      "images": [
+        "https://aghpqypwkqdpchdzcjtw.supabase.co/storage/v1/object/public/zylix-quotes/products/product-1.webp",
+        "https://aghpqypwkqdpchdzcjtw.supabase.co/storage/v1/object/public/zylix-quotes/products/product-2.webp"
+      ]
     },
-    "materials": [
-      "PLA"
+    "materials": [],
+    "badge": null,
+    "inStock": true,
+    "category_label": "Custom Keychains",
+    "original_price": 199,
+    "images": [
+      "https://aghpqypwkqdpchdzcjtw.supabase.co/storage/v1/object/public/zylix-quotes/products/product-1.webp",
+      "https://aghpqypwkqdpchdzcjtw.supabase.co/storage/v1/object/public/zylix-quotes/products/product-2.webp"
     ],
-    "badge": "-34%",
-    "inStock": true
+    "in_stock": true,
+    "allow_customize": false,
+    "lab_preset": null
   },
   {
     "id": 2,

@@ -435,8 +435,42 @@ const writeLocalLabSettings = (settings) => {
 
 const mapProductDbToFrontend = (p) => {
   if (!p) return null;
+  // Resolve gallery images
+  let images = [];
+  if (Array.isArray(p.images) && p.images.length > 0) {
+    images = p.images;
+  } else if (Array.isArray(p.specs?.images) && p.specs.images.length > 0) {
+    images = p.specs.images;
+  } else if (typeof p.images === 'string') {
+    try {
+      const parsed = JSON.parse(p.images);
+      if (Array.isArray(parsed)) images = parsed;
+      else if (p.images) images = [p.images];
+    } catch (e) {
+      if (p.images) images = [p.images];
+    }
+  } else if (p.image) {
+    images = [p.image];
+  }
+
+  // Ensure primary image is always set
+  const primaryImage = p.image || (images.length > 0 ? images[0] : '');
+  if (images.length === 0 && primaryImage) {
+    images = [primaryImage];
+  }
+
+  // Clean specs so internal helper keys aren't exposed as user-defined specs
+  let cleanSpecs = p.specs;
+  if (cleanSpecs && typeof cleanSpecs === 'object') {
+    const { images: _ignored, ...rest } = cleanSpecs;
+    cleanSpecs = rest;
+  }
+
   return {
     ...p,
+    image: primaryImage,
+    images: images,
+    specs: cleanSpecs,
     categoryLabel: p.category_label !== undefined ? p.category_label : p.categoryLabel,
     originalPrice: p.original_price !== undefined ? p.original_price : p.originalPrice,
     reviewsCount: p.reviews_count !== undefined ? p.reviews_count : p.reviewsCount,
@@ -2243,8 +2277,8 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
-// Create product (supports image upload)
-app.post('/api/products', upload.single('image'), async (req, res) => {
+// Create product (supports single or multiple image uploads)
+app.post('/api/products', upload.any(), async (req, res) => {
   try {
     const {
       name,
@@ -2259,36 +2293,78 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
       materials = '[]',
       inStock = 'true',
       allow_customize = 'false',
-      lab_preset = ''
+      lab_preset = '',
+      existingImages: rawExistingImages
     } = req.body;
 
     if (!name || !category || !price) {
       return res.status(400).json({ error: 'Name, category, and price are required.' });
     }
 
-    let imageUrl = '';
-    if (req.file) {
+    // Process all uploaded files (whether named 'image' or 'images')
+    let uploadedUrls = [];
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        try {
+          const fileResult = await uploadFileHelper(file, 'products');
+          if (fileResult?.fileUrl) {
+            uploadedUrls.push(fileResult.fileUrl);
+          }
+        } catch (uploadErr) {
+          console.error('[Product Image Upload Error]:', uploadErr.message);
+        }
+      }
+    } else if (req.file) {
       try {
         const fileResult = await uploadFileHelper(req.file, 'products');
-        imageUrl = fileResult.fileUrl;
+        if (fileResult?.fileUrl) {
+          uploadedUrls.push(fileResult.fileUrl);
+        }
       } catch (uploadErr) {
         console.error('[Product Image Upload Error]:', uploadErr.message);
       }
     }
 
-    // Parse specs and materials structure
+    // Parse existingImages if sent
+    let existingImages = [];
+    if (rawExistingImages) {
+      try {
+        existingImages = typeof rawExistingImages === 'string'
+          ? JSON.parse(rawExistingImages)
+          : rawExistingImages;
+      } catch (e) {
+        console.warn('Failed to parse existingImages JSON');
+      }
+    }
+
+    const allImages = [...(Array.isArray(existingImages) ? existingImages : []), ...uploadedUrls];
+    const imageUrl = allImages[0] || (typeof req.body.image === 'string' ? req.body.image : '');
+
+    // Parse specs and materials structure safely
     let parsedSpecs = {};
     try {
-      parsedSpecs = typeof specs === 'string' ? JSON.parse(specs) : specs;
+      parsedSpecs = typeof specs === 'string' ? JSON.parse(specs) : (specs || {});
     } catch (e) {
       console.warn('Failed to parse specs JSON, defaulting to empty object');
+      parsedSpecs = {};
+    }
+    if (!parsedSpecs || typeof parsedSpecs !== 'object' || Array.isArray(parsedSpecs)) {
+      parsedSpecs = {};
+    }
+    // Store images array inside specs JSONB for Supabase persistence
+    if (allImages.length > 0) {
+      parsedSpecs.images = allImages;
     }
 
     let parsedMaterials = [];
     try {
-      parsedMaterials = typeof materials === 'string' ? JSON.parse(materials) : materials;
+      parsedMaterials = typeof materials === 'string' ? JSON.parse(materials) : (materials || []);
     } catch (e) {
       console.warn('Failed to parse materials JSON, defaulting to empty array');
+      parsedMaterials = [];
+    }
+    if (!Array.isArray(parsedMaterials)) {
+      parsedMaterials = [];
     }
 
     const newProduct = {
@@ -2301,6 +2377,7 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
       rating: 5.0,
       reviews_count: 0,
       image: imageUrl,
+      images: allImages,
       description,
       specs: parsedSpecs,
       materials: parsedMaterials,
@@ -2315,9 +2392,11 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
 
     if (!useLocal) {
       try {
-        const { data, error } = await supabase
+        let insertPayload = { ...newProduct };
+        delete insertPayload.images; // Persisted in specs.images for Supabase
+        let { data, error } = await supabase
           .from('products')
-          .insert(newProduct)
+          .insert(insertPayload)
           .select();
 
         if (error) {
@@ -2411,8 +2490,8 @@ app.delete('/api/products/:id', async (req, res) => {
   }
 });
 
-// Update product (supports image upload)
-app.put('/api/products/:id', upload.single('image'), async (req, res) => {
+// Update product (supports single or multiple image uploads)
+app.put('/api/products/:id', upload.any(), async (req, res) => {
   try {
     const { id } = req.params;
     const numericId = parseInt(id);
@@ -2429,14 +2508,15 @@ app.put('/api/products/:id', upload.single('image'), async (req, res) => {
       materials,
       inStock,
       allow_customize,
-      lab_preset
+      lab_preset,
+      existingImages: rawExistingImages
     } = req.body;
 
     if (!name || !category || !price) {
       return res.status(400).json({ error: 'Name, category, and price are required.' });
     }
 
-    // Get current product first to know the existing image URL
+    // Get current product first to know the existing image URL and gallery
     let currentProduct = null;
     let useLocal = !isSupabaseConfigured || !supabase;
 
@@ -2473,29 +2553,81 @@ app.put('/api/products/:id', upload.single('image'), async (req, res) => {
       return res.status(404).json({ error: 'Product not found.' });
     }
 
-    let imageUrl = currentProduct.image || currentProduct.image_url || '';
-    if (req.file) {
+    // Determine existingImages kept by the admin
+    let existingImages = null;
+    if (rawExistingImages !== undefined) {
+      try {
+        existingImages = typeof rawExistingImages === 'string'
+          ? JSON.parse(rawExistingImages)
+          : rawExistingImages;
+      } catch (e) {
+        console.warn('Failed to parse existingImages JSON');
+      }
+    }
+
+    // If existingImages was not explicitly provided, default to currentProduct's gallery
+    if (!Array.isArray(existingImages)) {
+      if (Array.isArray(currentProduct.images) && currentProduct.images.length > 0) {
+        existingImages = currentProduct.images;
+      } else if (Array.isArray(currentProduct.specs?.images) && currentProduct.specs.images.length > 0) {
+        existingImages = currentProduct.specs.images;
+      } else if (currentProduct.image) {
+        existingImages = [currentProduct.image];
+      } else {
+        existingImages = [];
+      }
+    }
+
+    // Process all newly uploaded files
+    let uploadedUrls = [];
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        try {
+          const fileResult = await uploadFileHelper(file, 'products');
+          if (fileResult?.fileUrl) {
+            uploadedUrls.push(fileResult.fileUrl);
+          }
+        } catch (uploadErr) {
+          console.error('[Product Image Upload Error]:', uploadErr.message);
+        }
+      }
+    } else if (req.file) {
       try {
         const fileResult = await uploadFileHelper(req.file, 'products');
-        imageUrl = fileResult.fileUrl;
+        if (fileResult?.fileUrl) {
+          uploadedUrls.push(fileResult.fileUrl);
+        }
       } catch (uploadErr) {
         console.error('[Product Image Upload Error]:', uploadErr.message);
       }
     }
 
-    // Parse specs and materials structure
+    const allImages = [...existingImages, ...uploadedUrls];
+    const imageUrl = allImages[0] || currentProduct.image || '';
+
+    // Parse specs and materials structure safely
     let parsedSpecs = {};
     try {
-      parsedSpecs = typeof specs === 'string' ? JSON.parse(specs) : specs;
+      parsedSpecs = typeof specs === 'string' ? JSON.parse(specs) : (specs || {});
     } catch (e) {
       console.warn('Failed to parse specs JSON, defaulting to empty object');
+      parsedSpecs = {};
     }
+    if (!parsedSpecs || typeof parsedSpecs !== 'object' || Array.isArray(parsedSpecs)) {
+      parsedSpecs = {};
+    }
+    // Store gallery images in specs JSONB for Supabase persistence
+    parsedSpecs.images = allImages;
 
     let parsedMaterials = [];
     try {
-      parsedMaterials = typeof materials === 'string' ? JSON.parse(materials) : materials;
+      parsedMaterials = typeof materials === 'string' ? JSON.parse(materials) : (materials || []);
     } catch (e) {
       console.warn('Failed to parse materials JSON, defaulting to empty array');
+      parsedMaterials = [];
+    }
+    if (!Array.isArray(parsedMaterials)) {
+      parsedMaterials = [];
     }
 
     const updatedProductData = {
@@ -2506,6 +2638,7 @@ app.put('/api/products/:id', upload.single('image'), async (req, res) => {
       original_price: originalPrice ? parseFloat(originalPrice) : null,
       discount: discount ? parseFloat(discount) : null,
       image: imageUrl,
+      images: allImages,
       description,
       specs: parsedSpecs,
       materials: parsedMaterials,
@@ -2519,13 +2652,15 @@ app.put('/api/products/:id', upload.single('image'), async (req, res) => {
 
     if (!useLocal) {
       try {
-        let query = supabase.from('products').update(updatedProductData);
+        let updatePayload = { ...updatedProductData };
+        delete updatePayload.images; // Persisted in specs.images for Supabase
+        let query = supabase.from('products').update(updatePayload);
         if (!isNaN(numericId)) {
           query = query.eq('id', numericId);
         } else {
           query = query.eq('id', id);
         }
-        const { data, error } = await query.select();
+        let { data, error } = await query.select();
 
         if (error) {
           throw error;

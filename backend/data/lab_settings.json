@@ -1,0 +1,173 @@
+{
+  "productTypes": [
+    {
+      "id": "keychain",
+      "label": "🔑 3D Custom Keychain",
+      "description": "Custom text keychain with metallic split ring and contoured base",
+      "enabled": true
+    },
+    {
+      "id": "nameboard",
+      "label": "🪧 3D Name Board / Plaque",
+      "description": "Standing or wall-mountable 3D nameplate with custom font",
+      "enabled": true
+    },
+    {
+      "id": "phonestand",
+      "label": "📱 Phone Stand / Holder",
+      "description": "Ergonomic 3D printed desk phone stand",
+      "enabled": true
+    },
+    {
+      "id": "trophy",
+      "label": "🏆 Custom Trophy / Award",
+      "description": "Customized recognition award & trophy",
+      "enabled": true
+    },
+    {
+      "id": "other",
+      "label": "⚙️ Other Custom Design",
+      "description": "Upload a sketch or describe your custom 3D idea",
+      "enabled": true
+    }
+  ],
+  "textColors": [
+    {
+      "name": "Gold",
+      "hex": "#f59e0b"
+    },
+    {
+      "name": "White",
+      "hex": "#ffffff"
+    },
+    {
+      "name": "Red",
+      "hex": "#ef4444"
+    },
+    {
+      "name": "Blue",
+      "hex": "#3b82f6"
+    },
+    {
+      "name": "Pink",
+      "hex": "#ec4899"
+    },
+    {
+      "name": "Green",
+      "hex": "#10b981"
+    },
+    {
+      "name": "Orange",
+      "hex": "#f97316"
+    },
+    {
+      "name": "Black",
+      "hex": "#1e293b"
+    }
+  ],
+  "baseColors": [
+    {
+      "name": "Black",
+      "hex": "#0f172a"
+    },
+    {
+      "name": "White",
+      "hex": "#f8fafc"
+    },
+    {
+      "name": "Red",
+      "hex": "#991b1b"
+    },
+    {
+      "name": "Navy",
+      "hex": "#1e3a8a"
+    },
+    {
+      "name": "Gold",
+      "hex": "#d97706"
+    }
+  ],
+  "slicerMaterials": [
+    "PLA",
+    "PETG",
+    "ABS",
+    "Resin",
+    "Wood",
+    "PP",
+    "PET"
+  ],
+  "slicerColors": [
+    "Matte Black",
+    "Pure White",
+    "Signal Red",
+    "Navy Blue",
+    "Metallic Silver",
+    "Golden Yellow",
+    "Forest Green"
+  ],
+  "prototypeTypes": [
+    "School Project",
+    "College Project",
+    "Startup Prototype",
+    "Research Model",
+    "Architecture Model",
+    "Robotics Project",
+    "Science Model",
+    "Other"
+  ],
+  "designerFonts": [
+    "Luckiest Guy",
+    "Fredoka",
+    "Baloo 2",
+    "Chewy",
+    "Lilita One",
+    "Bubblegum Sans",
+    "Coiny",
+    "Sniglet",
+    "Concert One",
+    "Grandstander",
+    "Bagel Fat One",
+    "DynaPuff",
+    "Cherry Bomb One",
+    "Titan One",
+    "Bungee",
+    "Mochiy Pop One",
+    "Gochi Hand",
+    "Patrick Hand",
+    "Atma",
+    "Jua",
+    "Poppins",
+    "Montserrat",
+    "Outfit",
+    "Rubik",
+    "Nunito",
+    "DM Sans",
+    "Sora",
+    "Manrope",
+    "Plus Jakarta Sans",
+    "Urbanist",
+    "Orbitron",
+    "Audiowide",
+    "Rajdhani",
+    "Exo 2",
+    "Oxanium",
+    "Chakra Petch",
+    "Teko",
+    "Russo One",
+    "Syncopate",
+    "Barlow Condensed",
+    "Kanit",
+    "Bebas Neue",
+    "Anton",
+    "League Spartan",
+    "Archivo Black",
+    "Oswald",
+    "Righteous",
+    "Alfa Slab One"
+  ],
+  "enabledLabTabs": {
+    "slicer": true,
+    "designer": true,
+    "prototype": true
+  }
+}

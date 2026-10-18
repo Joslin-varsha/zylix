@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, ShoppingCart, Heart, ShieldCheck, Truck, RefreshCw, Star, Layers } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Heart, ShieldCheck, Truck, RefreshCw, Star, Layers, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function ProductDetailPage({ 
   product, 
@@ -29,6 +29,24 @@ export default function ProductDetailPage({
   }, []);
 
   if (!product) return null;
+
+  const galleryImages = React.useMemo(() => {
+    if (Array.isArray(product?.images) && product.images.length > 0) {
+      return product.images;
+    }
+    if (product?.image) {
+      return [product.image];
+    }
+    return [];
+  }, [product?.images, product?.image]);
+
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  React.useEffect(() => {
+    setActiveImageIndex(0);
+  }, [product?.id]);
+
+  const currentImage = galleryImages[activeImageIndex] || product?.image || '';
 
   const handleAddToCartClick = () => {
     for (let i = 0; i < quantity; i++) {
@@ -77,8 +95,9 @@ export default function ProductDetailPage({
       {/* Main Product Layout (2 Columns) */}
       <div className="product-detail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2.5rem', alignItems: 'start' }}>
         
-        {/* Left Column: Image */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {/* Left Column: Image & Gallery */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+          {/* Main Hero Image */}
           <div style={{
             width: '100%',
             aspectRatio: '1',
@@ -89,13 +108,16 @@ export default function ProductDetailPage({
             position: 'relative',
             display: 'flex',
             alignItems: 'center',
-            justify: 'center'
+            justifyContent: 'center',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.04)'
           }}>
             <img 
-              src={product.image} 
-              alt={product.name} 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              src={currentImage} 
+              alt={`${product.name} - view ${activeImageIndex + 1}`} 
+              style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'opacity 0.2s ease' }} 
             />
+
+            {/* OFF Badge */}
             {product.originalPrice && product.price && product.originalPrice > product.price && (
               <span style={{
                 position: 'absolute',
@@ -112,6 +134,99 @@ export default function ProductDetailPage({
                 {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
               </span>
             )}
+
+            {/* Gallery Image Counter Badge */}
+            {galleryImages.length > 1 && (
+              <span style={{
+                position: 'absolute',
+                bottom: '1rem',
+                right: '1rem',
+                backgroundColor: 'rgba(0, 0, 0, 0.72)',
+                color: '#ffffff',
+                fontSize: '0.75rem',
+                fontWeight: '700',
+                padding: '4px 10px',
+                borderRadius: '20px',
+                backdropFilter: 'blur(6px)',
+                zIndex: 5,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}>
+                {activeImageIndex + 1} / {galleryImages.length}
+              </span>
+            )}
+
+            {/* Prev / Next Chevrons on Main Image */}
+            {galleryImages.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveImageIndex((prev) => (prev > 0 ? prev - 1 : galleryImages.length - 1));
+                  }}
+                  aria-label="Previous Image"
+                  style={{
+                    position: 'absolute',
+                    left: '0.75rem',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                    border: '1px solid rgba(226, 232, 240, 0.8)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                    zIndex: 4,
+                    transition: 'all 0.2s ease',
+                    backdropFilter: 'blur(4px)'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#ffffff'; e.currentTarget.style.transform = 'translateY(-50%) scale(1.08)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.92)'; e.currentTarget.style.transform = 'translateY(-50%) scale(1)'; }}
+                >
+                  <ChevronLeft size={20} color="#0f172a" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveImageIndex((prev) => (prev < galleryImages.length - 1 ? prev + 1 : 0));
+                  }}
+                  aria-label="Next Image"
+                  style={{
+                    position: 'absolute',
+                    right: '0.75rem',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                    border: '1px solid rgba(226, 232, 240, 0.8)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                    zIndex: 4,
+                    transition: 'all 0.2s ease',
+                    backdropFilter: 'blur(4px)'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#ffffff'; e.currentTarget.style.transform = 'translateY(-50%) scale(1.08)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.92)'; e.currentTarget.style.transform = 'translateY(-50%) scale(1)'; }}
+                >
+                  <ChevronRight size={20} color="#0f172a" />
+                </button>
+              </>
+            )}
+
+            {/* Wishlist Button */}
             <button
               onClick={() => onToggleWishlist && onToggleWishlist(product)}
               style={{
@@ -137,6 +252,55 @@ export default function ProductDetailPage({
               <Heart size={20} fill={isWishlisted ? '#ef4444' : 'none'} color={isWishlisted ? '#ef4444' : '#475569'} />
             </button>
           </div>
+
+          {/* Thumbnail Strip */}
+          {galleryImages.length > 1 && (
+            <div style={{
+              display: 'flex',
+              gap: '10px',
+              overflowX: 'auto',
+              padding: '4px 2px 8px',
+              scrollbarWidth: 'thin'
+            }}>
+              {galleryImages.map((imgUrl, idx) => {
+                const isActive = idx === activeImageIndex;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setActiveImageIndex(idx)}
+                    style={{
+                      width: '68px',
+                      height: '68px',
+                      flexShrink: 0,
+                      borderRadius: '10px',
+                      overflow: 'hidden',
+                      border: isActive ? '2.5px solid #000000' : '1.5px solid #e2e8f0',
+                      padding: 0,
+                      background: '#f8fafc',
+                      cursor: 'pointer',
+                      outline: 'none',
+                      transition: 'all 0.2s ease',
+                      boxShadow: isActive ? '0 4px 12px rgba(0,0,0,0.15)' : 'none',
+                      transform: isActive ? 'scale(1.04)' : 'scale(1)'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) e.currentTarget.style.borderColor = '#94a3b8';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) e.currentTarget.style.borderColor = '#e2e8f0';
+                    }}
+                  >
+                    <img
+                      src={imgUrl}
+                      alt={`${product.name} thumbnail ${idx + 1}`}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Right Column: Product Info & Purchase Controls */}
