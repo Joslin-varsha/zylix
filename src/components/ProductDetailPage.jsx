@@ -60,6 +60,21 @@ export default function ProductDetailPage({
 
   // ━━━ CUSTOMER REVIEWS STATE ━━━
   const reviewSectionRef = useRef(null);
+  const reviewFormRef = useRef(null);
+
+  const toggleReviewForm = () => {
+    setShowReviewForm(prev => {
+      const next = !prev;
+      if (next) {
+        setTimeout(() => {
+          reviewFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 120);
+      }
+      return next;
+    });
+    setReviewErrorMsg('');
+    setReviewSuccessMsg('');
+  };
   const [reviews, setReviews] = useState(() => {
     try {
       if (product?.id) {
@@ -827,113 +842,117 @@ export default function ProductDetailPage({
       </div>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          CUSTOMER REVIEWS & RATINGS SECTION
+          CUSTOMER REVIEWS & RATINGS SECTION (MOBILE OPTIMIZED LIKE TOP E-COMMERCE)
           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <section 
         ref={reviewSectionRef} 
         id="customer-reviews-section" 
         style={{ 
-          marginTop: '4rem', 
+          marginTop: isMobile ? '2.5rem' : '4rem', 
           borderTop: '1px solid #e2e8f0', 
-          paddingTop: '3rem' 
+          paddingTop: isMobile ? '1.75rem' : '3rem',
+          paddingBottom: isMobile ? '4.5rem' : '1rem'
         }}
       >
         {/* Section Header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: isMobile ? 'stretch' : 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginBottom: isMobile ? '1.25rem' : '2rem' }}>
           <div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#eff6ff', color: '#2563eb', padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '800', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
-              <Sparkles size={14} /> Verified Buyer Feedback
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', backgroundColor: '#eff6ff', color: '#2563eb', padding: '3px 8px', borderRadius: '16px', fontSize: '0.72rem', fontWeight: '800', letterSpacing: '0.03em', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
+              <Sparkles size={12} /> Verified Feedback
             </div>
-            <h2 style={{ fontSize: isMobile ? '1.4rem' : '1.75rem', fontWeight: '900', color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
-              Customer Reviews & Ratings
+            <h2 style={{ fontSize: isMobile ? '1.3rem' : '1.75rem', fontWeight: '900', color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+              Ratings & Reviews
             </h2>
-            <p style={{ color: '#64748b', fontSize: '0.88rem', margin: '0.35rem 0 0', maxWidth: '600px' }}>
-              Real feedback and print quality ratings from verified buyers and 3D printing enthusiasts.
+            <p style={{ color: '#64748b', fontSize: isMobile ? '0.78rem' : '0.88rem', margin: '0.25rem 0 0', maxWidth: '600px' }}>
+              Real feedback from verified buyers and 3D printing enthusiasts.
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              setShowReviewForm(prev => !prev);
-              setReviewErrorMsg('');
-              setReviewSuccessMsg('');
-            }}
-            id="btn-write-review"
-            style={{
-              backgroundColor: showReviewForm ? '#f1f5f9' : '#000000',
-              color: showReviewForm ? '#0f172a' : '#ffffff',
-              border: showReviewForm ? '1px solid #cbd5e1' : 'none',
-              borderRadius: '12px',
-              padding: '0.75rem 1.4rem',
-              fontSize: '0.9rem',
-              fontWeight: '800',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              boxShadow: showReviewForm ? 'none' : '0 4px 14px rgba(0,0,0,0.18)',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={e => {
-              if (!showReviewForm) {
-                e.currentTarget.style.backgroundColor = '#1e293b';
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }
-            }}
-            onMouseLeave={e => {
-              if (!showReviewForm) {
-                e.currentTarget.style.backgroundColor = '#000000';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }
-            }}
-          >
-            {showReviewForm ? (
-              <>
-                <X size={17} /> Close Review Form
-              </>
-            ) : (
-              <>
-                <Edit3 size={17} /> Write a Review
-              </>
-            )}
-          </button>
+          {!isMobile && (
+            <button
+              type="button"
+              onClick={toggleReviewForm}
+              id="btn-write-review"
+              style={{
+                backgroundColor: showReviewForm ? '#f1f5f9' : '#000000',
+                color: showReviewForm ? '#0f172a' : '#ffffff',
+                border: showReviewForm ? '1px solid #cbd5e1' : 'none',
+                borderRadius: '12px',
+                padding: '0.75rem 1.4rem',
+                fontSize: '0.9rem',
+                fontWeight: '800',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: showReviewForm ? 'none' : '0 4px 14px rgba(0,0,0,0.18)',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={e => {
+                if (!showReviewForm) {
+                  e.currentTarget.style.backgroundColor = '#1e293b';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }
+              }}
+              onMouseLeave={e => {
+                if (!showReviewForm) {
+                  e.currentTarget.style.backgroundColor = '#000000';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }
+              }}
+            >
+              {showReviewForm ? (
+                <>
+                  <X size={17} /> Close Review Form
+                </>
+              ) : (
+                <>
+                  <Edit3 size={17} /> Write a Review
+                </>
+              )}
+            </button>
+          )}
         </div>
 
-        {/* Ratings Overview Breakdown Card */}
+        {/* Ratings Overview Breakdown Card (Compact 2-Column on Mobile like Flipkart/Amazon) */}
         <div style={{
           backgroundColor: '#f8fafc',
           border: '1px solid #e2e8f0',
-          borderRadius: '16px',
-          padding: isMobile ? '1.25rem' : '1.75rem 2rem',
+          borderRadius: isMobile ? '14px' : '16px',
+          padding: isMobile ? '1rem' : '1.75rem 2rem',
           display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : '200px 1fr 240px',
-          gap: isMobile ? '1.5rem' : '2.5rem',
+          gridTemplateColumns: isMobile ? '105px 1fr' : '200px 1fr 240px',
+          gap: isMobile ? '1rem' : '2.5rem',
           alignItems: 'center',
-          marginBottom: '2rem'
+          marginBottom: isMobile ? '1rem' : '2rem'
         }}>
           {/* Big Score Box */}
-          <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
-            <div style={{ fontSize: '3.2rem', fontWeight: '900', color: '#0f172a', lineHeight: '1' }}>
+          <div style={{ textAlign: 'center', borderRight: isMobile ? '1px solid #e2e8f0' : 'none', paddingRight: isMobile ? '0.75rem' : '0' }}>
+            <div style={{ fontSize: isMobile ? '2.5rem' : '3.2rem', fontWeight: '900', color: '#0f172a', lineHeight: '1' }}>
               {avgRatingNumber}
             </div>
-            <div style={{ display: 'flex', gap: '3px', justifyContent: isMobile ? 'center' : 'flex-start', margin: '0.6rem 0 0.35rem', color: '#f59e0b' }}>
+            <div style={{ display: 'flex', gap: '2px', justifyContent: 'center', margin: '0.4rem 0 0.25rem', color: '#f59e0b' }}>
               {[1, 2, 3, 4, 5].map(s => (
                 <Star
                   key={s}
-                  size={18}
+                  size={isMobile ? 13 : 18}
                   fill={s <= Math.round(avgRatingNumber) ? '#f59e0b' : '#e2e8f0'}
                   color={s <= Math.round(avgRatingNumber) ? '#f59e0b' : '#cbd5e1'}
                 />
               ))}
             </div>
-            <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: '600' }}>
-              Based on {totalReviewsCount} {totalReviewsCount === 1 ? 'verified review' : 'verified reviews'}
+            <div style={{ fontSize: isMobile ? '0.72rem' : '0.8rem', color: '#64748b', fontWeight: '700' }}>
+              {totalReviewsCount} {totalReviewsCount === 1 ? 'Review' : 'Reviews'}
             </div>
+            {isMobile && (
+              <div style={{ marginTop: '5px', fontSize: '0.68rem', color: '#16a34a', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
+                <CheckCircle2 size={11} color="#16a34a" /> 100% Genuine
+              </div>
+            )}
           </div>
 
           {/* Star Distribution Progress Bars */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '0.4rem' : '0.55rem' }}>
             {[5, 4, 3, 2, 1].map(starNum => {
               const count = ratingCounts[starNum] || 0;
               const pct = totalReviewsCount > 0 ? Math.round((count / totalReviewsCount) * 100) : 0;
@@ -946,20 +965,20 @@ export default function ProductDetailPage({
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '10px',
+                    gap: isMobile ? '6px' : '10px',
                     cursor: 'pointer',
-                    padding: '2px 6px',
+                    padding: '2px 4px',
                     borderRadius: '6px',
                     backgroundColor: isSelected ? '#e2e8f0' : 'transparent',
                     transition: 'background 0.15s ease'
                   }}
                   title={`Click to filter by ${starNum} stars`}
                 >
-                  <span style={{ width: '42px', fontSize: '0.8rem', fontWeight: '700', color: '#334155', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                    {starNum} <Star size={12} fill="#f59e0b" color="#f59e0b" />
+                  <span style={{ width: isMobile ? '30px' : '42px', fontSize: isMobile ? '0.74rem' : '0.8rem', fontWeight: '700', color: '#334155', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                    {starNum} <Star size={11} fill="#f59e0b" color="#f59e0b" />
                   </span>
                   
-                  <div style={{ flex: 1, height: '8px', backgroundColor: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ flex: 1, height: isMobile ? '6px' : '8px', backgroundColor: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
                     <div style={{
                       width: `${pct}%`,
                       height: '100%',
@@ -969,63 +988,95 @@ export default function ProductDetailPage({
                     }} />
                   </div>
 
-                  <span style={{ width: '38px', textAlign: 'right', fontSize: '0.78rem', color: '#64748b', fontWeight: '700' }}>
+                  <span style={{ width: isMobile ? '28px' : '38px', textAlign: 'right', fontSize: isMobile ? '0.7rem' : '0.78rem', color: '#64748b', fontWeight: '700' }}>
                     {pct}%
                   </span>
-                  <span style={{ width: '28px', textAlign: 'right', fontSize: '0.74rem', color: '#94a3b8' }}>
-                    ({count})
-                  </span>
+                  {!isMobile && (
+                    <span style={{ width: '28px', textAlign: 'right', fontSize: '0.74rem', color: '#94a3b8' }}>
+                      ({count})
+                    </span>
+                  )}
                 </div>
               );
             })}
           </div>
 
-          {/* Quality Guarantee Box */}
-          <div style={{
-            borderLeft: isMobile ? 'none' : '1px solid #e2e8f0',
-            borderTop: isMobile ? '1px solid #e2e8f0' : 'none',
-            paddingLeft: isMobile ? '0' : '1.75rem',
-            paddingTop: isMobile ? '1.25rem' : '0',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0f172a', fontWeight: '800', fontSize: '0.88rem' }}>
-              <ShieldCheck size={20} color="#16a34a" /> 100% Verified Prints
+          {/* Desktop Quality Guarantee Box */}
+          {!isMobile && (
+            <div style={{
+              borderLeft: '1px solid #e2e8f0',
+              paddingLeft: '1.75rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.75rem'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0f172a', fontWeight: '800', fontSize: '0.88rem' }}>
+                <ShieldCheck size={20} color="#16a34a" /> 100% Verified Prints
+              </div>
+              <p style={{ fontSize: '0.78rem', color: '#64748b', margin: 0, lineHeight: '1.5' }}>
+                Every review comes from real customers who ordered custom 3D prints or ready-to-ship models.
+              </p>
+              <div style={{ fontSize: '0.78rem', color: '#2563eb', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <CheckCircle2 size={15} color="#2563eb" /> 98% Satisfaction Rate
+              </div>
             </div>
-            <p style={{ fontSize: '0.78rem', color: '#64748b', margin: 0, lineHeight: '1.5' }}>
-              Every review comes from real customers who ordered custom 3D prints or ready-to-ship models.
-            </p>
-            <div style={{ fontSize: '0.78rem', color: '#2563eb', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <CheckCircle2 size={15} color="#2563eb" /> 98% Satisfaction Rate
-            </div>
-          </div>
+          )}
         </div>
+
+        {/* Mobile Full-Width Action Button (Right under summary) */}
+        {isMobile && !showReviewForm && (
+          <button
+            type="button"
+            onClick={toggleReviewForm}
+            style={{
+              width: '100%',
+              height: '46px',
+              backgroundColor: '#000000',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '12px',
+              fontSize: '0.88rem',
+              fontWeight: '800',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              marginBottom: '1.25rem',
+              boxShadow: '0 4px 14px rgba(0,0,0,0.15)'
+            }}
+          >
+            <Edit3 size={16} /> Rate & Write a Review
+          </button>
+        )}
 
         {/* ✍️ WRITE A REVIEW FORM (EXPANDABLE) */}
         {showReviewForm && (
-          <div style={{
-            backgroundColor: '#ffffff',
-            border: '2px solid #000000',
-            borderRadius: '16px',
-            padding: isMobile ? '1.25rem' : '2rem',
-            marginBottom: '2.5rem',
-            boxShadow: '0 8px 30px rgba(0,0,0,0.08)',
-            animation: 'fadeIn 0.3s ease'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+          <div 
+            ref={reviewFormRef}
+            style={{
+              backgroundColor: '#ffffff',
+              border: '2px solid #000000',
+              borderRadius: isMobile ? '14px' : '16px',
+              padding: isMobile ? '1.1rem 1rem' : '1.75rem 2rem',
+              marginBottom: '2rem',
+              boxShadow: '0 8px 30px rgba(0,0,0,0.08)',
+              animation: 'fadeIn 0.3s ease'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.1rem' }}>
               <div>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: '900', color: '#0f172a', margin: 0 }}>
-                  Share Your Experience
+                <h3 style={{ fontSize: isMobile ? '1.1rem' : '1.2rem', fontWeight: '900', color: '#0f172a', margin: 0 }}>
+                  Write a Review
                 </h3>
-                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                  Reviewing: <strong style={{ color: '#0f172a' }}>{product.name}</strong>
+                <span style={{ fontSize: isMobile ? '0.74rem' : '0.8rem', color: '#64748b' }}>
+                  Product: <strong style={{ color: '#0f172a' }}>{product.name}</strong>
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setShowReviewForm(false)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: '4px' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: '6px' }}
                 title="Close"
               >
                 <X size={20} />
@@ -1069,42 +1120,40 @@ export default function ProductDetailPage({
               </div>
             )}
 
-            <form onSubmit={handleReviewSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              {/* Star Rating Picker */}
+            <form onSubmit={handleReviewSubmit} style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '1rem' : '1.25rem' }}>
+              {/* Star Rating Picker (Touch-friendly 32px on mobile) */}
               <div>
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '800', color: '#0f172a', textTransform: 'uppercase', marginBottom: '0.4rem', letterSpacing: '0.03em' }}>
-                  Overall Rating *
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '800', color: '#0f172a', textTransform: 'uppercase', marginBottom: '0.35rem', letterSpacing: '0.03em' }}>
+                  Tap to Rate *
                 </label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                  <div style={{ display: 'flex', gap: '4px' }}>
-                    {[1, 2, 3, 4, 5].map(star => {
-                      const isFilled = star <= (hoverRating || newRating);
-                      return (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={() => setNewRating(star)}
-                          onMouseEnter={() => setHoverRating(star)}
-                          onMouseLeave={() => setHoverRating(0)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            padding: '4px',
-                            cursor: 'pointer',
-                            transform: isFilled ? 'scale(1.15)' : 'scale(1)',
-                            transition: 'transform 0.15s ease'
-                          }}
-                          aria-label={`Rate ${star} stars`}
-                        >
-                          <Star
-                            size={28}
-                            fill={isFilled ? '#f59e0b' : '#f1f5f9'}
-                            color={isFilled ? '#f59e0b' : '#cbd5e1'}
-                          />
-                        </button>
-                      );
-                    })}
-                  </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '8px' }}>
+                  {[1, 2, 3, 4, 5].map(star => {
+                    const isFilled = star <= (hoverRating || newRating);
+                    return (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setNewRating(star)}
+                        onMouseEnter={() => setHoverRating(star)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          padding: isMobile ? '6px 4px' : '6px',
+                          cursor: 'pointer',
+                          transform: isFilled ? 'scale(1.12)' : 'scale(1)',
+                          transition: 'transform 0.15s ease'
+                        }}
+                        aria-label={`Rate ${star} stars`}
+                      >
+                        <Star
+                          size={isMobile ? 32 : 28}
+                          fill={isFilled ? '#f59e0b' : '#f1f5f9'}
+                          color={isFilled ? '#f59e0b' : '#cbd5e1'}
+                        />
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -1113,15 +1162,15 @@ export default function ProductDetailPage({
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '12px',
-                  padding: '0.85rem 1.25rem',
+                  gap: '10px',
+                  padding: isMobile ? '0.75rem 0.85rem' : '0.85rem 1.25rem',
                   backgroundColor: '#f8fafc',
                   borderRadius: '12px',
                   border: '1.5px solid #e2e8f0'
                 }}>
                   <div style={{
-                    width: '38px',
-                    height: '38px',
+                    width: isMobile ? '34px' : '38px',
+                    height: isMobile ? '34px' : '38px',
                     borderRadius: '50%',
                     background: 'linear-gradient(135deg, #0f172a 0%, #334155 100%)',
                     color: '#ffffff',
@@ -1129,109 +1178,104 @@ export default function ProductDetailPage({
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontWeight: '900',
-                    fontSize: '0.9rem'
+                    fontSize: isMobile ? '0.82rem' : '0.9rem',
+                    flexShrink: 0
                   }}>
                     {(activeUser.name || activeUser.email || 'U')[0].toUpperCase()}
                   </div>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '0.92rem', fontWeight: '800', color: '#0f172a' }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: isMobile ? '0.84rem' : '0.92rem', fontWeight: '800', color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {activeUser.name || activeUser.email}
                       </span>
                       <span style={{
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '4px',
+                        gap: '3px',
                         backgroundColor: '#ecfdf5',
                         color: '#059669',
-                        fontSize: '0.72rem',
+                        fontSize: '0.68rem',
                         fontWeight: '800',
-                        padding: '2px 8px',
-                        borderRadius: '12px',
+                        padding: '1px 6px',
+                        borderRadius: '10px',
                         border: '1px solid #a7f3d0'
                       }}>
-                        <CheckCircle2 size={12} color="#059669" /> Verified Profile
+                        <CheckCircle2 size={11} color="#059669" /> Verified
                       </span>
                     </div>
-                    <span style={{ fontSize: '0.76rem', color: '#64748b' }}>
-                      Your review will automatically be published under your profile name.
+                    <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', marginTop: '1px' }}>
+                      Reviewing with your verified profile
                     </span>
                   </div>
                 </div>
               ) : (
                 <div style={{
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  gap: '10px',
-                  padding: '0.85rem 1.25rem',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  padding: isMobile ? '0.75rem 0.85rem' : '0.85rem 1.25rem',
                   backgroundColor: '#f8fafc',
                   borderRadius: '12px',
                   border: '1.5px solid #e2e8f0'
                 }}>
-                  <div>
-                    <span style={{ fontSize: '0.85rem', fontWeight: '800', color: '#0f172a', display: 'block' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: '800', color: '#0f172a' }}>
                       Posting as Guest
                     </span>
-                    <span style={{ fontSize: '0.76rem', color: '#64748b' }}>
-                      Log in to post with your verified profile name automatically
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <button
                       type="button"
                       onClick={() => setActiveTab && setActiveTab('login')}
                       style={{
-                        padding: '6px 14px',
+                        padding: '4px 12px',
                         backgroundColor: '#000000',
                         color: '#ffffff',
-                        borderRadius: '8px',
+                        borderRadius: '6px',
                         border: 'none',
-                        fontSize: '0.8rem',
+                        fontSize: '0.76rem',
                         fontWeight: '800',
                         cursor: 'pointer'
                       }}
                     >
-                      Log In
+                      Log In First
                     </button>
-                    <input
-                      type="text"
-                      placeholder="Or enter guest name"
-                      value={newAuthor}
-                      onChange={e => setNewAuthor(e.target.value)}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: '8px',
-                        border: '1.5px solid #cbd5e1',
-                        fontSize: '0.82rem',
-                        outline: 'none',
-                        backgroundColor: '#ffffff'
-                      }}
-                    />
                   </div>
+                  <input
+                    type="text"
+                    placeholder="Enter your name (e.g. Rahul S.)"
+                    value={newAuthor}
+                    onChange={e => setNewAuthor(e.target.value)}
+                    style={{
+                      width: '100%',
+                      boxSizing: 'border-box',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      border: '1.5px solid #cbd5e1',
+                      fontSize: '16px', // Prevents iOS mobile zoom
+                      outline: 'none',
+                      backgroundColor: '#ffffff'
+                    }}
+                  />
                 </div>
               )}
 
               {/* Your Review Only */}
               <div>
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '800', color: '#0f172a', textTransform: 'uppercase', marginBottom: '0.4rem', letterSpacing: '0.03em' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '800', color: '#0f172a', textTransform: 'uppercase', marginBottom: '0.35rem', letterSpacing: '0.03em' }}>
                   Your Review *
                 </label>
                 <textarea
                   required
-                  rows={4}
+                  rows={isMobile ? 3 : 4}
                   placeholder="Share details about the print quality, surface smoothness, packaging, and how satisfied you are with your purchase..."
                   value={newComment}
                   onChange={e => setNewComment(e.target.value)}
                   style={{
                     width: '100%',
                     boxSizing: 'border-box',
-                    padding: '0.85rem 1rem',
+                    padding: '0.75rem 0.9rem',
                     borderRadius: '10px',
                     border: '1.5px solid #cbd5e1',
-                    fontSize: '0.9rem',
+                    fontSize: '16px', // 16px prevents iOS Safari auto-zoom
                     outline: 'none',
                     lineHeight: '1.5',
                     fontFamily: 'inherit',
@@ -1244,55 +1288,49 @@ export default function ProductDetailPage({
                 />
               </div>
 
-              {/* Verified Buyer Note & Actions */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', paddingTop: '0.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: '#64748b' }}>
-                  <ShieldCheck size={16} color="#16a34a" /> Verified Review: Badge will appear next to your name
-                </div>
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: '0.75rem', width: '100%', marginTop: '0.25rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowReviewForm(false)}
+                  style={{
+                    flex: isMobile ? 1 : 'none',
+                    padding: isMobile ? '0.75rem 1rem' : '0.75rem 1.25rem',
+                    backgroundColor: '#f1f5f9',
+                    color: '#475569',
+                    border: 'none',
+                    borderRadius: '10px',
+                    fontWeight: '700',
+                    fontSize: '0.85rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
 
-                <div style={{ display: 'flex', gap: '0.75rem', width: isMobile ? '100%' : 'auto' }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowReviewForm(false)}
-                    style={{
-                      flex: isMobile ? 1 : 'none',
-                      padding: '0.75rem 1.25rem',
-                      backgroundColor: '#f1f5f9',
-                      color: '#475569',
-                      border: 'none',
-                      borderRadius: '10px',
-                      fontWeight: '700',
-                      fontSize: '0.85rem',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Cancel
-                  </button>
-
-                  <button
-                    type="submit"
-                    disabled={submittingReview}
-                    style={{
-                      flex: isMobile ? 1.5 : 'none',
-                      padding: '0.75rem 1.8rem',
-                      backgroundColor: '#000000',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderRadius: '10px',
-                      fontWeight: '900',
-                      fontSize: '0.9rem',
-                      cursor: submittingReview ? 'not-allowed' : 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      opacity: submittingReview ? 0.7 : 1,
-                      boxShadow: '0 4px 14px rgba(0,0,0,0.2)'
-                    }}
-                  >
-                    {submittingReview ? 'Submitting...' : 'Submit Review'}
-                  </button>
-                </div>
+                <button
+                  type="submit"
+                  disabled={submittingReview}
+                  style={{
+                    flex: isMobile ? 1.5 : 'none',
+                    padding: isMobile ? '0.75rem 1.25rem' : '0.75rem 1.8rem',
+                    backgroundColor: '#000000',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '10px',
+                    fontWeight: '900',
+                    fontSize: '0.9rem',
+                    cursor: submittingReview ? 'not-allowed' : 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    opacity: submittingReview ? 0.7 : 1,
+                    boxShadow: '0 4px 14px rgba(0,0,0,0.2)'
+                  }}
+                >
+                  {submittingReview ? 'Submitting...' : 'Submit Review'}
+                </button>
               </div>
             </form>
           </div>
@@ -1303,27 +1341,37 @@ export default function ProductDetailPage({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '1rem',
-          paddingBottom: '1.25rem',
+          gap: '0.75rem',
+          paddingBottom: '0.85rem',
           borderBottom: '1px solid #e2e8f0',
-          marginBottom: '1.5rem'
+          marginBottom: '1.25rem',
+          flexWrap: isMobile ? 'nowrap' : 'wrap'
         }}>
-          {/* Star Filter Pills */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflowX: 'auto', paddingBottom: '4px', maxWidth: '100%' }}>
+          {/* Star Filter Pills with smooth touch scroll */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            overflowX: 'auto',
+            paddingBottom: '2px',
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none',
+            flex: 1
+          }}>
             <button
               type="button"
               onClick={() => setReviewFilter('all')}
               style={{
-                padding: '5px 12px',
+                padding: isMobile ? '5px 10px' : '5px 12px',
                 borderRadius: '20px',
                 border: reviewFilter === 'all' ? '1.5px solid #000' : '1px solid #e2e8f0',
                 backgroundColor: reviewFilter === 'all' ? '#000' : '#fff',
                 color: reviewFilter === 'all' ? '#fff' : '#475569',
-                fontSize: '0.78rem',
+                fontSize: isMobile ? '0.74rem' : '0.78rem',
                 fontWeight: '700',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
+                flexShrink: 0,
                 transition: 'all 0.15s ease'
               }}
             >
@@ -1339,18 +1387,19 @@ export default function ProductDetailPage({
                   type="button"
                   onClick={() => setReviewFilter(isSelected ? 'all' : String(s))}
                   style={{
-                    padding: '5px 12px',
+                    padding: isMobile ? '5px 10px' : '5px 12px',
                     borderRadius: '20px',
                     border: isSelected ? '1.5px solid #000' : '1px solid #e2e8f0',
                     backgroundColor: isSelected ? '#000' : '#fff',
                     color: isSelected ? '#fff' : '#475569',
-                    fontSize: '0.78rem',
+                    fontSize: isMobile ? '0.74rem' : '0.78rem',
                     fontWeight: '700',
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '4px',
+                    gap: '3px',
+                    flexShrink: 0,
                     transition: 'all 0.15s ease'
                   }}
                 >
@@ -1361,16 +1410,16 @@ export default function ProductDetailPage({
           </div>
 
           {/* Sort Dropdown */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: '700' }}>Sort by:</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+            {!isMobile && <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: '700' }}>Sort:</span>}
             <select
               value={reviewSort}
               onChange={e => setReviewSort(e.target.value)}
               style={{
-                padding: '6px 12px',
+                padding: isMobile ? '5px 8px' : '6px 12px',
                 borderRadius: '8px',
                 border: '1px solid #cbd5e1',
-                fontSize: '0.8rem',
+                fontSize: isMobile ? '0.74rem' : '0.8rem',
                 fontWeight: '700',
                 color: '#0f172a',
                 backgroundColor: '#fff',
@@ -1378,9 +1427,9 @@ export default function ProductDetailPage({
                 cursor: 'pointer'
               }}
             >
-              <option value="newest">Most Recent</option>
-              <option value="highest">Highest Rating</option>
-              <option value="helpful">Most Helpful</option>
+              <option value="newest">Recent</option>
+              <option value="highest">Highest ★</option>
+              <option value="helpful">Helpful</option>
             </select>
           </div>
         </div>
@@ -1389,31 +1438,31 @@ export default function ProductDetailPage({
         {filteredReviews.length === 0 ? (
           <div style={{
             textAlign: 'center',
-            padding: '3rem 1.5rem',
+            padding: '2.5rem 1rem',
             backgroundColor: '#f8fafc',
-            borderRadius: '16px',
+            borderRadius: '14px',
             border: '1px dashed #cbd5e1'
           }}>
-            <MessageSquare size={36} color="#94a3b8" style={{ margin: '0 auto 0.75rem' }} />
-            <h4 style={{ fontSize: '1rem', fontWeight: '800', color: '#0f172a', margin: '0 0 0.35rem' }}>
+            <MessageSquare size={32} color="#94a3b8" style={{ margin: '0 auto 0.5rem' }} />
+            <h4 style={{ fontSize: '0.95rem', fontWeight: '800', color: '#0f172a', margin: '0 0 0.25rem' }}>
               No reviews found for this filter
             </h4>
-            <p style={{ color: '#64748b', fontSize: '0.82rem', margin: '0 0 1rem' }}>
+            <p style={{ color: '#64748b', fontSize: '0.78rem', margin: '0 0 0.85rem' }}>
               Be the first to share your experience with this 3D print!
             </p>
             <button
               type="button"
               onClick={() => {
                 setReviewFilter('all');
-                setShowReviewForm(true);
+                toggleReviewForm();
               }}
               style={{
                 backgroundColor: '#000',
                 color: '#fff',
                 border: 'none',
                 borderRadius: '10px',
-                padding: '0.6rem 1.25rem',
-                fontSize: '0.82rem',
+                padding: '0.55rem 1.2rem',
+                fontSize: '0.8rem',
                 fontWeight: '800',
                 cursor: 'pointer'
               }}
@@ -1422,7 +1471,7 @@ export default function ProductDetailPage({
             </button>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '0.85rem' : '1.25rem' }}>
             {filteredReviews.map((r, index) => {
               const authorInitials = (r.author || 'User')
                 .split(' ')
@@ -1443,27 +1492,31 @@ export default function ProductDetailPage({
                   style={{
                     backgroundColor: '#ffffff',
                     border: '1px solid #e2e8f0',
-                    borderRadius: '14px',
-                    padding: isMobile ? '1.2rem' : '1.5rem',
+                    borderRadius: isMobile ? '12px' : '14px',
+                    padding: isMobile ? '0.9rem 1rem' : '1.5rem',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
                     transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
                   }}
                   onMouseEnter={e => {
-                    e.currentTarget.style.borderColor = '#cbd5e1';
-                    e.currentTarget.style.boxShadow = '0 6px 18px rgba(0,0,0,0.06)';
+                    if (!isMobile) {
+                      e.currentTarget.style.borderColor = '#cbd5e1';
+                      e.currentTarget.style.boxShadow = '0 6px 18px rgba(0,0,0,0.06)';
+                    }
                   }}
                   onMouseLeave={e => {
-                    e.currentTarget.style.borderColor = '#e2e8f0';
-                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.03)';
+                    if (!isMobile) {
+                      e.currentTarget.style.borderColor = '#e2e8f0';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.03)';
+                    }
                   }}
                 >
-                  {/* Review Top Header: Author & Date */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {/* Review Top Header: Author, Badge, Rating & Date */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem', flexWrap: 'wrap', gap: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '10px' }}>
                       {/* Avatar Circle */}
                       <div style={{
-                        width: '38px',
-                        height: '38px',
+                        width: isMobile ? '32px' : '38px',
+                        height: isMobile ? '32px' : '38px',
                         borderRadius: '50%',
                         background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
                         color: '#ffffff',
@@ -1471,49 +1524,66 @@ export default function ProductDetailPage({
                         alignItems: 'center',
                         justifyContent: 'center',
                         fontWeight: '900',
-                        fontSize: '0.85rem',
+                        fontSize: isMobile ? '0.78rem' : '0.85rem',
                         letterSpacing: '0.02em',
-                        boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+                        flexShrink: 0
                       }}>
                         {authorInitials}
                       </div>
 
                       <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ fontSize: '0.9rem', fontWeight: '800', color: '#0f172a' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: isMobile ? '0.85rem' : '0.9rem', fontWeight: '800', color: '#0f172a' }}>
                             {r.author}
                           </span>
                           {r.verified && (
                             <span style={{
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '3px',
+                              gap: '2px',
                               backgroundColor: '#ecfdf5',
                               color: '#059669',
-                              fontSize: '0.7rem',
+                              fontSize: isMobile ? '0.65rem' : '0.7rem',
                               fontWeight: '800',
-                              padding: '2px 6px',
-                              borderRadius: '12px',
+                              padding: '1px 5px',
+                              borderRadius: '10px',
                               border: '1px solid #a7f3d0'
                             }}>
-                              <CheckCircle2 size={11} color="#059669" /> Verified Buyer
+                              <CheckCircle2 size={10} color="#059669" /> Verified
                             </span>
                           )}
                         </div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
-                          <div style={{ display: 'flex', color: '#f59e0b' }}>
-                            {[1, 2, 3, 4, 5].map(s => (
-                              <Star
-                                key={s}
-                                size={13}
-                                fill={s <= (Number(r.rating) || 5) ? '#f59e0b' : '#e2e8f0'}
-                                color={s <= (Number(r.rating) || 5) ? '#f59e0b' : '#cbd5e1'}
-                              />
-                            ))}
-                          </div>
-                          <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>•</span>
-                          <span style={{ fontSize: '0.76rem', color: '#64748b' }}>{dateFormatted}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                          {/* Flipkart/Amazon-style compact rating pill on mobile */}
+                          {isMobile ? (
+                            <span style={{
+                              backgroundColor: (Number(r.rating) || 5) >= 4 ? '#059669' : (Number(r.rating) || 5) === 3 ? '#d97706' : '#dc2626',
+                              color: '#ffffff',
+                              fontSize: '0.72rem',
+                              fontWeight: '800',
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '2px'
+                            }}>
+                              {r.rating || 5} ★
+                            </span>
+                          ) : (
+                            <div style={{ display: 'flex', color: '#f59e0b' }}>
+                              {[1, 2, 3, 4, 5].map(s => (
+                                <Star
+                                  key={s}
+                                  size={13}
+                                  fill={s <= (Number(r.rating) || 5) ? '#f59e0b' : '#e2e8f0'}
+                                  color={s <= (Number(r.rating) || 5) ? '#f59e0b' : '#cbd5e1'}
+                                />
+                              ))}
+                            </div>
+                          )}
+                          <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>•</span>
+                          <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{dateFormatted}</span>
                         </div>
                       </div>
                     </div>
@@ -1522,10 +1592,10 @@ export default function ProductDetailPage({
                   {/* Review Title */}
                   {r.title && (
                     <h4 style={{
-                      fontSize: '0.95rem',
+                      fontSize: isMobile ? '0.88rem' : '0.95rem',
                       fontWeight: '800',
                       color: '#0f172a',
-                      margin: '0 0 0.5rem',
+                      margin: '0 0 0.35rem',
                       lineHeight: '1.4'
                     }}>
                       {r.title}
@@ -1534,9 +1604,9 @@ export default function ProductDetailPage({
 
                   {/* Review Comment */}
                   <p style={{
-                    fontSize: '0.88rem',
+                    fontSize: isMobile ? '0.84rem' : '0.88rem',
                     color: '#334155',
-                    lineHeight: '1.65',
+                    lineHeight: '1.55',
                     margin: 0,
                     whiteSpace: 'pre-line'
                   }}>
@@ -1544,7 +1614,7 @@ export default function ProductDetailPage({
                   </p>
 
                   {/* Helpful Button Row */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginTop: '0.9rem', paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginTop: '0.75rem', paddingTop: '0.65rem', borderTop: '1px solid #f1f5f9' }}>
                     <button
                       type="button"
                       onClick={() => handleHelpfulClick(r.id)}
@@ -1553,19 +1623,19 @@ export default function ProductDetailPage({
                         background: isUpvoted ? '#eff6ff' : '#f8fafc',
                         border: isUpvoted ? '1px solid #bfdbfe' : '1px solid #e2e8f0',
                         color: isUpvoted ? '#2563eb' : '#64748b',
-                        padding: '4px 10px',
+                        padding: '3px 8px',
                         borderRadius: '6px',
-                        fontSize: '0.75rem',
+                        fontSize: '0.72rem',
                         fontWeight: '700',
                         cursor: isUpvoted ? 'default' : 'pointer',
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '6px',
+                        gap: '5px',
                         transition: 'all 0.15s ease'
                       }}
                       title={isUpvoted ? 'You found this review helpful' : 'Mark this review as helpful'}
                     >
-                      <ThumbsUp size={13} fill={isUpvoted ? '#2563eb' : 'none'} color={isUpvoted ? '#2563eb' : '#64748b'} />
+                      <ThumbsUp size={12} fill={isUpvoted ? '#2563eb' : 'none'} color={isUpvoted ? '#2563eb' : '#64748b'} />
                       <span>{isUpvoted ? 'Helpful' : 'Helpful?'}</span>
                       <strong style={{ color: isUpvoted ? '#1d4ed8' : '#0f172a' }}>({r.helpful || 0})</strong>
                     </button>
