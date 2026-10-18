@@ -1049,8 +1049,15 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, onProductClick, 
       {/* Image Container with 1:1 Aspect Ratio */}
       <div style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1', overflow: 'hidden', backgroundColor: '#f1f5f9' }}>
         <img
-          src={product.image}
+          src={product.image || product.images?.[0] || '/product-1.webp'}
           alt={product.name}
+          onError={(e) => {
+            if (product.images && product.images[0] && e.target.src !== product.images[0]) {
+              e.target.src = product.images[0];
+            } else if (e.target.src !== window.location.origin + '/product-1.webp') {
+              e.target.src = '/product-1.webp';
+            }
+          }}
           style={{
             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
             objectFit: 'cover',
