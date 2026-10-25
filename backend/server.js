@@ -2147,6 +2147,126 @@ app.post('/api/categories', upload.single('image'), async (req, res) => {
   }
 });
 
+// Update a category (supports updating name, icon, and optional cover image)
+app.put('/api/categories/:id', upload.single('image'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, icon = 'Package' } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Category name is required.' });
+    }
+
+    let useLocal = !isSupabaseConfigured || !supabase;
+    let existingCategory = null;
+
+    if (!useLocal) {
+      try {
+        const { data, error } = await supabase
+          .from('categories')
+          .select('*')
+          .eq('id', id)
+          .maybeSingle();
+
+        if (error) {
+          if (error.code === '42P01' || error.message?.includes('does not exist')) {
+            useLocal = true;
+          } else {
+            throw error;
+          }
+        } else {
+          existingCategory = data;
+        }
+      } catch (err) {
+        useLocal = true;
+      }
+    }
+
+    if (useLocal) {
+      const localCats = readLocalCategories();
+      existingCategory = localCats.find(c => c.id === id);
+    }
+
+    if (!existingCategory) {
+      const mock = (mockCategories || []).find(c => c.id === id);
+      if (mock) {
+        existingCategory = { ...mock };
+      }
+    }
+
+    let imageUrl = existingCategory?.img || '';
+    if (req.file) {
+      try {
+        const fileResult = await uploadFileHelper(req.file, 'categories');
+        imageUrl = fileResult.fileUrl;
+      } catch (uploadErr) {
+        console.error('[Category Image Upload Error]:', uploadErr.message);
+      }
+    }
+
+    const updatedCategory = {
+      id: id,
+      label: name.trim(),
+      icon: icon || existingCategory?.icon || 'Package',
+      img: imageUrl
+    };
+
+    let savedCategory = null;
+
+    if (!useLocal) {
+      try {
+        const { data, error } = await supabase
+          .from('categories')
+          .update({
+            label: updatedCategory.label,
+            icon: updatedCategory.icon,
+            img: updatedCategory.img
+          })
+          .eq('id', id)
+          .select();
+
+        if (error) {
+          if (error.code === '42P01' || error.message?.includes('does not exist')) {
+            useLocal = true;
+          } else {
+            throw error;
+          }
+        } else if (data && data.length > 0) {
+          savedCategory = data[0];
+        }
+      } catch (err) {
+        console.warn('[Supabase Fallback] Category update error, trying local fallback:', err.message);
+        useLocal = true;
+      }
+    }
+
+    if (useLocal) {
+      const categories = readLocalCategories();
+      const index = categories.findIndex(c => c.id === id);
+      if (index !== -1) {
+        categories[index] = {
+          ...categories[index],
+          ...updatedCategory
+        };
+        writeLocalCategories(categories);
+        savedCategory = categories[index];
+      } else {
+        savedCategory = {
+          created_at: new Date().toISOString(),
+          ...updatedCategory
+        };
+        categories.push(savedCategory);
+        writeLocalCategories(categories);
+      }
+    }
+
+    res.json({ success: true, category: savedCategory || updatedCategory });
+  } catch (err) {
+    console.error('Update category error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Delete a category
 app.delete('/api/categories/:id', async (req, res) => {
   try {
