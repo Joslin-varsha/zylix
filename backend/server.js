@@ -2415,6 +2415,7 @@ app.get('/api/products', async (req, res) => {
     
     // Map db snake_case properties to frontend camelCase properties
     const frontendProducts = productsList.map(mapProductDbToFrontend);
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.json(frontendProducts);
   } catch (err) {
     console.error('Fetch products error:', err);
@@ -2459,6 +2460,7 @@ app.get('/api/products/:id', async (req, res) => {
       return res.status(404).json({ error: 'Product not found.' });
     }
 
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.json(mapProductDbToFrontend(product));
   } catch (err) {
     console.error('Fetch single product error:', err);
@@ -2486,14 +2488,19 @@ app.post('/api/products', upload.any(), async (req, res) => {
       existingImages: rawExistingImages
     } = req.body;
 
-    if (!name || !category || !price) {
-      return res.status(400).json({ error: 'Name, category, and price are required.' });
+    const resolvedCategory = (category && category.trim()) ? category.trim() : 'keychains';
+    if (!name || !price) {
+      return res.status(400).json({ error: 'Product name and price are required.' });
     }
 
-    // Process all uploaded files (whether named 'image' or 'images')
+    // Process all uploaded files (filter out duplicate fallback 'image' when 'images' are sent)
     let uploadedUrls = [];
     if (req.files && req.files.length > 0) {
-      for (const file of req.files) {
+      const hasImagesField = req.files.some(f => f.fieldname === 'images');
+      const filesToProcess = hasImagesField
+        ? req.files.filter(f => f.fieldname === 'images')
+        : req.files;
+      for (const file of filesToProcess) {
         try {
           const fileResult = await uploadFileHelper(file, 'products');
           if (fileResult?.fileUrl) {
@@ -2526,7 +2533,7 @@ app.post('/api/products', upload.any(), async (req, res) => {
       }
     }
 
-    const allImages = [...(Array.isArray(existingImages) ? existingImages : []), ...uploadedUrls];
+    const allImages = Array.from(new Set([...(Array.isArray(existingImages) ? existingImages : []), ...uploadedUrls]));
     const imageUrl = allImages[0] || (typeof req.body.image === 'string' ? req.body.image : '');
 
     // Parse specs and materials structure safely
@@ -2557,9 +2564,9 @@ app.post('/api/products', upload.any(), async (req, res) => {
     }
 
     const newProduct = {
-      name,
-      category,
-      category_label: categoryLabel || category,
+      name: name.trim(),
+      category: resolvedCategory,
+      category_label: categoryLabel || resolvedCategory,
       price: parseFloat(price),
       original_price: originalPrice ? parseFloat(originalPrice) : null,
       discount: discount ? parseFloat(discount) : null,
@@ -2767,10 +2774,14 @@ app.put('/api/products/:id', upload.any(), async (req, res) => {
       }
     }
 
-    // Process all newly uploaded files
+    // Process all newly uploaded files (filter out duplicate fallback 'image' when 'images' are sent)
     let uploadedUrls = [];
     if (req.files && req.files.length > 0) {
-      for (const file of req.files) {
+      const hasImagesField = req.files.some(f => f.fieldname === 'images');
+      const filesToProcess = hasImagesField
+        ? req.files.filter(f => f.fieldname === 'images')
+        : req.files;
+      for (const file of filesToProcess) {
         try {
           const fileResult = await uploadFileHelper(file, 'products');
           if (fileResult?.fileUrl) {
@@ -2791,7 +2802,7 @@ app.put('/api/products/:id', upload.any(), async (req, res) => {
       }
     }
 
-    const allImages = [...existingImages, ...uploadedUrls];
+    const allImages = Array.from(new Set([...existingImages, ...uploadedUrls]));
     const imageUrl = allImages[0] || currentProduct.image || '';
 
     // Parse specs and materials structure safely
