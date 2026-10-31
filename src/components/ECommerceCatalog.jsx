@@ -133,13 +133,45 @@ export default function ECommerceCatalog({
     return () => { isMounted = false; };
   }, [API_BASE]);
 
+  const savedCatalogFilters = React.useMemo(() => {
+    try {
+      const saved = sessionStorage.getItem('zylix_catalog_filters');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  }, []);
+
   const [carouselIndex, setCarouselIndex] = React.useState(0);
   const [animatingSlide, setAnimatingSlide] = React.useState(false);
-  const [selectedCats, setSelectedCats] = React.useState([]);
-  const [priceRange, setPriceRange] = React.useState(1500);
-  const [inStockOnly, setInStockOnly] = React.useState(false);
+  const [selectedCats, setSelectedCats] = React.useState(() => {
+    if (savedCatalogFilters && Array.isArray(savedCatalogFilters.selectedCats) && savedCatalogFilters.selectedCats.length > 0) {
+      return savedCatalogFilters.selectedCats;
+    }
+    if (activeCategory !== 'home' && activeCategory !== 'all') {
+      return [activeCategory];
+    }
+    return [];
+  });
+  const [priceRange, setPriceRange] = React.useState(() => {
+    if (savedCatalogFilters && typeof savedCatalogFilters.priceRange === 'number') {
+      return savedCatalogFilters.priceRange;
+    }
+    return 1500;
+  });
+  const [inStockOnly, setInStockOnly] = React.useState(() => {
+    if (savedCatalogFilters && typeof savedCatalogFilters.inStockOnly === 'boolean') {
+      return savedCatalogFilters.inStockOnly;
+    }
+    return false;
+  });
   const [hoveredCategory, setHoveredCategory] = React.useState(null);
-  const [sortBy, setSortBy] = React.useState('best');
+  const [sortBy, setSortBy] = React.useState(() => {
+    if (savedCatalogFilters && savedCatalogFilters.sortBy) {
+      return savedCatalogFilters.sortBy;
+    }
+    return 'best';
+  });
   const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
 
@@ -159,8 +191,6 @@ export default function ECommerceCatalog({
       document.body.style.overflow = '';
     };
   }, [mobileFiltersOpen]);
-
-
 
   const handleDragScroll = (e, ref) => {
     const container = ref.current;
@@ -182,7 +212,13 @@ export default function ECommerceCatalog({
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
   };
-  const [currentPage, setCurrentPage] = React.useState(1);
+
+  const [currentPage, setCurrentPage] = React.useState(() => {
+    if (savedCatalogFilters && typeof savedCatalogFilters.currentPage === 'number') {
+      return savedCatalogFilters.currentPage;
+    }
+    return 1;
+  });
   const itemsPerPage = 8;
 
   const newRef = React.useRef(null);
@@ -195,9 +231,11 @@ export default function ECommerceCatalog({
   React.useEffect(() => {
     if (products.length > 0) {
       const maxPrice = Math.max(...products.map(p => p.price));
-      setPriceRange(maxPrice);
+      if (!savedCatalogFilters || typeof savedCatalogFilters.priceRange !== 'number') {
+        setPriceRange(maxPrice);
+      }
     }
-  }, [products]);
+  }, [products, savedCatalogFilters]);
 
   const scroll = (ref, direction) => {
     if (ref.current) {
@@ -211,13 +249,40 @@ export default function ECommerceCatalog({
 
   const viewMode = activeCategory === 'home' ? 'home' : 'catalog';
 
+  const prevActiveCategoryRef = React.useRef(activeCategory);
+
   React.useEffect(() => {
-    if (activeCategory !== 'home' && activeCategory !== 'all') {
-      setSelectedCats([activeCategory]);
-    } else if (activeCategory === 'all') {
-      setSelectedCats([]);
+    if (prevActiveCategoryRef.current !== activeCategory) {
+      prevActiveCategoryRef.current = activeCategory;
+      if (activeCategory !== 'home' && activeCategory !== 'all') {
+        setSelectedCats([activeCategory]);
+      } else if (activeCategory === 'all') {
+        setSelectedCats([]);
+      }
     }
   }, [activeCategory]);
+
+  // Persist catalog filters across view navigations
+  React.useEffect(() => {
+    try {
+      sessionStorage.setItem('zylix_catalog_filters', JSON.stringify({
+        selectedCats,
+        priceRange,
+        inStockOnly,
+        sortBy,
+        currentPage
+      }));
+    } catch (e) {}
+  }, [selectedCats, priceRange, inStockOnly, sortBy, currentPage]);
+
+  const handleProductCardClick = (product) => {
+    try {
+      sessionStorage.setItem('zylix_catalog_scroll', window.scrollY.toString());
+    } catch (e) {}
+    if (onProductClick) {
+      onProductClick(product);
+    }
+  };
 
   // Auto-play slider
   React.useEffect(() => {
@@ -249,6 +314,10 @@ export default function ECommerceCatalog({
     setPriceRange(maxProductPrice);
     setInStockOnly(false);
     setActiveCategory('all');
+    try {
+      sessionStorage.removeItem('zylix_catalog_filters');
+      sessionStorage.removeItem('zylix_catalog_scroll');
+    } catch (e) {}
   };
 
   const filteredProducts = products.filter(product => {
@@ -283,7 +352,12 @@ export default function ECommerceCatalog({
     return sortedProducts.slice(startIndex, startIndex + itemsPerPage);
   }, [sortedProducts, currentPage]);
 
+  const isFilterMountRef = React.useRef(true);
   React.useEffect(() => {
+    if (isFilterMountRef.current) {
+      isFilterMountRef.current = false;
+      return;
+    }
     setCurrentPage(1);
   }, [selectedCats, priceRange, inStockOnly, searchQuery]);
 
@@ -630,7 +704,7 @@ export default function ECommerceCatalog({
               <div ref={newRef} className="products-scroll-container">
                 {products.filter(p => ['keychains', 'miniatures', 'holders', 'lightbox'].includes(p.category)).map((product, i) => {
                   const isWishlisted = wishlist.some(item => item.id === product.id);
-                  return <ProductCard key={product.id} product={product} isWishlisted={isWishlisted} onToggleWishlist={onToggleWishlist} onProductClick={onProductClick} onAddToCart={onAddToCart} onBuyNow={onBuyNow} setActiveTab={setActiveTab} animDelay={i * 0.1} />;
+                  return <ProductCard key={product.id} product={product} isWishlisted={isWishlisted} onToggleWishlist={onToggleWishlist} onProductClick={handleProductCardClick} onAddToCart={onAddToCart} onBuyNow={onBuyNow} setActiveTab={setActiveTab} animDelay={i * 0.1} />;
                 })}
               </div>
             </div>
@@ -653,7 +727,7 @@ export default function ECommerceCatalog({
               <div ref={featuredRef} className="products-scroll-container">
                 {products.filter(p => ['masks', 'stencils', 'gifts', 'wallart'].includes(p.category)).map((product, i) => {
                   const isWishlisted = wishlist.some(item => item.id === product.id);
-                  return <ProductCard key={product.id} product={product} isWishlisted={isWishlisted} onToggleWishlist={onToggleWishlist} onProductClick={onProductClick} onAddToCart={onAddToCart} onBuyNow={onBuyNow} setActiveTab={setActiveTab} animDelay={i * 0.1} />;
+                  return <ProductCard key={product.id} product={product} isWishlisted={isWishlisted} onToggleWishlist={onToggleWishlist} onProductClick={handleProductCardClick} onAddToCart={onAddToCart} onBuyNow={onBuyNow} setActiveTab={setActiveTab} animDelay={i * 0.1} />;
                 })}
               </div>
             </div>
@@ -672,7 +746,7 @@ export default function ECommerceCatalog({
               <div ref={moreRef} className="products-scroll-container">
                 {products.slice(1).filter((_, i) => i % 2 === 0).slice(0, 8).map((product, i) => {
                   const isWishlisted = wishlist.some(item => item.id === product.id);
-                  return <ProductCard key={product.id} product={product} isWishlisted={isWishlisted} onToggleWishlist={onToggleWishlist} onProductClick={onProductClick} onAddToCart={onAddToCart} onBuyNow={onBuyNow} setActiveTab={setActiveTab} animDelay={i * 0.1} />;
+                  return <ProductCard key={product.id} product={product} isWishlisted={isWishlisted} onToggleWishlist={onToggleWishlist} onProductClick={handleProductCardClick} onAddToCart={onAddToCart} onBuyNow={onBuyNow} setActiveTab={setActiveTab} animDelay={i * 0.1} />;
                 })}
               </div>
             </div>
@@ -907,7 +981,7 @@ export default function ECommerceCatalog({
                   <div className="products-grid">
                     {paginatedProducts.map((product, i) => {
                       const isWishlisted = wishlist.some(item => item.id === product.id);
-                      return <ProductCard key={product.id} product={product} isWishlisted={isWishlisted} onToggleWishlist={onToggleWishlist} onProductClick={onProductClick} onAddToCart={onAddToCart} onBuyNow={onBuyNow} setActiveTab={setActiveTab} animDelay={i * 0.04} />;
+                      return <ProductCard key={product.id} product={product} isWishlisted={isWishlisted} onToggleWishlist={onToggleWishlist} onProductClick={handleProductCardClick} onAddToCart={onAddToCart} onBuyNow={onBuyNow} setActiveTab={setActiveTab} animDelay={i * 0.04} />;
                     })}
                   </div>
 

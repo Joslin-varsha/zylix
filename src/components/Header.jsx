@@ -104,6 +104,12 @@ export default function Header({
   ];
 
   const navigateTo = (tab, category) => {
+    try {
+      sessionStorage.removeItem('zylix_catalog_scroll');
+      if (category === 'home' || category === 'all') {
+        sessionStorage.removeItem('zylix_catalog_filters');
+      }
+    } catch (e) {}
     setActiveTab(tab);
     if (category) setActiveCategory(category);
     window.scrollTo(0, 0);

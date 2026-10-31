@@ -255,8 +255,23 @@ function AppContent() {
     };
   }, [wishlistOpen]);
 
-  // Ensure page scrolls instantly to top whenever activeTab or selectedProduct changes
+  // Ensure page scrolls instantly to top whenever activeTab or selectedProduct changes,
+  // but restore catalog scroll position if returning back to shop
   React.useEffect(() => {
+    if (activeTab === 'shop') {
+      try {
+        const savedScroll = sessionStorage.getItem('zylix_catalog_scroll');
+        if (savedScroll) {
+          const y = parseInt(savedScroll, 10);
+          if (!isNaN(y) && y > 0) {
+            setTimeout(() => {
+              window.scrollTo({ top: y, behavior: 'instant' });
+            }, 50);
+            return;
+          }
+        }
+      } catch (e) {}
+    }
     window.scrollTo(0, 0);
   }, [activeTab, selectedProduct?.id]);
 
