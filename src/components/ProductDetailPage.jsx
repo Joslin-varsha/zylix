@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   ArrowLeft, ShoppingCart, Heart, ShieldCheck, Truck, RefreshCw, Star, Layers, 
   ChevronLeft, ChevronRight, CheckCircle2, ThumbsUp, MessageSquare, Edit3, X, Check,
-  Sparkles
+  Sparkles, Share2, Copy
 } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000';
@@ -57,6 +57,64 @@ export default function ProductDetailPage({
   const [addedToast, setAddedToast] = useState(false);
   const [customizeWarning, setCustomizeWarning] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  // ━━━ PRODUCT SHARE STATE ━━━
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [copiedToast, setCopiedToast] = useState(false);
+
+  const getShareUrl = () => {
+    return `${window.location.origin}/?product=${product.id}`;
+  };
+
+  const handleShareClick = async (e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    const shareUrl = getShareUrl();
+    const shareData = {
+      title: `${product.name} | Zylix 3D`,
+      text: `Check out ${product.name} (₹${(product.price || 0).toLocaleString('en-IN')}) on Zylix 3D! Custom 3D Printing & Gifts:`,
+      url: shareUrl
+    };
+
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          setShareModalOpen(true);
+        }
+        return;
+      }
+    }
+    setShareModalOpen(true);
+  };
+
+  const handleCopyLink = () => {
+    const shareUrl = getShareUrl();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        setCopiedToast(true);
+        setTimeout(() => setCopiedToast(false), 2500);
+      }).catch(() => fallbackCopy(shareUrl));
+    } else {
+      fallbackCopy(shareUrl);
+    }
+  };
+
+  const fallbackCopy = (text) => {
+    try {
+      const el = document.createElement('textarea');
+      el.value = text;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      setCopiedToast(true);
+      setTimeout(() => setCopiedToast(false), 2500);
+    } catch (e) {
+      console.warn('Copy failed:', e);
+    }
+  };
 
   // ━━━ CUSTOMER REVIEWS STATE ━━━
   const reviewSectionRef = useRef(null);
@@ -476,6 +534,36 @@ export default function ProductDetailPage({
                 </button>
               </>
             )}
+
+            {/* Share Button on Image */}
+            <button
+              type="button"
+              onClick={handleShareClick}
+              style={{
+                position: 'absolute',
+                top: '1rem',
+                right: '4.2rem',
+                width: '42px',
+                height: '42px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                border: '1px solid rgba(203, 213, 225, 0.6)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                backdropFilter: 'blur(4px)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                zIndex: 5,
+                transition: 'all 0.2s ease',
+                color: '#334155'
+              }}
+              title="Share Product"
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#ffffff'; e.currentTarget.style.transform = 'scale(1.08)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.92)'; e.currentTarget.style.transform = 'scale(1)'; }}
+            >
+              <Share2 size={18} />
+            </button>
 
             {/* Wishlist Button */}
             <button
@@ -1707,26 +1795,28 @@ export default function ProductDetailPage({
 
             if (isCustomizable && onCustomize) {
               return (
-                <button
-                  onClick={() => onCustomize(product)}
-                  style={{
-                    width: '100%',
-                    height: '46px',
-                    borderRadius: '12px',
-                    background: '#000000',
-                    color: '#ffffff',
-                    border: 'none',
-                    fontWeight: '900',
-                    fontSize: '0.9rem',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px'
-                  }}
-                >
-                  🎨 Customize in 3D Print Lab
-                </button>
+                <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                  <button
+                    onClick={() => onCustomize(product)}
+                    style={{
+                      flex: 1,
+                      height: '46px',
+                      borderRadius: '12px',
+                      background: '#000000',
+                      color: '#ffffff',
+                      border: 'none',
+                      fontWeight: '900',
+                      fontSize: '0.9rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    🎨 Customize in 3D Print Lab
+                  </button>
+                </div>
               );
             }
 
@@ -1780,6 +1870,297 @@ export default function ProductDetailPage({
               </>
             );
           })()}
+        </div>
+      )}
+
+      {/* ━━━ PRODUCT SHARE MODAL ━━━ */}
+      {shareModalOpen && (
+        <div 
+          onClick={() => setShareModalOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(5px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem',
+            animation: 'fadeIn 0.2s ease'
+          }}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '20px',
+              width: '100%',
+              maxWidth: '460px',
+              padding: isMobile ? '1.25rem' : '1.75rem',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+              border: '1px solid #e2e8f0',
+              position: 'relative'
+            }}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Share2 size={18} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: '900', color: '#0f172a' }}>
+                    Share Product
+                  </h3>
+                  <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                    Share this 3D print design with friends & family
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShareModalOpen(false)}
+                style={{
+                  background: '#f1f5f9',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#64748b'
+                }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Product Mini Preview */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '0.85rem',
+              backgroundColor: '#f8fafc',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              marginBottom: '1.25rem'
+            }}>
+              <img 
+                src={currentImage} 
+                alt={product.name} 
+                style={{ width: '52px', height: '52px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} 
+              />
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <h4 style={{ margin: '0 0 2px', fontSize: '0.88rem', fontWeight: '800', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {product.name}
+                </h4>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: '900', color: '#0f172a' }}>
+                    ₹{(product.price || 0).toLocaleString('en-IN')}
+                  </span>
+                  <span style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: '700' }}>
+                    In Stock
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Social Share Buttons */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '1.25rem' }}>
+              {/* WhatsApp */}
+              <a
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Check out ${product.name} (₹${product.price}) on Zylix 3D!\n${getShareUrl()}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  padding: '0.85rem 0.5rem',
+                  borderRadius: '12px',
+                  backgroundColor: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  color: '#15803d',
+                  textDecoration: 'none',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#22c55e', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '1.1rem' }}>
+                  💬
+                </div>
+                <span style={{ fontSize: '0.72rem', fontWeight: '800' }}>WhatsApp</span>
+              </a>
+
+              {/* Twitter / X */}
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out ${product.name} on Zylix 3D!`)}&url=${encodeURIComponent(getShareUrl())}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  padding: '0.85rem 0.5rem',
+                  borderRadius: '12px',
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  color: '#0f172a',
+                  textDecoration: 'none',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#0f172a', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '0.9rem' }}>
+                  𝕏
+                </div>
+                <span style={{ fontSize: '0.72rem', fontWeight: '800' }}>X (Twitter)</span>
+              </a>
+
+              {/* Facebook */}
+              <a
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(getShareUrl())}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  padding: '0.85rem 0.5rem',
+                  borderRadius: '12px',
+                  backgroundColor: '#eff6ff',
+                  border: '1px solid #bfdbfe',
+                  color: '#1d4ed8',
+                  textDecoration: 'none',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#1877f2', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '1rem' }}>
+                  f
+                </div>
+                <span style={{ fontSize: '0.72rem', fontWeight: '800' }}>Facebook</span>
+              </a>
+
+              {/* Telegram */}
+              <a
+                href={`https://t.me/share/url?url=${encodeURIComponent(getShareUrl())}&text=${encodeURIComponent(`Check out ${product.name} on Zylix 3D!`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  padding: '0.85rem 0.5rem',
+                  borderRadius: '12px',
+                  backgroundColor: '#f0f9ff',
+                  border: '1px solid #bae6fd',
+                  color: '#0284c7',
+                  textDecoration: 'none',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#0088cc', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '1rem' }}>
+                  ✈️
+                </div>
+                <span style={{ fontSize: '0.72rem', fontWeight: '800' }}>Telegram</span>
+              </a>
+            </div>
+
+            {/* Copy Link Input Bar */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: '800', color: '#475569', textTransform: 'uppercase', marginBottom: '0.4rem', letterSpacing: '0.03em' }}>
+                Page Link
+              </label>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: '#f8fafc',
+                border: '1.5px solid #cbd5e1',
+                borderRadius: '10px',
+                padding: '4px 6px 4px 12px',
+                gap: '8px'
+              }}>
+                <input
+                  type="text"
+                  readOnly
+                  value={getShareUrl()}
+                  style={{
+                    flex: 1,
+                    border: 'none',
+                    outline: 'none',
+                    background: 'transparent',
+                    fontSize: '0.82rem',
+                    color: '#334155',
+                    fontFamily: 'inherit'
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  style={{
+                    backgroundColor: copiedToast ? '#16a34a' : '#000000',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '8px 14px',
+                    fontSize: '0.8rem',
+                    fontWeight: '800',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    transition: 'all 0.2s',
+                    flexShrink: 0
+                  }}
+                >
+                  {copiedToast ? (
+                    <>
+                      <Check size={14} /> Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={14} /> Copy Link
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Copied Toast */}
+      {copiedToast && (
+        <div style={{
+          position: 'fixed',
+          bottom: '2rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: '#0f172a',
+          color: '#ffffff',
+          padding: '0.75rem 1.25rem',
+          borderRadius: '30px',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          fontSize: '0.85rem',
+          fontWeight: '700',
+          zIndex: 10000,
+          animation: 'fadeIn 0.2s ease'
+        }}>
+          <CheckCircle2 size={16} color="#10b981" />
+          Product link copied to clipboard!
         </div>
       )}
     </div>

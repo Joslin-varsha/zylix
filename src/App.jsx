@@ -157,6 +157,28 @@ function AppContent() {
   const [welcomeToast, setWelcomeToast] = React.useState('');
   const [cartAlert, setCartAlert] = React.useState(null);
 
+  // Auto-detect and open shared product links (?product=1 or ?id=1 or ?productId=1)
+  React.useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const targetProdId = params.get('product') || params.get('productId') || params.get('id');
+      if (targetProdId) {
+        fetch(`${API_BASE}/api/products/${targetProdId}`)
+          .then(r => r.ok ? r.json() : null)
+          .then(prod => {
+            if (prod && prod.id) {
+              setSelectedProduct(prod);
+              setActiveTab('product-detail');
+              window.scrollTo(0, 0);
+            }
+          })
+          .catch(err => console.warn('Failed to load shared product:', err));
+      }
+    } catch (e) {
+      console.warn('URL parsing error:', e);
+    }
+  }, []);
+
   // Customizer & AI Lab state extensions
   const [labTab, setLabTab] = React.useState('slicer'); // 'slicer', 'designer', 'generator'
   const [designerPreset, setDesignerPreset] = React.useState('keychain'); // 'keychain', 'nameboard', 'phonestand', 'trophy'

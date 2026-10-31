@@ -2422,6 +2422,50 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
+// Fetch single product by ID (for direct deep links and shares)
+app.get('/api/products/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const numericId = parseInt(id);
+
+    let product = null;
+    let useLocal = !isSupabaseConfigured || !supabase;
+
+    if (!useLocal) {
+      try {
+        let query = supabase.from('products').select('*');
+        if (!isNaN(numericId)) query = query.eq('id', numericId);
+        else query = query.eq('id', id);
+        const { data, error } = await query.maybeSingle();
+        if (!error && data) {
+          product = data;
+        } else {
+          useLocal = true;
+        }
+      } catch (err) {
+        useLocal = true;
+      }
+    }
+
+    if (useLocal) {
+      const localProducts = readLocalProducts();
+      product = localProducts.find(p => String(p.id) === String(id));
+      if (!product && typeof mockProducts !== 'undefined' && Array.isArray(mockProducts)) {
+        product = mockProducts.find(p => String(p.id) === String(id));
+      }
+    }
+
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found.' });
+    }
+
+    res.json(mapProductDbToFrontend(product));
+  } catch (err) {
+    console.error('Fetch single product error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Create product (supports single or multiple image uploads)
 app.post('/api/products', upload.any(), async (req, res) => {
   try {

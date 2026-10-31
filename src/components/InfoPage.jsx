@@ -6,7 +6,7 @@ const COMPANY = {
   website: 'www.zylix3d.in',
   phone: '+91 78710 13024',
   email: 'support@zen3d.in',
-  address: 'Ajin.R, Mulagumoodu, 47A Tharavillai, Mulagumoodu P.O – 629167',
+  address: 'Ajin.R, Mulagumoodu,Kanniyakumari– 629167',
   hours: 'Monday – Saturday: 9:00 AM – 7:00 PM | Sunday: Closed',
 };
 

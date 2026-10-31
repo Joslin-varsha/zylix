@@ -3,7 +3,8 @@ import {
   Star, ShoppingCart, Heart, ChevronLeft, ChevronRight, 
   Package, Award, SlidersHorizontal, Key, Gift, Image, 
   PenTool, Lightbulb, Smile, Sparkles, Box, Filter, Zap, 
-  ArrowRight, TrendingUp, Wrench, Shield, Compass, Palette, X
+  ArrowRight, TrendingUp, Wrench, Shield, Compass, Palette, X,
+  Share2, Check
 } from 'lucide-react';
 import { mockProducts as staticProducts } from '../data/products';
 
@@ -1023,6 +1024,39 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, onProductClick, 
     : (catLower.includes('keychain') || nameLower.includes('keychain') || nameLower.includes('key chain') || nameLower.includes('key tag'));
 
   const [isMobileScreen, setIsMobileScreen] = React.useState(window.innerWidth < 768);
+  const [copiedShare, setCopiedShare] = React.useState(false);
+
+  const handleQuickShare = async (e) => {
+    e.stopPropagation();
+    const shareUrl = `${window.location.origin}/?product=${product.id}`;
+    const shareData = {
+      title: `${product.name} | Zylix 3D`,
+      text: `Check out ${product.name} (₹${(product.price || 0).toLocaleString('en-IN')}) on Zylix 3D!`,
+      url: shareUrl
+    };
+
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+      }
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        setCopiedShare(true);
+        setTimeout(() => setCopiedShare(false), 2000);
+      }).catch(() => {
+        setCopiedShare(true);
+        setTimeout(() => setCopiedShare(false), 2000);
+      });
+    } else {
+      setCopiedShare(true);
+      setTimeout(() => setCopiedShare(false), 2000);
+    }
+  };
 
   React.useEffect(() => {
     const handleResize = () => setIsMobileScreen(window.innerWidth < 768);
@@ -1044,6 +1078,18 @@ function ProductCard({ product, isWishlisted, onToggleWishlist, onProductClick, 
         title="Add to Wishlist"
       >
         <Heart size={14} fill={isWishlisted ? '#fff' : 'none'} />
+      </button>
+
+      <button
+        className="card-share-btn"
+        onClick={handleQuickShare}
+        title={copiedShare ? "Link Copied!" : "Share Product"}
+      >
+        {copiedShare ? (
+          <Check size={13} color="#16a34a" />
+        ) : (
+          <Share2 size={13} />
+        )}
       </button>
 
       {/* Image Container with 1:1 Aspect Ratio */}
